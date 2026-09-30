@@ -33,6 +33,4 @@ Most feature-specific automation requires an applied premade. Some quality-of-li
 - Keep an **active GM connected** for coordinated decisions and resource updates. Some range-based features require the GM to display the relevant scene.
 - Decision countdowns default to **60 seconds** and can be configured from **5 to 600 seconds** in the module settings. The GM can pause and resume shared timers.
 
-After installing runtime updates, reload all connected clients. If Medkit marks a premade as outdated, reapply it to update its configured actions and effects.
-
-Created by **Smeeth**.
+All content is from the Daggerheart SRD.
