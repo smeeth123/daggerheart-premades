@@ -1,6 +1,7 @@
 # Daggerheart Premades
 
 Daggerheart Premades is an automation and quality-of-life module for Foundry's Daggerheart system. It reduces repetitive bookkeeping, brings feature choices into the relevant gameplay workflows, and helps players and GMs resolve abilities without replacing the table's narrative decisions.
+<img width="2560" height="1440" alt="Screenshot 2026-09-30 at 6 58 52 PM (3)" src="https://github.com/user-attachments/assets/861ea724-8d95-4df0-a230-5342c3de6fe6" />
 
 ## Key features
 
