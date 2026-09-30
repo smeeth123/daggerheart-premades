@@ -1,0 +1,8 @@
+import {ID,featureActive} from '../core.js';
+import {severeStormDamage} from './eye-of-the-storm.js';
+import {MANTLE_KEY,MANTLE_EFFECT} from './patrons-mantle-data.js';
+const QUERY=`${ID}.expirePatronsMantle`;
+export function mantleItem(actor){return actor?.items?.find(item=>{const flags=item.flags?.[ID];return featureActive(item)&&!flags?.disabled&&(flags?.applied?.key??flags?.premade?.key)===MANTLE_KEY;})??null;}
+export function mantleEffects(actor){const origin=mantleItem(actor)?.effects?.get?.(MANTLE_EFFECT)?.uuid;return origin?[...(actor?.effects??[])].filter(effect=>!effect.disabled&&effect.origin===origin):[];}
+export async function expireMantle(request,{user}){if(!game.user.isActiveGM||!user?.active)return false;const actor=await fromUuid(request.actorUuid);if(!actor?.testUserPermission(user,'OWNER')||!severeStormDamage(request.updates))return false;const allowed=new Set(request.effectIds??[]),ids=mantleEffects(actor).map(effect=>effect.id).filter(id=>allowed.has(id));if(ids.length)await actor.deleteEmbeddedDocuments('ActiveEffect',ids);return true;}
+export function registerPatronsMantle(){CONFIG.queries[QUERY]=expireMantle;Hooks.on('daggerheart.postTakeDamage',(actor,updates)=>{if(!severeStormDamage(updates))return;const effectIds=mantleEffects(actor).map(effect=>effect.id);if(!effectIds.length)return;const gm=game.users.activeGM;if(!gm){ui.notifications.error("Patron's Mantle needs an active GM to expire.");return;}const request={actorUuid:actor.uuid,effectIds,updates};void(gm.isSelf?expireMantle(request,{user:game.user}):gm.query(QUERY,request,{timeout:15000})).catch(error=>{console.error(`${ID} | Patron's Mantle expiry`,error);ui.notifications.error("Patron's Mantle could not expire.");});});}

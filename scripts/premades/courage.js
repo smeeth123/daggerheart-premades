@@ -1,0 +1,15 @@
+import {ID,featureActive} from '../core.js';
+import {COURAGE_KEY} from './courage-data.js';
+import {adaptabilityOutcome} from './adaptability.js';
+import {consumeResolutionTicket} from '../resolution-manager.js';
+import {decisionNow} from '../decision-clock.js';
+import {decisionBudget} from '../settings.js';
+const QUERY=`${ID}.courage`;
+const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export function courageItem(actor){return actor?.type==='character'?actor.items?.find(item=>{const flags=item.flags?.[ID];return featureActive(item)&&!flags?.disabled&&(flags?.applied?.key??flags?.premade?.key)===COURAGE_KEY;})??null:null;}
+export function courageOutcome(request){return adaptabilityOutcome(request.total,request.critical,request.difficulty,request.targets);}
+export async function validateCourage(request,user){if(!user?.active||request.actionType!=='action'||!request.withFear||request.critical||!Number.isFinite(request.total))return null;const actor=await fromUuid(request.sourceUuid),item=courageItem(actor);if(!actor?.testUserPermission(user,'OWNER')||!item||item.uuid!==request.candidate?.itemUuid||courageOutcome(request)!=='unknown')return null;return{actor,item};}
+export async function resolveCourage(request,{user},authorize=consumeResolutionTicket){if(!game.user.isActiveGM||!Number.isFinite(request.deadline)||request.deadline<decisionNow()||request.deadline>decisionNow()+decisionBudget(125000))return false;const valid=await validateCourage(request,user);if(!valid||!authorize(request.resolutionToken,'courage',valid.item.uuid,user))return false;return{itemUuid:valid.item.uuid,bearerName:valid.actor.name};}
+export async function postCourage(actor){const hope=actor.system.resources?.hope,atMax=Number(hope?.value)>=Number(hope?.max);return ChatMessage.create({speaker:ChatMessage.getSpeaker({actor}),content:`<p><strong>Courage — ${esc(actor.name)}</strong></p><p>${atMax?'Triggered after failing with Fear, but Hope is already at maximum.':'Failed with Fear and gains 1 Hope.'}</p>`});}
+export function installCourageResources(Duality,notify=postCourage){const native=Duality.addDualityResourceUpdates;Duality.addDualityResourceUpdates=async function(config){const result=await native.call(this,config);if(config.actionType!=='action'||config.skips?.resources||config.roll?.result?.duality!==-1||config.roll?.isCritical)return result;const actor=await fromUuid(config.source?.actor);if(!actor||!courageItem(actor))return result;const choice=config[ID]?.courageChoice,knownFailure=config.roll?.success===false;if(!knownFailure&&courageItem(actor)?.uuid!==choice?.itemUuid)return result;config.resourceUpdates.addResources([{key:'hope',value:1,enabled:true}]);try{await notify(actor);}catch(error){console.warn(`${ID} | Courage chat notification failed`,error);}return result;};}
+export function registerCourage(){CONFIG.queries[QUERY]=resolveCourage;installCourageResources(CONFIG.Dice.daggerheart.DualityRoll);}

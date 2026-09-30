@@ -1,0 +1,14 @@
+import { decisionBudget } from '../settings.js';
+import { ID,featureActive } from '../core.js';
+import { FAVORED_KEY,FAVORED_ACTION,FAVORED_EFFECT } from './favored-data.js';
+import { timedDialog } from '../dialog.js';
+import { ownerFor } from './aura-rules.js';
+const QUERY=`${ID}.favoredTrait`,pending=new Set();
+export const TRAITS=['agility','strength','finesse','instinct','presence','knowledge'];
+export function favoredAction(action){const item=action.item,f=item?.flags?.[ID];return Boolean(item&&featureActive(item)&&!f?.disabled&&(f?.applied?.key??f?.premade?.key)===FAVORED_KEY&&action.id===FAVORED_ACTION);}
+export async function promptFavored(data,{user}){const actor=await fromUuid(data.actorUuid);if(!actor?.testUserPermission(user,'OWNER')||!actor.testUserPermission(game.user,'OWNER'))return null;return timedDialog(`Favored — ${actor.name}`,'<p>Choose the trait to add to damage rolls while in this stance.</p>',[...TRAITS.map(trait=>{const value=Number(actor.system.traits[trait].value??actor.system.traits[trait].data?.value??0);return {action:trait,label:`${trait[0].toUpperCase()+trait.slice(1)} (${value>=0?'+':''}${value})`,callback:()=>trait};}),{action:'cancel',label:'Cancel',default:true,callback:()=>null}]);}
+export function favoredChanges(effect,trait){if(!TRAITS.includes(trait))throw new Error('Invalid Favored trait.');return effect.system.changes.map(change=>({... (change.toObject?.()??change),...(/^system\.bonuses\.damage\.(?:(?:physical|magical)\.)?bonus$/.test(change.key)?{value:`@system.traits.${trait}.value`}:{})}));}
+export function favoredCanPay(action){return action.cost?.some(c=>c.key==='stress')?Number(action.actor.system.resources.stress.value)<Number(action.actor.system.resources.stress.max):Number(action.actor.system.resources.focus.value)>=1;}
+export function installFavored(Action,ask){const native=Action.prototype.use;Action.prototype.use=async function(...args){if(!favoredAction(this))return native.apply(this,args);if(!favoredCanPay(this)){ui.notifications.warn('Favored requires 1 Focus.');return;}
+ const key=this.actor.uuid;if(pending.has(key))return;pending.add(key);try{const trait=await ask(this.actor);if(!TRAITS.includes(trait)||!favoredAction(this)||!favoredCanPay(this))return;const effect=this.item.effects.get(FAVORED_EFFECT);if(!effect)throw new Error('Favored stance effect is missing. Reapply Medkit.');await effect.update({'system.changes':favoredChanges(effect,trait)});return await native.apply(this,args);}finally{pending.delete(key);}};}
+export function registerFavored(){CONFIG.queries[QUERY]=promptFavored;installFavored(game.system.api.data.actions.actionsTypes.base,actor=>{const owner=ownerFor(actor,[...game.users],game.users.activeGM??game.user),data={actorUuid:actor.uuid};return owner.isSelf?promptFavored(data,{user:game.user}):owner.query(QUERY,data,{timeout:decisionBudget(65000)});});}

@@ -1,0 +1,146 @@
+.dh-premades .dialog-content { max-height: 70vh; overflow-y: auto; }
+.dh-premades .dhp-row { display: grid; grid-template-columns: minmax(140px, 1fr) minmax(220px, 1.5fr); gap: 8px 16px; padding: 12px 0; border-bottom: 1px solid var(--color-border-light-primary, #8886); align-items: center; }
+.dh-premades small { display: block; opacity: .75; margin-top: 4px; }
+.dh-premades label { display: block; }
+.dh-premades .dhp-warning { border-left: 3px solid #d69538; padding-left: 10px; }
+.dhp-status-none { color: #92979e !important; }
+.dhp-status-available { color: #ed9c35 !important; }
+.dhp-status-current { color: #48b96b !important; }
+.dhp-status-outdated { color: #ec5b58 !important; }
+.application .window-header .dhp-medkit-button { display: inline-flex; align-items: center; justify-content: center; }
+.dhp-medkit-button i { pointer-events: none; }
+.dhp-aura-note { border-left: 3px solid #ed9c35; padding-left: 8px; font-size: .9em; }
+
+.dhp-status-disabled { color: #92979e !important; }
+.dh-premades .dhp-enabled { display: flex; align-items: center; gap: 6px; }
+.dh-premades .dhp-loadout-count { margin: 0 0 8px; font-weight: 600; }
+.dh-premades .dhp-loadout-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+.dh-premades .dhp-loadout-card { display: grid; grid-template-columns: auto 36px minmax(0, 1fr); align-items: center; gap: 8px; padding: 8px; border: 1px solid var(--color-border-light-primary, #8886); border-radius: 5px; cursor: help; }
+.dh-premades .dhp-loadout-card:has(input:checked) { border-color: var(--color-warm-1, #c9a65b); background: color-mix(in srgb, var(--color-warm-1, #c9a65b) 12%, transparent); }
+.dh-premades .dhp-loadout-card:has(input:disabled) { opacity: .55; }
+.dh-premades .dhp-loadout-card img { width: 36px; height: 36px; object-fit: cover; border: 0; border-radius: 3px; }
+.dh-premades .dhp-loadout-card span { overflow-wrap: anywhere; }
+
+/* Foundry's pool container shares .dice with Daggerheart's single-die icon.
+   Preserve the native card; neutralize the icon styles on this container only. */
+.chat-message.dhp-unshakeable-roll .dice-tooltip .tooltip-part > .dice {
+  position: static;
+  height: auto;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: auto;
+  font-size: inherit;
+  paint-order: normal;
+  -webkit-text-stroke: 0;
+  z-index: auto;
+}
+.chat-message.dhp-unshakeable-roll .dice-tooltip .tooltip-part > .dice::before {
+  content: none;
+  display: none;
+}
+
+.dhp-resolution-panel section + section { border-top: 1px solid var(--color-border-light-primary, #777); margin-top: 12px; padding-top: 12px; }
+.dhp-resolution-panel table { width: 100%; table-layout: auto; }
+.dhp-resolution-panel th, .dhp-resolution-panel td { padding: 6px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.dhp-resolution-panel td button { display: inline-flex; width: auto; margin: 2px; }
+.dhp-resolution-panel [data-deadline] { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.dhp-resolution-ability { cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }
+
+/* Keep the optional Tide control within the native roll dialog's width. */
+.application.daggerheart.roll-selection .dhp-tide-selector {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid light-dark(var(--dark-blue-40, #18162e40), var(--golden-40, #f3c26740));
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+.application.daggerheart.roll-selection .dhp-tide-selector > label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+.application.daggerheart.roll-selection .dhp-tide-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.application.daggerheart.roll-selection .dhp-tide-title {
+  font-weight: 600;
+  font-size: var(--font-size-14);
+}
+.application.daggerheart.roll-selection .dhp-tide-text small {
+  font-size: var(--font-size-12);
+  opacity: .75;
+}
+.application.daggerheart.roll-selection .dhp-tide-selector select {
+  flex: 0 0 160px;
+  width: 160px;
+  min-width: 0;
+  height: 32px;
+  margin: 0;
+}
+
+.application.daggerheart.roll-selection .dhp-pact-selector {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid light-dark(var(--dark-blue-40, #18162e40), var(--golden-40, #f3c26740));
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+.application.daggerheart.roll-selection .dhp-pact-selector > label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+.application.daggerheart.roll-selection .dhp-pact-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.application.daggerheart.roll-selection .dhp-pact-title {
+  font-weight: 600;
+  font-size: var(--font-size-14);
+}
+.application.daggerheart.roll-selection .dhp-pact-text small {
+  font-size: var(--font-size-12);
+  opacity: .75;
+}
+.application.daggerheart.roll-selection .dhp-pact-selector select {
+  flex: 0 0 160px;
+  width: 160px;
+  min-width: 0;
+  height: 32px;
+  margin: 0;
+}
+
+/* Keep the global timer control separate from individual feature choices. */
+.dhp-timer-controls { display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:10px; margin-bottom:10px; border-bottom:1px solid var(--color-border-light-primary, #666); }
+.dhp-timer-controls button { flex:0 0 auto; width:auto; }
+
+.dhp-help-ally { padding:10px; border:1px solid var(--color-border-light-primary, #666); border-radius:6px; margin:8px 0; }
+.dhp-help-ally label { display:flex; align-items:center; gap:8px; }
+.dhp-help-ally p { margin:6px 0; }
+.daggerheart.roll-selection .dhp-adept-cost {
+  align-items: center;
+  display: grid;
+  gap: 0.35rem;
+  grid-template-columns: minmax(8rem, 1fr) auto auto;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.daggerheart.roll-selection .dhp-adept-cost button {
+  margin: 0;
+  white-space: nowrap;
+}

@@ -1,0 +1,264 @@
+import { ID } from '../core.js';
+export const GIFTED_KEY='troubadour-gifted-performer';
+export function giftedData(folder){const data={
+  "name": "Gifted Performer",
+  "type": "feature",
+  "img": "icons/tools/instruments/harp-yellow-teal.webp",
+  "system": {
+    "description": "<p>You can play three different types of songs, once each per long rest; describe how you perform for others to gain the listed benefit:</p><ul><li><p><strong>Relaxing Song:</strong> You and all allies within Close range clear a Hit Point.</p></li><li><p><strong>Epic Song:</strong> Make a target within Close range temporarily Vulnerable.</p></li><li><p><strong>Heartbreaking Song:</strong> You and all allies within Close range gain a Hope.</p></li></ul>",
+    "resource": null,
+    "actions": {
+      "xvs7ZKm93AlnZD3F": {
+        "type": "healing",
+        "_id": "xvs7ZKm93AlnZD3F",
+        "systemPath": "actions",
+        "description": "<p><strong>You and all allies</strong> within <strong>Close</strong> range <strong>clear a Hit Point</strong>.</p>",
+        "chatDisplay": true,
+        "actionType": "action",
+        "cost": [],
+        "uses": {
+          "value": 0,
+          "max": "1",
+          "recovery": "longRest",
+          "consumeOnSuccess": false
+        },
+        "damage": {
+          "main": null,
+          "resources": {
+            "hitPoints": {
+              "value": {
+                "custom": {
+                  "enabled": true,
+                  "formula": "1"
+                },
+                "multiplier": "prof",
+                "flatMultiplier": 1,
+                "dice": "d6",
+                "bonus": null
+              },
+              "applyTo": "hitPoints",
+              "base": false,
+              "resultBased": false,
+              "valueAlt": {
+                "multiplier": "prof",
+                "flatMultiplier": 1,
+                "dice": "d6",
+                "bonus": null,
+                "custom": {
+                  "enabled": false,
+                  "formula": ""
+                }
+              },
+              "fullRestore": false
+            }
+          }
+        },
+        "target": {
+          "type": "any",
+          "amount": null
+        },
+        "effects": [],
+        "roll": {
+          "type": null,
+          "trait": null,
+          "difficulty": null,
+          "bonus": null,
+          "advState": "neutral",
+          "diceRolling": {
+            "multiplier": "prof",
+            "flatMultiplier": 1,
+            "dice": "d6",
+            "compare": null,
+            "treshold": null
+          },
+          "useDefault": false
+        },
+        "name": "Relaxing Song",
+        "img": "icons/environment/wilderness/tree-oak.webp",
+        "range": "",
+        "baseAction": false,
+        "originItem": {
+          "type": "itemCollection"
+        },
+        "triggers": [],
+        "areas": []
+      },
+      "nvfJ8rOx8baI6POZ": {
+        "type": "effect",
+        "_id": "nvfJ8rOx8baI6POZ",
+        "systemPath": "actions",
+        "description": "<p>Make <strong>a target</strong> within <strong>Close</strong> range temporarily <strong>Vulnerable</strong>.</p>",
+        "chatDisplay": true,
+        "actionType": "action",
+        "cost": [],
+        "uses": {
+          "value": 0,
+          "max": "1",
+          "recovery": "longRest",
+          "consumeOnSuccess": false
+        },
+        "effects": [
+          {
+            "_id": "FK4IdbxluRErfYor",
+            "onSave": false
+          }
+        ],
+        "target": {
+          "type": "hostile",
+          "amount": null
+        },
+        "name": "Epic Song",
+        "img": "icons/skills/targeting/target-strike-triple-blue.webp",
+        "range": "close",
+        "baseAction": false,
+        "originItem": {
+          "type": "itemCollection"
+        },
+        "triggers": [],
+        "areas": []
+      },
+      "QTTgKnhpNE2XHz4u": {
+        "type": "healing",
+        "_id": "QTTgKnhpNE2XHz4u",
+        "systemPath": "actions",
+        "description": "<p><strong>You and all allies</strong> within <strong>Close</strong> range <strong>gain a Hope</strong>.</p>",
+        "chatDisplay": true,
+        "actionType": "action",
+        "cost": [],
+        "uses": {
+          "value": 0,
+          "max": "1",
+          "recovery": "longRest",
+          "consumeOnSuccess": false
+        },
+        "damage": {
+          "main": null,
+          "resources": {
+            "hope": {
+              "value": {
+                "custom": {
+                  "enabled": true,
+                  "formula": "1"
+                },
+                "multiplier": "prof",
+                "flatMultiplier": 1,
+                "dice": "d6",
+                "bonus": null
+              },
+              "applyTo": "hope",
+              "base": false,
+              "resultBased": false,
+              "valueAlt": {
+                "multiplier": "prof",
+                "flatMultiplier": 1,
+                "dice": "d6",
+                "bonus": null,
+                "custom": {
+                  "enabled": false,
+                  "formula": ""
+                }
+              },
+              "fullRestore": false
+            }
+          }
+        },
+        "target": {
+          "type": "friendly",
+          "amount": null
+        },
+        "effects": [],
+        "roll": {
+          "type": null,
+          "trait": null,
+          "difficulty": null,
+          "bonus": null,
+          "advState": "neutral",
+          "diceRolling": {
+            "multiplier": "prof",
+            "flatMultiplier": 1,
+            "dice": "d6",
+            "compare": null,
+            "treshold": null
+          },
+          "useDefault": false
+        },
+        "name": "Heartbreaking Song",
+        "img": "icons/magic/life/heart-cross-strong-flame-purple-orange.webp",
+        "range": "close",
+        "baseAction": false,
+        "originItem": {
+          "type": "itemCollection"
+        },
+        "triggers": [],
+        "areas": []
+      }
+    },
+    "attribution": {
+      "source": "Daggerheart SRD",
+      "page": null,
+      "artist": ""
+    },
+    "gmNotes": "",
+    "granter": null,
+    "featureForm": "passive"
+  },
+  "effects": [
+    {
+      "name": "Epic Song",
+      "img": "icons/tools/instruments/harp-yellow-teal.webp",
+      "transfer": false,
+      "_id": "FK4IdbxluRErfYor",
+      "type": "base",
+      "system": {
+        "changes": [],
+        "duration": {
+          "type": "temporary",
+          "description": ""
+        },
+        "rangeDependence": null,
+        "stacking": null,
+        "targetDispositions": []
+      },
+      "disabled": false,
+      "duration": {
+        "value": null,
+        "units": "seconds",
+        "expiry": null,
+        "expired": false
+      },
+      "description": "<p>Make a target within Close range temporarily Vulnerable.</p>",
+      "tint": "#ffffff",
+      "statuses": [
+        "vulnerable"
+      ],
+      "sort": 0,
+      "flags": {},
+      "start": {
+        "time": 0,
+        "combat": null,
+        "combatant": null,
+        "initiative": null,
+        "round": null,
+        "turn": null
+      },
+      "showIcon": 1,
+      "folder": null
+    }
+  ]
+};
+data.folder=folder;data.flags={[ID]:{premade:{key:GIFTED_KEY,version:'1.0.0',category:'subclass-features',aliases:[],sourceUuids:['Compendium.daggerheart.subclasses.Item.99U7YWNCxFZHCiT0']}}};return data;}
+export async function ensureGiftedPerformer() {
+  const pack = game.packs.get(`${ID}.subclass-features`);
+  if (!pack) throw new Error('The Subclass Features compendium is missing.');
+  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === GIFTED_KEY);
+  if (existing?.getFlag(ID,'premade')?.version === '1.0.0') return existing;
+  const folder = pack.folders.find(f => !f.folder && f.name === 'Troubadour');
+  if (!folder) throw new Error('The Troubadour compendium folder is missing.');
+  const locked = pack.locked;
+  try {
+    if (locked) await pack.configure({ locked: false });
+    const item = existing ? await existing.update(giftedData(folder.id)) : await Item.create(giftedData(folder.id), { pack: pack.collection });
+    if (!item) throw new Error('Gifted Performer creation was cancelled.');
+    return item;
+  } finally { if (locked) await pack.configure({ locked: true }); }
+}

@@ -1,0 +1,6 @@
+import {ID} from './core.js';
+const MARK=Symbol.for(`${ID}.safeRollResolverHook`);
+const faulty=fn=>String(fn).includes('.input-grid[data-term-id=${termId}] legend');
+export function safeResolverLabels(document,html,options){const i18n=typeof options?.localize==='function'&&typeof options?.format==='function'?options:game.i18n;for(const[termId,data]of document.fulfillable){const key=data.term.modifiers.includes('h')?'hope':data.term.modifiers.includes('f')?'fear':null;if(!key)continue;const roll=i18n.localize(`DAGGERHEART.GENERAL.${key}`),label=i18n.format('DAGGERHEART.GENERAL.rollWith',{roll}),legend=html.querySelector(`.input-grid[data-term-id="${termId}"] legend`);if(legend?.childNodes?.[0])legend.childNodes[0].nodeValue=`${label} `;}}
+export function installSafeRollResolverHook(HookClass=Hooks){if(HookClass[MARK])return false;const entries=HookClass.events.renderRollResolver??[],broken=entries.filter(entry=>faulty(entry.fn));if(!broken.length)return false;for(const entry of broken)HookClass.off('renderRollResolver',entry.id);HookClass.on('renderRollResolver',safeResolverLabels);Object.defineProperty(HookClass,MARK,{value:true});return true;}
+export function registerRollResolverCompat(){installSafeRollResolverHook();}

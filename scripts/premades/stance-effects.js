@@ -1,0 +1,1 @@
+export const STANCE_EFFECTS=new Set(["wTLu5PCb5tVANoXR","3ywLEf7h2TaVzOCf","RtscqiOS754ouvOM","GcjxmDtqCU7J0IU3","SbL1r4YtyDX6eYLe","M3HdEjgCvl15S9HO","cEi6RO2te92zNqm2","HkFjCOTppPwFhoDD","zmML95HUwWUM8RqY","r0feAH80Gh2x6Hta","E3nMTwKEtVGuqaqS","ZW4pQL4QoTFKL7Ry","lDRAICtZPyjMWKgB","td74xw7ic4NbaYl0","lIOscgRKYhFlGa9y","fwzWT0E4TeDptHek"]);

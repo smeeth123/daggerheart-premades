@@ -1,0 +1,11 @@
+# Local development files are not part of the published module.
+/tests/
+/AGENTS.md
+/docs/
+/node_modules/
+.DS_Store
+
+# LevelDB diagnostics and lock files (numbered .log files contain data).
+/packs/**/LOG
+/packs/**/LOG.old
+/packs/**/LOCK
