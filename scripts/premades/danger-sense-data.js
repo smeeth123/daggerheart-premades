@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const DANGER_KEY='goblin-danger-sense';
 export const DANGER_ACTION='V2K3pMWOCVwBUnjq';
@@ -65,15 +66,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:DANGER_KEY,version:'1.0.0',cat
 export async function ensureDangerSense() {
   const pack = game.packs.get(`${ID}.ancestry-features`);
   if (!pack) throw new Error('The Ancestry Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === DANGER_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === DANGER_KEY);
   if (existing) return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Goblin');
   if (!folder) throw new Error('The Goblin compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = await Item.create(dangerData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Danger Sense creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

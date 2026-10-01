@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const UNSHAKEABLE_KEY = 'firbolg-unshakeable';
 export const UNSHAKEABLE_ACTION = 'x8xbjyCrJ0okOpIU';
@@ -28,15 +29,15 @@ export function unshakeableData(folder) {
 export async function ensureUnshakeable() {
   const pack = game.packs.get(`${ID}.ancestry-features`);
   if (!pack) throw new Error('The Ancestry Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === UNSHAKEABLE_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === UNSHAKEABLE_KEY);
   if (existing) return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Firbolg');
   if (!folder) throw new Error('The Firbolg compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = await Item.create(unshakeableData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Unshakeable creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const UNBOUND_KEY='freeborne-unbound';
 export const UNBOUND_ACTION='L03g0jA9msxRiuXL';
@@ -51,15 +52,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:UNBOUND_KEY,version:'1.0.0',ca
 export async function ensureUnbound() {
   const pack = game.packs.get(`${ID}.community-features`);
   if (!pack) throw new Error('The Community Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === UNBOUND_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === UNBOUND_KEY);
   if (existing) return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Freeborne');
   if (!folder) throw new Error('The Freeborne compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = await Item.create(unboundData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Unbound creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

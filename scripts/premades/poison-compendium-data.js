@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const POISON_KEY='poisoners-poison-compendium';
 export function poisonData(folder){const data={
@@ -184,15 +185,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:POISON_KEY,version:'1.0.0',cat
 export async function ensurePoisonCompendium() {
   const pack = game.packs.get(`${ID}.subclass-features`);
   if (!pack) throw new Error('The Class Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === POISON_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === POISON_KEY);
   if (existing?.getFlag(ID,'premade')?.version === '1.0.0') return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Poisoners Guild');
   if (!folder) throw new Error('The Poisoners Guild compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = existing ? await existing.update(poisonData(folder.id)) : await Item.create(poisonData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Poison Compendium creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

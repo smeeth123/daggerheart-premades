@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const STURDY_KEY='orc-sturdy';
 export function sturdyData(folder){
@@ -7,15 +8,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:STURDY_KEY,version:'1.0.0',cat
 export async function ensureSturdy() {
   const pack = game.packs.get(`${ID}.ancestry-features`);
   if (!pack) throw new Error('The Ancestry Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === STURDY_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === STURDY_KEY);
   if (existing) return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Orc');
   if (!folder) throw new Error('The Orc compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = await Item.create(sturdyData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Sturdy creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import {ID} from '../core.js';
 export const APEX_KEY='wayfinder-apex-predator';
 export function apexData(folder){const data={
@@ -7,7 +8,7 @@ export function apexData(folder){const data={
 };data.folder=folder;data.flags={[ID]:{premade:{key:APEX_KEY,version:'1.0.0',category:'subclass-features',aliases:[],sourceUuids:['Compendium.daggerheart.subclasses.Item.lwH3E0Zyf4gbVOd0']}}};return data;}
 export async function ensureApexPredator(){
  const pack=game.packs.get(`${ID}.subclass-features`);if(!pack)throw new Error('The Subclass Features compendium is missing.');
- const existing=(await pack.getDocuments()).find(i=>i.getFlag(ID,'premade')?.key===APEX_KEY);if(existing?.getFlag(ID,'premade')?.version==='1.0.0')return existing;
+ const existing=(await premadeDocuments(pack)).find(i=>i.getFlag(ID,'premade')?.key===APEX_KEY);if(existing?.getFlag(ID,'premade')?.version==='1.0.0')return existing;
  const folder=pack.folders.find(f=>!f.folder&&f.name==='Wayfinder');if(!folder)throw new Error('The Wayfinder compendium folder is missing.');
- const locked=pack.locked;try{if(locked)await pack.configure({locked:false});const item=existing?await existing.update(apexData(folder.id)):await Item.create(apexData(folder.id),{pack:pack.collection});if(!item)throw new Error('Apex Predator creation was cancelled.');return item;}finally{if(locked)await pack.configure({locked:true});}
+ const locked=pack.locked;try{if(locked)await configurePremadePack(pack,{locked:false});const item=existing?await existing.update(apexData(folder.id)):await Item.create(apexData(folder.id),{pack:pack.collection});if(!item)throw new Error('Apex Predator creation was cancelled.');return item;}finally{if(locked)await configurePremadePack(pack,{locked:true});}
 }

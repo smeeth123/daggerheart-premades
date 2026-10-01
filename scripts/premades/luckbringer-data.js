@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const LUCKBRINGER_KEY='halfling-luckbringer';
 export const LUCKBRINGER_ACTION='8sK3t73bFkpb999C';
@@ -102,15 +103,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:LUCKBRINGER_KEY,version:'1.0.0
 export async function ensureLuckbringer() {
   const pack = game.packs.get(`${ID}.ancestry-features`);
   if (!pack) throw new Error('The Ancestry Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === LUCKBRINGER_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === LUCKBRINGER_KEY);
   if (existing) return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Halfling');
   if (!folder) throw new Error('The Halfling compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = await Item.create(luckbringerData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Luckbringer creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

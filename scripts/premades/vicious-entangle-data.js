@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import {ID} from '../core.js';
 export const ENTANGLE_KEY='sage-vicious-entangle',ENTANGLE_CAST='lrA95PnD2vOwwmgN',ENTANGLE_EXTRA='vh1IKRvsU4w57lBt';
 export const ENTANGLE_CAST_EFFECT='Xh0wrgRUuYpwChBU',ENTANGLE_EXTRA_EFFECT='2xzOqTaPJQzGqFJv';
@@ -28,12 +29,12 @@ export function viciousEntangleData(folder){return {
 };}
 export async function ensureViciousEntangle(){
   const pack=game.packs.get(`${ID}.domain-cards`);if(!pack)throw Error('The Domain Cards compendium is missing.');
-  const existing=(await pack.getDocuments()).find(item=>item.getFlag(ID,'premade')?.key===ENTANGLE_KEY);
+  const existing=(await premadeDocuments(pack)).find(item=>item.getFlag(ID,'premade')?.key===ENTANGLE_KEY);
   if(existing?.getFlag(ID,'premade')?.version==='1.0.0')return existing;
   const folder=pack.folders.find(entry=>!entry.folder&&entry.name==='Sage');if(!folder)throw Error('The Sage compendium folder is missing.');
   const locked=pack.locked;
-  try{if(locked)await pack.configure({locked:false});const data=viciousEntangleData(folder.id);
+  try{if(locked)await configurePremadePack(pack,{locked:false});const data=viciousEntangleData(folder.id);
     const item=existing?await existing.update(data,{diff:false,recursive:false}):await Item.create(data,{pack:pack.collection});
     if(!item)throw Error('Vicious Entangle creation was cancelled.');return item;
-  }finally{if(locked)await pack.configure({locked:true});}
+  }finally{if(locked)await configurePremadePack(pack,{locked:true});}
 }

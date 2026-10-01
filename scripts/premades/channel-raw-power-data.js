@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const RAW_KEY='sorcerer-channel-raw-power',RAW_ACTION='YFmqnbMx540su2Ni';
 export function rawData(folder){const data={
@@ -53,15 +54,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:RAW_KEY,version:'1.0.0',catego
 export async function ensureChannelRawPower() {
   const pack = game.packs.get(`${ID}.class-features`);
   if (!pack) throw new Error('The Class Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === RAW_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === RAW_KEY);
   if (existing) return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Sorcerer');
   if (!folder) throw new Error('The Sorcerer compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = await Item.create(rawData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Channel Raw Power creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

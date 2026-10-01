@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const EXACTING_KEY='martial-stance-exacting',EXACTING_EFFECT='lDRAICtZPyjMWKgB';
 export function exactingData(folder){const data={
@@ -102,15 +103,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:EXACTING_KEY,version:'1.0.0',c
 export async function ensureExacting() {
   const pack = game.packs.get(`${ID}.subclass-features`);
   if (!pack) throw new Error('The Subclass Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === EXACTING_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === EXACTING_KEY);
   if (existing?.getFlag(ID,'premade')?.version === '1.0.0') return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Martial Artist');
   if (!folder) throw new Error('The Martial Artist compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = existing ? await existing.update(exactingData(folder.id)) : await Item.create(exactingData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Exacting creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

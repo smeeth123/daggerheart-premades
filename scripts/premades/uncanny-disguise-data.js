@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import {ID} from '../core.js';
 export const UNCANNY_DISGUISE_KEY='midnight-uncanny-disguise';
 export const UNCANNY_DISGUISE_ACTIVATE='gMdD6cTmUU4qbwq7',UNCANNY_DISGUISE_SPEND='OoNND7VcWoBQdtFK',UNCANNY_DISGUISE_EFFECT='ou3RLeYshTocbNYo';
@@ -27,13 +28,13 @@ export function uncannyDisguiseData(folder){return {
 };}
 export async function ensureUncannyDisguise(){
   const pack=game.packs.get(`${ID}.domain-cards`);if(!pack)throw Error('The Domain Cards compendium is missing.');
-  const existing=(await pack.getDocuments()).find(item=>item.getFlag(ID,'premade')?.key===UNCANNY_DISGUISE_KEY);
+  const existing=(await premadeDocuments(pack)).find(item=>item.getFlag(ID,'premade')?.key===UNCANNY_DISGUISE_KEY);
   if(existing?.getFlag(ID,'premade')?.version==='1.0.0')return existing;
   const folder=pack.folders.find(entry=>!entry.folder&&entry.name==='Midnight');if(!folder)throw Error('The Midnight compendium folder is missing.');
   const locked=pack.locked;
   try{
-    if(locked)await pack.configure({locked:false});const data=uncannyDisguiseData(folder.id);
+    if(locked)await configurePremadePack(pack,{locked:false});const data=uncannyDisguiseData(folder.id);
     const item=existing?await existing.update(data,{diff:false,recursive:false}):await Item.create(data,{pack:pack.collection});
     if(!item)throw Error('Uncanny Disguise creation was cancelled.');return item;
-  }finally{if(locked)await pack.configure({locked:true});}
+  }finally{if(locked)await configurePremadePack(pack,{locked:true});}
 }

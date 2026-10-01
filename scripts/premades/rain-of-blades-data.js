@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import {ID} from '../core.js';
 export const RAIN_OF_BLADES_KEY='midnight-rain-of-blades',RAIN_OF_BLADES_ACTION='WTnjKQs2uI1TuF9r';
 const cast='<p><strong>Spend a Hope</strong> to make a <strong>Spellcast Roll</strong> and conjure throwing blades that strike out at all targets within Very Close range. Targets you succeed against take <strong>d8+2</strong> magic damage using your Proficiency.</p>';
@@ -17,13 +18,13 @@ export function rainOfBladesData(folder){return {
 };}
 export async function ensureRainOfBlades(){
   const pack=game.packs.get(`${ID}.domain-cards`);if(!pack)throw Error('The Domain Cards compendium is missing.');
-  const existing=(await pack.getDocuments()).find(item=>item.getFlag(ID,'premade')?.key===RAIN_OF_BLADES_KEY);
+  const existing=(await premadeDocuments(pack)).find(item=>item.getFlag(ID,'premade')?.key===RAIN_OF_BLADES_KEY);
   if(existing?.getFlag(ID,'premade')?.version==='1.0.0')return existing;
   const folder=pack.folders.find(entry=>!entry.folder&&entry.name==='Midnight');if(!folder)throw Error('The Midnight compendium folder is missing.');
   const locked=pack.locked;
   try{
-    if(locked)await pack.configure({locked:false});const data=rainOfBladesData(folder.id);
+    if(locked)await configurePremadePack(pack,{locked:false});const data=rainOfBladesData(folder.id);
     const item=existing?await existing.update(data,{diff:false,recursive:false}):await Item.create(data,{pack:pack.collection});
     if(!item)throw Error('Rain of Blades creation was cancelled.');return item;
-  }finally{if(locked)await pack.configure({locked:true});}
+  }finally{if(locked)await configurePremadePack(pack,{locked:true});}
 }

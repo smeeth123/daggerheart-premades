@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const VOLATILE_KEY='sorcerer-volatile-magic',VOLATILE_ACTION='JQPMlMLYMs84rWIy';
 export function volatileData(folder){const data={
@@ -62,15 +63,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:VOLATILE_KEY,version:'1.0.0',c
 export async function ensureVolatileMagic() {
   const pack = game.packs.get(`${ID}.class-features`);
   if (!pack) throw new Error('The Class Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === VOLATILE_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === VOLATILE_KEY);
   if (existing) return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Sorcerer');
   if (!folder) throw new Error('The Sorcerer compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = await Item.create(volatileData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Volatile Magic creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

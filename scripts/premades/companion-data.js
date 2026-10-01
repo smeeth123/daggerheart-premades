@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 
 export const BEASTFORM_COMPANION_KEY = 'beastform-companion';
@@ -23,13 +24,13 @@ export function beastformCompanionData(folder) {
 export async function ensureBeastformCompanion() {
   const pack = game.packs.get(`${ID}.beastform-features`);
   if (!pack) throw new Error('The Beastform Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID, 'premade')?.key === BEASTFORM_COMPANION_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID, 'premade')?.key === BEASTFORM_COMPANION_KEY);
   if (existing?.getFlag(ID, 'premade')?.version === '1.0.0') return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Beastform Features');
   if (!folder) throw new Error('The Beastform Features compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const data = beastformCompanionData(folder.id);
     const item = existing
       ? await existing.update(data, { diff: false, recursive: false })
@@ -37,6 +38,6 @@ export async function ensureBeastformCompanion() {
     if (!item) throw new Error('Companion creation was cancelled.');
     return item;
   } finally {
-    if (locked) await pack.configure({ locked: true });
+    if (locked) await configurePremadePack(pack,{ locked: true });
   }
 }

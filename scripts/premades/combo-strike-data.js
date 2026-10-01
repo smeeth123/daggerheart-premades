@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const COMBO_KEY='brawler-combo-strike';
 export const COMBO_ACTION='ZRZ0l8WZQdzg656w';
@@ -97,15 +98,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:COMBO_KEY,version:'1.0.0',cate
 export async function ensureComboStrike() {
   const pack = game.packs.get(`${ID}.class-features`);
   if (!pack) throw new Error('The Class Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === COMBO_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === COMBO_KEY);
   if (existing) return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Brawler');
   if (!folder) throw new Error('The Brawler compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = await Item.create(comboData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Combo Strike creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

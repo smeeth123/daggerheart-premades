@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const COMPASS_KEY='halfling-internal-compass';
 export function compassData(folder){
@@ -7,15 +8,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:COMPASS_KEY,version:'1.0.0',ca
 export async function ensureInternalCompass() {
   const pack = game.packs.get(`${ID}.ancestry-features`);
   if (!pack) throw new Error('The Ancestry Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === COMPASS_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === COMPASS_KEY);
   if (existing) return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Halfling');
   if (!folder) throw new Error('The Halfling compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = await Item.create(compassData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Internal Compass creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

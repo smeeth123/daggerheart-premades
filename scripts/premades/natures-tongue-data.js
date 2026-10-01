@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import {ID} from '../core.js';
 export const NATURES_TONGUE_KEY='sage-natures-tongue',NATURES_TONGUE_SPEAK='qQEeyIGs0wKjW3a1',NATURES_TONGUE_BONUS='IIJC4HGdilVv3YMo',NATURES_TONGUE_EFFECT='0JYDk5CQ66bHGQO0';
 const speak="<p>You can speak the language of the natural world. When you want to speak to the plants and animals around you, make an <strong>Instinct Roll (12)</strong>. On a success, they'll give you the information they know. On a roll with Fear, their knowledge might be limited or come at a cost.</p>";
@@ -23,13 +24,13 @@ export function naturesTongueData(folder){return {
 };}
 export async function ensureNaturesTongue(){
   const pack=game.packs.get(`${ID}.domain-cards`);if(!pack)throw Error('The Domain Cards compendium is missing.');
-  const existing=(await pack.getDocuments()).find(item=>item.getFlag(ID,'premade')?.key===NATURES_TONGUE_KEY);
+  const existing=(await premadeDocuments(pack)).find(item=>item.getFlag(ID,'premade')?.key===NATURES_TONGUE_KEY);
   if(existing?.getFlag(ID,'premade')?.version==='1.0.0')return existing;
   const folder=pack.folders.find(entry=>!entry.folder&&entry.name==='Sage');if(!folder)throw Error('The Sage compendium folder is missing.');
   const locked=pack.locked;
   try{
-    if(locked)await pack.configure({locked:false});const data=naturesTongueData(folder.id);
+    if(locked)await configurePremadePack(pack,{locked:false});const data=naturesTongueData(folder.id);
     const item=existing?await existing.update(data,{diff:false,recursive:false}):await Item.create(data,{pack:pack.collection});
     if(!item)throw Error("Nature's Tongue creation was cancelled.");return item;
-  }finally{if(locked)await pack.configure({locked:true});}
+  }finally{if(locked)await configurePremadePack(pack,{locked:true});}
 }

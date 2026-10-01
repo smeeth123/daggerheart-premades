@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 
 export const WINGS_KEY = 'aetheris-celestial-wings';
@@ -29,15 +30,15 @@ export function celestialWingsData(folder) {
 export async function ensureCelestialWings() {
   const pack = game.packs.get(`${ID}.ancestry-features`);
   if (!pack) throw new Error('The Ancestry Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID, 'premade')?.key === WINGS_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID, 'premade')?.key === WINGS_KEY);
   if (existing) return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Aetheris');
   if (!folder) throw new Error('The Aetheris compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = await Item.create(celestialWingsData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Celestial Wings creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

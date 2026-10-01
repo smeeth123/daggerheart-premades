@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const BRAVE_KEY='warborne-brave-face';
 export const BRAVE_ACTION='sguCcIhnp8FjwVZd';
@@ -60,15 +61,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:BRAVE_KEY,version:'1.0.0',cate
 export async function ensureBraveFace() {
   const pack = game.packs.get(`${ID}.community-features`);
   if (!pack) throw new Error('The Community Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === BRAVE_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === BRAVE_KEY);
   if (existing) return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Warborne');
   if (!folder) throw new Error('The Warborne compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = await Item.create(braveData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Brave Face creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

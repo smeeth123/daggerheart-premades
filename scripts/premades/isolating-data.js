@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const ISOLATING_KEY='martial-stance-isolating',ISOLATING_EFFECT='GcjxmDtqCU7J0IU3';
 export function isolatingData(folder){const data={
@@ -102,15 +103,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:ISOLATING_KEY,version:'1.0.0',
 export async function ensureIsolating() {
   const pack = game.packs.get(`${ID}.subclass-features`);
   if (!pack) throw new Error('The Subclass Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === ISOLATING_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === ISOLATING_KEY);
   if (existing?.getFlag(ID,'premade')?.version === '1.0.0') return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Martial Artist');
   if (!folder) throw new Error('The Martial Artist compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = existing ? await existing.update(isolatingData(folder.id)) : await Item.create(isolatingData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Isolating creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

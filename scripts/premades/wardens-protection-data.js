@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import {ID} from '../core.js';
 export const PROTECTION_KEY='warden-protection',PROTECTION_ACTION='ozYzhQfRt5sp19di';
 export function wardensProtectionData(folder){const data={
@@ -59,15 +60,15 @@ export function wardensProtectionData(folder){const data={
 export async function ensureWardensProtection() {
   const pack = game.packs.get(`${ID}.subclass-features`);
   if (!pack) throw new Error('The Subclass Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === PROTECTION_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === PROTECTION_KEY);
   if (existing?.getFlag(ID,'premade')?.version === '1.0.0') return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Warden of Renewal');
   if (!folder) throw new Error('The Warden of Renewal compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = existing ? await existing.update(wardensProtectionData(folder.id)) : await Item.create(wardensProtectionData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('WardensProtection creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

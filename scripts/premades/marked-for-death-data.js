@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { modernDamageEffects } from '../effect-compat.js';
 import { ID } from '../core.js';
 export const MARK_KEY='assassin-marked-for-death';
@@ -164,15 +165,15 @@ modernDamageEffects(data);data.folder=folder;data.flags={[ID]:{premade:{key:MARK
 export async function ensureMarkedForDeath() {
   const pack = game.packs.get(`${ID}.class-features`);
   if (!pack) throw new Error('The Class Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === MARK_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === MARK_KEY);
   if (existing?.getFlag(ID,'premade')?.version === '1.1.0') return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Assassin');
   if (!folder) throw new Error('The Assassin compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = existing ? await existing.update(markData(folder.id)) : await Item.create(markData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Marked for Death creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const WEAPON_KEY='brawler-i-am-the-weapon';
 export const WEAPON_EFFECT='bGHd7NfUn4fL6u1g';
@@ -88,15 +89,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:WEAPON_KEY,version:'1.0.0',cat
 export async function ensureIAmTheWeapon() {
   const pack = game.packs.get(`${ID}.class-features`);
   if (!pack) throw new Error('The Class Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === WEAPON_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === WEAPON_KEY);
   if (existing) return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Brawler');
   if (!folder) throw new Error('The Brawler compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = await Item.create(weaponData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('I Am the Weapon creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from './premade-setup-context.js';
 import { ID, normalize } from './core.js';
 import { FOLDER_CATALOG } from './folder-catalog.js';
 
@@ -25,7 +26,7 @@ export async function ensureFolders() {
     if (!missing.length) continue;
     const locked = pack.locked;
     try {
-      if (locked) await pack.configure({ locked: false });
+      if (locked) await configurePremadePack(pack,{ locked: false });
       const folders = await foundry.documents.Folder.implementation.createDocuments(missing, { pack: pack.collection });
       created += folders.length;
       if (folders.length !== missing.length) errors.push(`${pack.title}: some folder creations were cancelled.`);
@@ -33,7 +34,7 @@ export async function ensureFolders() {
       errors.push(`${pack.title ?? category}: ${error.message}`);
     } finally {
       if (locked) {
-        try { await pack.configure({ locked: true }); }
+        try { await configurePremadePack(pack,{ locked: true }); }
         catch (error) { errors.push(`${pack.title ?? category}: could not restore compendium lock: ${error.message}`); }
       }
     }
@@ -48,30 +49,30 @@ export async function removeObsoleteWitchSubclassFolder() {
   if (!game.user.isActiveGM) return;
   const pack=game.packs.get(`${ID}.subclass-features`);
   if(!pack)return;
-  const documents=await pack.getDocuments(),folders=[...pack.folders.values()],folderId=value=>typeof value==='string'?value:value?.id;
+  const documents=await premadeDocuments(pack),folders=[...pack.folders.values()],folderId=value=>typeof value==='string'?value:value?.id;
   const obsolete=folders.find(folder=>!folder.folder&&normalize(folder.name)==='witch'&&folder.flags?.[ID]?.catalogFolder===true&&
     !documents.some(item=>folderId(item.folder)===folder.id)&&!folders.some(child=>folderId(child.folder)===folder.id));
   if(!obsolete)return;
   const locked=pack.locked;
-  try{if(locked)await pack.configure({locked:false});await foundry.documents.Folder.implementation.deleteDocuments([obsolete.id],{pack:pack.collection,deleteContents:false,deleteSubfolders:false});}
-  finally{if(locked)await pack.configure({locked:true});}
+  try{if(locked)await configurePremadePack(pack,{locked:false});await foundry.documents.Folder.implementation.deleteDocuments([obsolete.id],{pack:pack.collection,deleteContents:false,deleteSubfolders:false});}
+  finally{if(locked)await configurePremadePack(pack,{locked:true});}
 }
 export async function removeObsoleteWarriorSubclassFolder() {
   if (!game.user.isActiveGM) return;
   const pack=game.packs.get(`${ID}.subclass-features`);if(!pack)return;
-  const documents=await pack.getDocuments(),folders=[...pack.folders.values()],folderId=value=>typeof value==='string'?value:value?.id;
+  const documents=await premadeDocuments(pack),folders=[...pack.folders.values()],folderId=value=>typeof value==='string'?value:value?.id;
   const obsolete=folders.find(folder=>!folder.folder&&normalize(folder.name)==='warrior'&&folder.flags?.[ID]?.catalogFolder===true&&
     !documents.some(item=>folderId(item.folder)===folder.id)&&!folders.some(child=>folderId(child.folder)===folder.id));
   if(!obsolete)return;const locked=pack.locked;
-  try{if(locked)await pack.configure({locked:false});await foundry.documents.Folder.implementation.deleteDocuments([obsolete.id],{pack:pack.collection,deleteContents:false,deleteSubfolders:false});}
-  finally{if(locked)await pack.configure({locked:true});}
+  try{if(locked)await configurePremadePack(pack,{locked:false});await foundry.documents.Folder.implementation.deleteDocuments([obsolete.id],{pack:pack.collection,deleteContents:false,deleteSubfolders:false});}
+  finally{if(locked)await configurePremadePack(pack,{locked:true});}
 }
 
 async function removeEmptyCatalogFolders(category) {
   if (!game.user.isActiveGM) return;
   const pack = game.packs.get(`${ID}.${category}`);
   if (!pack) return;
-  const documents = await pack.getDocuments();
+  const documents = await premadeDocuments(pack);
   const folders = [...pack.folders.values()];
   const folderId = value => typeof value === 'string' ? value : value?.id;
   const catalog = new Set(FOLDER_CATALOG[category].map(normalize));
@@ -81,9 +82,9 @@ async function removeEmptyCatalogFolders(category) {
   if (!empty.length) return;
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({locked:false});
+    if (locked) await configurePremadePack(pack,{locked:false});
     await foundry.documents.Folder.implementation.deleteDocuments(empty.map(folder=>folder.id), {
       pack:pack.collection, deleteContents:false, deleteSubfolders:false
     });
-  } finally { if (locked) await pack.configure({locked:true}); }
+  } finally { if (locked) await configurePremadePack(pack,{locked:true}); }
 }

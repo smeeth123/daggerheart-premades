@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const TIDE_KEY='seaborne-know-the-tide';
 export function tideData(folder){
@@ -69,15 +70,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:TIDE_KEY,version:'1.0.0',categ
 export async function ensureKnowTheTide() {
   const pack = game.packs.get(`${ID}.community-features`);
   if (!pack) throw new Error('The Community Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === TIDE_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === TIDE_KEY);
   if (existing) return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Seaborne');
   if (!folder) throw new Error('The Seaborne compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = await Item.create(tideData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Know the Tide creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

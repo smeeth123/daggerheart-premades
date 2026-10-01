@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import {ID} from '../core.js';
 
 export const DEFT_MANEUVERS_KEY='bone-deft-maneuvers';
@@ -42,16 +43,16 @@ export function deftManeuversData(folder){
 export async function ensureDeftManeuvers(){
   const pack=game.packs.get(`${ID}.domain-cards`);
   if(!pack)throw Error('The Domain Cards compendium is missing.');
-  const existing=(await pack.getDocuments()).find(item=>item.getFlag(ID,'premade')?.key===DEFT_MANEUVERS_KEY);
+  const existing=(await premadeDocuments(pack)).find(item=>item.getFlag(ID,'premade')?.key===DEFT_MANEUVERS_KEY);
   if(existing?.getFlag(ID,'premade')?.version==='1.0.0')return existing;
   const folder=pack.folders.find(entry=>!entry.folder&&entry.name==='Bone');
   if(!folder)throw Error('The Bone compendium folder is missing.');
   const locked=pack.locked;
   try{
-    if(locked)await pack.configure({locked:false});
+    if(locked)await configurePremadePack(pack,{locked:false});
     const data=deftManeuversData(folder.id);
     const item=existing?await existing.update(data,{diff:false,recursive:false}):await Item.create(data,{pack:pack.collection});
     if(!item)throw Error('Deft Maneuvers creation was cancelled.');
     return item;
-  }finally{if(locked)await pack.configure({locked:true});}
+  }finally{if(locked)await configurePremadePack(pack,{locked:true});}
 }

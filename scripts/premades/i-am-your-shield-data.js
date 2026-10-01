@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import {ID} from '../core.js';
 export const SHIELD_KEY='valor-i-am-your-shield';
 export function iAmYourShieldData(folder){return {
@@ -11,12 +12,12 @@ export function iAmYourShieldData(folder){return {
 };}
 export async function ensureIAmYourShield(){
   const pack=game.packs.get(`${ID}.domain-cards`);if(!pack)throw Error('The Domain Cards compendium is missing.');
-  const existing=(await pack.getDocuments()).find(item=>item.getFlag(ID,'premade')?.key===SHIELD_KEY);
+  const existing=(await premadeDocuments(pack)).find(item=>item.getFlag(ID,'premade')?.key===SHIELD_KEY);
   if(existing?.getFlag(ID,'premade')?.version==='1.0.0')return existing;
   const folder=pack.folders.find(entry=>!entry.folder&&entry.name==='Valor');if(!folder)throw Error('The Valor compendium folder is missing.');
   const locked=pack.locked;
-  try{if(locked)await pack.configure({locked:false});const data=iAmYourShieldData(folder.id);
+  try{if(locked)await configurePremadePack(pack,{locked:false});const data=iAmYourShieldData(folder.id);
     const item=existing?await existing.update(data,{diff:false,recursive:false}):await Item.create(data,{pack:pack.collection});
     if(!item)throw Error('I Am Your Shield creation was cancelled.');return item;
-  }finally{if(locked)await pack.configure({locked:true});}
+  }finally{if(locked)await configurePremadePack(pack,{locked:true});}
 }

@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const STANCE_KEY='martial-artist-stance-fighter',REFOCUS='refocusStance001';
 export const FOCUS_DESCRIPTION='<h3>Focus</h3><p>Focus represents your character’s poise, clarity, and control. Once per rest during a moment of calm, you can clear your mind and refocus your martial instincts. Clear your Focus track, then roll a number of <strong>d6s</strong> equal to your <strong>Instinct</strong> and gain Focus equal to the highest result rolled. You can hold a maximum of 6 Focus.</p>';
@@ -64,15 +65,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:STANCE_KEY,version:'1.1.0',des
 export async function ensureStanceFighter() {
   const pack = game.packs.get(`${ID}.subclass-features`);
   if (!pack) throw new Error('The Subclass Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === STANCE_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === STANCE_KEY);
   if (existing?.getFlag(ID,'premade')?.version === '1.1.0') return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Martial Artist');
   if (!folder) throw new Error('The Martial Artist compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = existing ? await existing.update(stanceData(folder.id)) : await Item.create(stanceData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Stance Fighter creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

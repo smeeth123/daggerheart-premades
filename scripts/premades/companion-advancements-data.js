@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import {ID} from '../core.js';
 export const COMFORT_KEY='companion-creature-comfort',ARMORED_KEY='companion-armored',BONDED_KEY='companion-bonded',COMFORT_ACTION='dhpComfort000001';
 const definitions=[
@@ -13,11 +14,12 @@ export function companionAdvancementData(key,folder){
 export async function ensureCompanionAdvancements(){
  const pack=game.packs.get(`${ID}.subclass-features`);if(!pack)throw new Error('The Subclass Features compendium is missing.');
  const folder=pack.folders.find(f=>!f.folder&&f.name==='Beastbound');if(!folder)throw new Error('The Beastbound folder is missing.');
- const docs=await pack.getDocuments(),locked=pack.locked;
+ const docs=await premadeDocuments(pack),locked=pack.locked;
+ if(definitions.every(([key])=>docs.some(item=>item.getFlag(ID,'premade')?.key===key&&item.getFlag(ID,'premade')?.version==='1.0.0')))return;
  try{
-  if(locked)await pack.configure({locked:false});
+  if(locked)await configurePremadePack(pack,{locked:false});
   for(const [key]of definitions){const existing=docs.find(i=>i.getFlag(ID,'premade')?.key===key);if(existing?.getFlag(ID,'premade')?.version==='1.0.0')continue;
    const data=companionAdvancementData(key,folder.id);if(existing)await existing.update(data);else await Item.create(data,{pack:pack.collection});
   }
- }finally{if(locked)await pack.configure({locked:true});}
+ }finally{if(locked)await configurePremadePack(pack,{locked:true});}
 }

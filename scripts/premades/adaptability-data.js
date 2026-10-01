@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const ADAPT_KEY='human-adaptability';
 export const ADAPT_ACTION='D7EE2L2Y96nfrfTW';
@@ -65,15 +66,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:ADAPT_KEY,version:'1.0.0',cate
 export async function ensureAdaptability() {
   const pack = game.packs.get(`${ID}.ancestry-features`);
   if (!pack) throw new Error('The Ancestry Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === ADAPT_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === ADAPT_KEY);
   if (existing) return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Human');
   if (!folder) throw new Error('The Human compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = await Item.create(adaptabilityData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Adaptability creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

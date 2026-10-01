@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const AGGRESSIVE_KEY='martial-stance-aggressive',AGGRESSIVE_EFFECT='SbL1r4YtyDX6eYLe';
 export function aggressiveData(folder){const data={
@@ -110,15 +111,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:AGGRESSIVE_KEY,version:'1.0.0'
 export async function ensureAggressive() {
   const pack = game.packs.get(`${ID}.subclass-features`);
   if (!pack) throw new Error('The Subclass Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === AGGRESSIVE_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === AGGRESSIVE_KEY);
   if (existing?.getFlag(ID,'premade')?.version === '1.0.0') return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Martial Artist');
   if (!folder) throw new Error('The Martial Artist compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = existing ? await existing.update(aggressiveData(folder.id)) : await Item.create(aggressiveData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Aggressive creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }

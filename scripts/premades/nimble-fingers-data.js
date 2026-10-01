@@ -1,3 +1,4 @@
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const NIMBLE_KEY='gnome-nimble-fingers';
 export const NIMBLE_ACTION='eIaosYhBPLBmFMSr';
@@ -60,15 +61,15 @@ data.folder=folder;data.flags={[ID]:{premade:{key:NIMBLE_KEY,version:'1.0.0',cat
 export async function ensureNimbleFingers() {
   const pack = game.packs.get(`${ID}.ancestry-features`);
   if (!pack) throw new Error('The Ancestry Features compendium is missing.');
-  const existing = (await pack.getDocuments()).find(item => item.getFlag(ID,'premade')?.key === NIMBLE_KEY);
+  const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === NIMBLE_KEY);
   if (existing) return existing;
   const folder = pack.folders.find(f => !f.folder && f.name === 'Gnome');
   if (!folder) throw new Error('The Gnome compendium folder is missing.');
   const locked = pack.locked;
   try {
-    if (locked) await pack.configure({ locked: false });
+    if (locked) await configurePremadePack(pack,{ locked: false });
     const item = await Item.create(nimbleData(folder.id), { pack: pack.collection });
     if (!item) throw new Error('Nimble Fingers creation was cancelled.');
     return item;
-  } finally { if (locked) await pack.configure({ locked: true }); }
+  } finally { if (locked) await configurePremadePack(pack,{ locked: true }); }
 }
