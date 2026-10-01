@@ -44,6 +44,7 @@ export function collectDefenseChoices(attacker,config,used=new Set()){
     if(naturalEvasionCouldMiss(actor,base.total,base.evasion,base.critical)&&natural&&!used.has(natural.uuid)&&(!target.difficulty||Number(target.difficulty)===Number(target.evasion)))rows.set(natural.uuid,{id:`natural-evasion:${natural.uuid}`,usageKey:natural.uuid,kind:'natural-evasion',request:{...base,kind:'natural-evasion',candidate:{itemUuid:natural.uuid}}});
     const elusive=elusivePreyItem(actor);
     if(elusivePreyCouldMiss(actor,base.total,base.evasion,base.critical)&&elusive&&!used.has(elusive.uuid)&&(!target.difficulty||Number(target.difficulty)===Number(target.evasion)))rows.set(elusive.uuid,{id:`elusive-prey:${elusive.uuid}`,usageKey:elusive.uuid,kind:'elusive-prey',request:{...base,kind:'elusive-prey',candidate:{itemUuid:elusive.uuid}}});
+    // Unlike Evasion bonuses, forcing an enemy to reroll can prevent a crit.
     for(const bearer of canvas.tokens.placeables){
       const item=dangerItem(bearer.actor);if(!item||used.has(item.uuid))continue;
       if(bearer.actor.uuid!==actor.uuid&&!allied(bearer.document,token.document))continue;

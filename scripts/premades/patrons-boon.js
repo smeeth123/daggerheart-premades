@@ -1,5 +1,6 @@
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
+import {criticalRerollResult} from '../roll-rerolls.js';
 import { ID } from '../core.js';
 import { BOON_KEY,BOON_ACTION } from './patrons-boon-data.js';
 import { adaptabilityOutcome,rerollAdaptability } from './adaptability.js';
@@ -7,7 +8,7 @@ import { consumeResolutionTicket } from '../resolution-manager.js';
 import { withHopeLock } from './hope-lock.js';
 export function boonItem(actor){return actor?.type==='character'&&Number(actor.system.resources?.hope?.value)>=3?actor.items.find(item=>{const f=item.flags?.[ID];return !f?.disabled&&!item.system.inactive&&(f?.applied?.key??f?.premade?.key)===BOON_KEY;})??null:null;}
 export async function validateBoon(request,user){
-  if(!user?.active||request.deadline<=decisionNow()||!Number.isFinite(request.total))return null;
+  if(!user?.active||criticalRerollResult(request)||request.deadline<=decisionNow()||!Number.isFinite(request.total))return null;
   const actor=await fromUuid(request.sourceUuid),item=boonItem(actor);
   if(!item||item.uuid!==request.candidate?.itemUuid||!actor.testUserPermission(user,'OWNER'))return null;
   const outcome=adaptabilityOutcome(request.total,request.critical,request.difficulty,request.targets);

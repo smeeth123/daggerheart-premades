@@ -1,5 +1,6 @@
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
+import {criticalRerollResult} from '../roll-rerolls.js';
 import { withHopeLock } from './hope-lock.js';
 import { consumeResolutionTicket, resolutionTicketStatus } from '../resolution-manager.js';
 import { ID } from '../core.js';
@@ -40,7 +41,7 @@ export function luckbenderCandidates(actor) {
   return [...found.values()];
 }
 export async function validateLuckbender(request,user) {
-  if(!user?.active||request.deadline<=decisionNow())return null;
+  if(!user?.active||criticalRerollResult(request)||request.deadline<=decisionNow())return null;
   const source=await fromUuid(request.sourceUuid),item=await fromUuid(request.candidate.itemUuid),bearer=item?.actor;
   if(!source?.testUserPermission(user,'OWNER')||source.type!=='character'||!luckbenderAvailable(item)||!affordable(bearer))return null;
   if(source.uuid===bearer.uuid)return {source,bearer,item};
@@ -111,6 +112,7 @@ export async function resolveLuckbender(request,{user}) {
   try{return await promise;}finally{if(queues.get(queueKey)===promise)queues.delete(queueKey);}
 }
 async function offerLuckbender(roll,showResult) {
+  if(criticalRerollResult({critical:roll.isCritical,hope:roll.dHope.total,fear:roll.dFear.total}))return null;
   const actor=roll.data?.parent??(roll.options.source?.actor?await fromUuid(roll.options.source.actor):null);
   if(!actor)return null;
   const candidates=luckbenderCandidates(actor);if(!candidates.length)return null;
@@ -118,7 +120,7 @@ async function offerLuckbender(roll,showResult) {
   await showResult();
   for(const candidate of candidates){
     const request={id:foundry.utils.randomID(),sourceUuid:actor.uuid,candidate,actionType:'action',deadline:decisionNow()+decisionBudget(135000),
-      total:roll.total,hope:roll.dHope.total,fear:roll.dFear.total};
+      total:roll.total,hope:roll.dHope.total,fear:roll.dFear.total,critical:Boolean(roll.isCritical)};
     const result=gm.isSelf?await resolveLuckbender(request,{user:game.user}):await gm.query(OFFER,request,{timeout:decisionBudget(140000)});
     if(result)return result;
   }
@@ -190,6 +192,8 @@ export function installLuckbender(RollClass,offer=offerLuckbender,reroll=rerollD
   RollClass.prototype._evaluate=async function(options={}){
     const result=await evaluate.call(this,options);
     if(!pending.has(this)||(!includeReactions&&this.options.actionType!=='action')||options.minimize||options.maximize)return result;
+    // The shared manager must still offer non-reroll abilities on a crit.
+    if(!includeReactions&&criticalRerollResult({critical:this.isCritical,hope:this.dHope.total,fear:this.dFear.total}))return result;
     try{
       const decision=await offer(this,async()=>{
         if(!previews.has(this)){

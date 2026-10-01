@@ -1,5 +1,6 @@
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
+import {criticalRerollResult} from '../roll-rerolls.js';
 import { ID } from '../core.js';
 import { ADAPT_KEY,ADAPT_ACTION } from './adaptability-data.js';
 import { consumeResolutionTicket } from '../resolution-manager.js';
@@ -24,7 +25,7 @@ export function adaptabilityOutcome(total,critical,difficulty,targets=[]){
   return thresholds.every(numeric)?'failure':'unknown';
 }
 export async function validateAdaptability(request,user){
-  if(!user?.active||request.deadline<=decisionNow()||!Number.isFinite(request.total))return null;
+  if(!user?.active||criticalRerollResult(request)||request.deadline<=decisionNow()||!Number.isFinite(request.total))return null;
   const actor=await fromUuid(request.sourceUuid),item=adaptabilityItem(actor);
   if(!actor?.testUserPermission(user,'OWNER')||!item||item.uuid!==request.candidate?.itemUuid)return null;
   if(!request.experiences?.some(key=>actor.system?.experiences?.[key]))return null;

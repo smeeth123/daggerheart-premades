@@ -14,6 +14,7 @@ const rangeState=scene=>JSON.stringify([scene.grid,scene.flags?.daggerheart?.ran
 export function timeLimit(scene){const r=rules(),local=scene.flags?.daggerheart?.rangeMeasurement;return Number(r.enabled&&local?.setting===CONFIG.DH.GENERAL.sceneRangeMeasurementSetting.custom.id?local.far:r.far);}
 export function timeItem(actor){return actor?.type==='character'&&Number(actor.system.resources?.hope?.value)>=3?actor.items.find(item=>{const f=item.flags?.[ID];return !f?.disabled&&!item.system.inactive&&(f?.applied?.key??f?.premade?.key)===TIME_KEY;})??null:null;}
 export function collectTimeChoices(attacker,message,total,kind,used=new Set()){
+  // An enemy crit is a valid defensive reroll: its replacement can miss.
   const origin=sourceToken(attacker);if(attacker?.type!=='adversary'||!origin||(kind==='time-attack'&&!message?.uuid)||!Number.isFinite(total))return [];
   const found=new Map();
   for(const bearer of canvas.tokens.placeables){

@@ -1,6 +1,7 @@
 import { attackBeneficiary } from '../companion-context.js';
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
+import {criticalRerollResult} from '../roll-rerolls.js';
 import { ID } from '../core.js';
 import { FOCUS_KEY,FOCUS_ACTION,FOCUS_EFFECT } from './rangers-focus-data.js';
 import { withHopeLock } from './hope-lock.js';
@@ -69,7 +70,7 @@ export async function resolveFocus(request,{user}){
   });
 }
 export async function validateFocusReroll(request,user){
-  if(!user?.active||request.deadline<=decisionNow()||request.critical||request.actionType==='reaction'||!Number.isFinite(request.total)||request.targets?.length!==1)return null;
+  if(!user?.active||request.deadline<=decisionNow()||criticalRerollResult(request)||request.actionType==='reaction'||!Number.isFinite(request.total)||request.targets?.length!==1)return null;
   const sourceActor=await fromUuid(request.sourceUuid),actor=attackBeneficiary(sourceActor),item=focusItem(actor);
   if(!item||item.uuid!==request.candidate?.itemUuid||!actor.testUserPermission(user,'OWNER')||!focusAttack(sourceActor,request.source))return null;
   const targetData=request.targets[0],target=await fromUuid(targetData.actorId),threshold=targetData.difficulty||targetData.evasion;

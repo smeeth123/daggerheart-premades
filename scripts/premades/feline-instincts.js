@@ -1,5 +1,6 @@
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
+import {criticalRerollResult} from '../roll-rerolls.js';
 import { ID } from '../core.js';
 import { consumeResolutionTicket } from '../resolution-manager.js';
 import { withHopeLock } from './hope-lock.js';
@@ -12,7 +13,7 @@ export function felineItem(actor){
   })??null;
 }
 export async function validateFeline(request,user){
-  if(!user?.active||request.trait!=='agility'||request.deadline<=decisionNow())return null;
+  if(!user?.active||criticalRerollResult(request)||request.trait!=='agility'||request.deadline<=decisionNow())return null;
   const actor=await fromUuid(request.sourceUuid),item=felineItem(actor);
   if(!actor?.testUserPermission(user,'OWNER')||!item||item.uuid!==request.candidate?.itemUuid)return null;
   return {actor,item};

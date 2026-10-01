@@ -1,5 +1,6 @@
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
+import {criticalRerollResult} from '../roll-rerolls.js';
 import { ID } from '../core.js';
 import { COMPASS_KEY } from './internal-compass-data.js';
 import { consumeResolutionTicket } from '../resolution-manager.js';
@@ -11,7 +12,7 @@ export function compassItem(actor){
   })??null;
 }
 export async function validateCompass(request,user){
-  if(!user?.active||request.hope!==1||request.deadline<=decisionNow())return null;
+  if(!user?.active||criticalRerollResult(request)||request.hope!==1||request.deadline<=decisionNow())return null;
   const actor=await fromUuid(request.sourceUuid),item=compassItem(actor);
   if(!actor?.testUserPermission(user,'OWNER')||!item||item.uuid!==request.candidate?.itemUuid)return null;
   return {actor,item};

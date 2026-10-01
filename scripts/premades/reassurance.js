@@ -1,6 +1,7 @@
 import {ID,featureActive} from '../core.js';
 import {decisionNow} from '../decision-clock.js';
 import {decisionBudget} from '../settings.js';
+import {criticalRerollResult} from '../roll-rerolls.js';
 import {timedDialog} from '../dialog.js';
 import {helpRecipients,validHelpRecipient} from '../help-ally.js';
 import {ownerFor,unavailableActor} from './aura-rules.js';
@@ -24,7 +25,7 @@ export function reassuranceCandidates(actor){
     .flatMap(bearer=>[...(bearer.items??[])].filter(reassuranceAvailable).map(item=>({itemUuid:item.uuid})));
 }
 export async function validateReassurance(request,user){
-  if(!user?.active||request?.actionType!=='action'||!Number.isFinite(request.deadline)||request.deadline<=decisionNow()||
+  if(!user?.active||request?.actionType!=='action'||criticalRerollResult(request)||!Number.isFinite(request.deadline)||request.deadline<=decisionNow()||
     ![request.total,request.hope,request.fear].every(Number.isFinite))return null;
   const source=await fromUuid(request.sourceUuid),item=await fromUuid(request.candidate?.itemUuid),bearer=item?.actor;
   if(source?.type!=='character'||!source.testUserPermission(user,'OWNER')||!reassuranceAvailable(item)||

@@ -1,5 +1,6 @@
 import { decisionBudget } from './settings.js';
 import { decisionNow } from './decision-clock.js';
+import {criticalRerollResult,isActionRerollChoice} from './roll-rerolls.js';
 import {nemesisItem,nemesisAttack,validateNemesis,resolveNemesis,swapNemesisDice} from './premades/nemesis.js';
 import { trueItem,trueAttack,validateTrue,resolveTrue } from './premades/true-strike.js';
 import { charmCandidates,validateCharm,resolveCharm,charmed } from './premades/witchs-charm.js';
@@ -85,7 +86,7 @@ export function registerRollProviders(){
   });
 }
 export function collectRollChoices(roll,actor,{auraOnly=false,used=new Set(),config={}}={}){
-  const rows=[],values={hope:roll.dHope.total,fear:roll.dFear.total,total:roll.total};
+  const rows=[],values={hope:roll.dHope.total,fear:roll.dFear.total,total:roll.total,critical:Boolean(roll.isCritical)};
   if(!auraOnly&&roll.options.actionType==='action')for(const candidate of reassuranceCandidates(actor)){
     const usageKey=`reassurance:${candidate.itemUuid}`;
     if(!used.has(usageKey))rows.push({id:usageKey,usageKey,kind:'reassurance',request:{sourceUuid:actor.uuid,candidate,actionType:'action',...values}});
@@ -167,10 +168,11 @@ export function collectRollChoices(roll,actor,{auraOnly=false,used=new Set(),con
       sourceUuid:origin.document.uuid,sourceState:tokenState(origin.document),rangeState:auraRangeState(canvas.scene),candidates:[candidate],critical:false,...values
     }});
   }
-  return rows;
+  return rows.filter(row=>!isActionRerollChoice(row.kind)||!criticalRerollResult(values));
 }
 export function collectDiminishChoices(roll,actor,config={}){const item=diminishItem(actor),values={hope:roll.dHope.total,fear:roll.dFear.total,total:roll.total};return item?diminishTargets(actor,roll,config).map(target=>({id:`diminish:${item.uuid}:${target.targetUuid}`,kind:'diminish',request:{sourceUuid:actor.uuid,targetUuid:target.targetUuid,candidate:{itemUuid:item.uuid},actionType:'action',withHope:true,critical:Boolean(roll.isCritical),...target,...values}})):[];}
 export async function executeRollChoice(choice,roll,config,preview){
+  if(isActionRerollChoice(choice.kind)&&criticalRerollResult({critical:roll.isCritical,hope:roll.dHope?.total,fear:roll.dFear?.total}))return false;
   const gm=game.users.activeGM;if(!gm)throw new Error('The GM disconnected during roll resolution.');
   const request={...choice.request,id:foundry.utils.randomID(),deadline:decisionNow()+decisionBudget(120000),resolutionToken:choice.token};
   if(choice.kind!=='favor'&&config[ID]?.favorChoice)delete config[ID].favorChoice;
