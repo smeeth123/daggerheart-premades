@@ -1,12 +1,14 @@
 # Daggerheart Premade Reference
 
-How all 178 premades work by compendium
+How all 187 premades work by compendium
 
-Daggerheart Premades 0.2.3   |   Daggerheart 2.10.7   |   September 30 2026
+Daggerheart Premades 0.2.14   |   Daggerheart 2.10.7   |   October 2 2026
 
-This reference explains how each premade works at the table: what you activate, what triggers automatically, which choices and costs appear, and what remains manual. It covers every entry in the seven module compendiums. Upgrades have their own entries even when they only enhance another feature.
+This reference explains how each premade works at the table: what you activate, what triggers automatically, which choices and costs appear, and what remains manual. It covers every entry in the nine module compendiums. Upgrades have their own entries even when they only enhance another feature.
 
 Apply the matching premade with GM Medkit, or use a directly imported module premade. Plain system features do not automatically receive these feature-specific scripts. Subclass features must also be unlocked and active; Domain Cards must be available under the normal loadout rules. The card’s rules still govern narrative requirements and uses not changed by the automation.
+
+Weapon and Armor Features are an exception: apply Medkit to the actual equipment, not to a separate feature dragged onto the character. These applications preserve the equipment’s native statistics, actions, effects, and resources. Supported missing weapon rules are appended to its description without replacing existing text.
 
 ## Compendium contents
 
@@ -24,7 +26,11 @@ Apply the matching premade with GM Medkit, or use a directly imported module pre
 
 - [Transformation Features   5 premades](#transformation-features)
 
-Entries follow the compendium folders, then alphabetical feature names. Transformation Features also groups the entries by transformation. Use the linked contents above or GitHub’s document outline for quick access.
+- [Weapon Features   8 premades](#weapon-features)
+
+- [Armor Features   1 premade](#armor-features)
+
+Entries follow the compendium folders, then alphabetical feature names. Transformation Features also groups the entries by transformation. Weapon and Armor Features are listed alphabetically at their compendium roots. Use the linked contents above or GitHub’s document outline for quick access.
 
 ## Reading the automation
 
@@ -924,6 +930,56 @@ When you mark your last Stress while in Wolf Form, automatically roll tier d20s 
 
 When you mark HP, offer marking 1 Stress to enter a visible Wolf Form with +1d10 to attack and damage rolls. Final rolls with Hope, including critical successes, automatically mark Stress while the form is active. The form lasts until the next rest or Howling Rampage; filling the last Stress triggers that rampage. Activation is contextual, not a separate unprompted transformation.
 
+## Weapon Features
+
+8 premades
+
+Medkit the supported weapon and equip it for attack automation. Native-property entries also support custom weapons carrying that native property; Versatile, Piercing, and Otherworldly instead match their specifically supported weapons. These are equipment integrations, not replacements for similarly named class or subclass abilities. Only one weapon-property premade can currently be applied to a weapon.
+
+#### Aimed
+
+Supports the Arcane Rifle series and weapons with native Aimed. Before attack configuration, check whether any target is within Very Close of you or within Melee of a friendly ally. If so, offer marking 1 Stress to ignore Aimed’s disadvantage for this attack. Declining or having no available Stress retains the penalty. Other disadvantage sources remain, and advantage cancels disadvantage normally. A paid preparation cost remains spent if the later attack dialog is canceled.
+
+#### Follow-Up
+
+Medkit the secondary Hatchet, including its Improved, Advanced, and Legendary versions, or another secondary weapon with native Follow-Up. After a successful primary-weapon attack against a target within Melee, the damage workflow offers marking 1 Stress for +1 Proficiency on that attack’s damage. It works with automatic damage and the chat card’s Roll Damage. No lasting actor effect is created. Canceling and reopening the same damage dialog retains the paid bonus without charging again; later attacks receive no bonus.
+
+#### Otherworldly
+
+Supports Shadowblade and its Improved, Advanced, and Legendary versions. After a successful attack and its dice display, choose Physical or Magic before damage configuration. The choice changes only that attack’s main damage, not the weapon’s stored statistics or resource damage. There is no cost; closing the choice retains native damage. Medkit adds the missing rule to the description. This is separate from Martial Artist Otherworldly and Otherworldly Ire.
+
+#### Piercing
+
+Supports Twisted Dagger and its Improved, Advanced, and Legendary versions, Platinum Estoc, and Crystal Spear. Their damage automatically treats each recipient’s Major threshold as 2 lower for that damage application. The Severe threshold, damage total, stored actor statistics, and normal Armor and reduction choices remain unchanged. Native chat-card damage application and redirected damage retain the property. No activation or cost is needed; Medkit also adds the missing rule to the weapon description.
+
+#### Quick
+
+After confirming the native attack configuration but before rolling, optionally choose one additional living creature within the weapon’s range and mark 1 Stress. The extra target joins the same attack and damage roll; each target resolves against its own defense normally. Declining spends nothing. While enabled, the weapon’s separate native Quick activation is a reminder rather than a second payment. This does not automate the Martial Artist Quick stance.
+
+#### Reloading
+
+After a completed attack, automatically make the native d6 reload check and record it on the attack card. A result of 1 makes the weapon unloaded. If the native workflow already made that check, it is not repeated. Attempting another attack while unloaded offers marking 1 Stress to reload and continue that attack, or canceling without firing. With no available Stress, firing remains blocked. The native loaded resource, check display, and manual reload controls remain available.
+
+#### Ricochet
+
+Supports the Enchanted Chakram series and weapons with native Ricochet. After confirming attack configuration but before rolling, optionally mark 1 Stress and select one additional creature within Very Close of the first original target. Range is measured from that target, not from you; the extra creature need not be within your weapon’s range. Both targets use the same attack and damage roll. Declining spends nothing, and the separate native property activation becomes a reminder while enabled.
+
+#### Versatile
+
+After Medkit, right-click the weapon on the character sheet and choose Switch to Alternate Mode or Switch to Primary Mode. Switching is free and changes the weapon’s actual trait, range, and damage statistics. Original statistics and deliberate edits in either mode are retained. Attacks already posted to chat keep the damage statistics of the mode used for that attack, even if you switch before clicking Roll Damage. Disabling the premade hides the toggle without resetting the current mode.
+
+Supports all four Scepter, Whipsword, and Casting Dagger tiers, plus Casting Sword, Spiked Bow, Hand Sling, Gunblade, and War Dart: 17 weapons. Medkit appends the weapon-specific alternate statistics to its description.
+
+## Armor Features
+
+1 premade
+
+Medkit the armor itself and equip it. Native armor statistics, actions, effects, and resources are preserved.
+
+#### Bulky
+
+Supports Banded Armor and its Improved, Advanced, and Legendary versions, or other armor with native Bulky. The system’s existing −1 Evasion remains unchanged. Damage that still makes you mark at least 3 HP after reduction and prevention automatically causes 1 Stress; this is mandatory, not an optional prompt. Severe damage reduced to Major does not trigger, while Massive reduced to Severe does. Normal Stress prevention and full-Stress overflow still apply. Manual HP tracker edits and unrelated HP costs do not trigger it.
+
 ## Shared controls and related automation
 
 ### Reopening pending decisions
@@ -953,3 +1009,5 @@ Temporary conditions with no fixed duration, such as many Vulnerable, Restrained
 ### Medkit safety
 
 Medkit applies actions and effects to matching existing items; it does not grant missing class or subclass features. It replaces the selected item’s automation, so inspect custom actions before applying. Disabling a premade stops its scripted behavior without deleting the underlying feature. A newer module version does not necessarily require reapplying every feature; individual premade versions identify changes to their applied actions or effects.
+
+Weapon and armor applications preserve native equipment actions and effects rather than replacing them. Disabling their premades stops the added automation without disabling the equipment itself. Supported missing weapon descriptions are added only when needed, without duplicating existing rule text.
