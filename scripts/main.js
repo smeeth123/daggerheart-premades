@@ -183,6 +183,15 @@ import { registerLuckbender } from './premades/luckbender.js';
 import { registerKick } from './premades/kick.js';
 import { registerUnshakeable } from './premades/unshakeable.js';
 import { registerHallowedAura } from './premades/hallowed-aura.js';
+import { registerWeaponQuick } from './premades/weapon-quick.js';
+import { registerWeaponVersatile } from './premades/weapon-versatile.js';
+import { registerWeaponPiercing } from './premades/weapon-piercing.js';
+import { registerWeaponOtherworldly } from './premades/weapon-otherworldly.js';
+import { registerWeaponRicochet } from './premades/weapon-ricochet.js';
+import { registerWeaponReloading } from './premades/weapon-reloading.js';
+import { registerWeaponAimed } from './premades/weapon-aimed.js';
+import { registerWeaponFollowUp } from './premades/weapon-follow-up.js';
+import { registerArmorBulky } from './premades/armor-bulky.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const guarded = fn => async (...args) => {
@@ -204,7 +213,7 @@ export async function openMedkit(document) {
   const warnings = errors.length ? `<p class="dhp-warning">${errors.map(esc).join('<br>')}</p>` : '';
   const content = `${warnings}<p>Select matching premades and click Apply. Only selected items are updated.</p>
     ${!entries.length ? '<p><strong>No premades yet.</strong> Unlock a module compendium, open a configured feature or domain card, and choose “Save as Premade” from its header menu.</p>' : ''}
-    ${!items.length ? '<p>This actor has no supported features or domain cards.</p>' : ''}
+    ${!items.length ? '<p>This actor has no supported features, domain cards, weapons or armor.</p>' : ''}
     <div class="dhp-list">${rows.map(({item,candidates}, index) => {
       const installed = item.getFlag(ID, 'applied') ?? item.getFlag(ID, 'premade');
       const disabled = Boolean(item.getFlag(ID, 'disabled'));
@@ -261,7 +270,7 @@ async function author(item) {
     return;
   }
   const category = categoryFor(item);
-  const options = Object.entries(CATEGORIES).filter(([k]) => (item.type === 'domainCard') === (k === 'domain-cards'));
+  const options = Object.entries(CATEGORIES).filter(([k]) => !['weapon-features','armor-features'].includes(k) && (item.type === 'domainCard') === (k === 'domain-cards'));
   const result = await dialog('Save as Premade', `<p>Save this configured item into the premade library. Unlock the destination compendium first.</p>
     <label>Category<select name="category">${options.map(([k,v]) => `<option value="${k}" ${k===category?'selected':''}>${esc(v)}</option>`).join('')}</select></label>
     <label>Stable key<input name="key" value="${esc(item.name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''))}" required></label>
@@ -289,13 +298,21 @@ Hooks.on('getHeaderControlsApplicationV2', (app, controls) => {
   const isItem = doc.documentName === 'Item' && supported(doc);
   if (!isItem && doc.documentName !== 'Actor') return;
   if (!doc.pack?.startsWith(`${ID}.`)) controls.push(medkitControl(doc, guarded(() => openMedkit(doc))));
-  if (isItem) {
+  if (isItem && !['weapon','armor'].includes(doc.type)) {
     controls.push({ action:'dhp-author', icon:'fa-solid fa-book-medical', label:doc.pack?.startsWith(`${ID}.`) ? 'Premade Version' : 'Save as Premade', onClick:guarded(() => author(doc)) });
   }
 });
 Hooks.once('ready', async () => {
   if (game.system.id !== 'daggerheart') return;
   registerRollResolverCompat();
+  registerWeaponQuick();
+  registerWeaponVersatile();
+  registerWeaponPiercing();
+  registerWeaponOtherworldly();
+  registerWeaponRicochet();
+  registerWeaponReloading();
+  registerWeaponAimed();
+  registerWeaponFollowUp();
   initializeModuleSettings();
   initializeDecisionClock();
   registerAutoMedkit();
@@ -478,6 +495,8 @@ Hooks.once('ready', async () => {
   registerViciousEntangle();
   registerReassurance();
   registerForcefulPush();
+  // Observe final HP receipts after every recipient defense/prevention wrapper.
+  registerArmorBulky();
   if (game.user.isActiveGM) {
     try {
       const count = await setupPremadeLibrary();

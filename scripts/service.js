@@ -73,6 +73,7 @@ export function premadeRevision(data) {
   // Only compare the identity, matching metadata, and data Medkit actually applies.
   const clean=value=>Array.isArray(value)?value.map(clean):value&&typeof value==='object'?Object.fromEntries(Object.entries(value).filter(([key])=>!['_stats','folder','sort','ownership','origin'].includes(key)).map(([key,v])=>[key,clean(v)])):value;
   const state=snapshot(data),Effect=globalThis.CONFIG?.ActiveEffect?.documentClass;
+  if(metadata(data)?.weaponItems)state.system.description=data.system?.description??'';
   // Embedded sources can be sparse on the parent Item and schema-expanded when
   // the UUID is resolved. Compare equivalent schema data, not missing defaults.
   state.effects=state.effects.map(normalizeEffectSource);
@@ -100,19 +101,26 @@ export async function apply(item, entry, expected) {
     // Remove legacy saved history when this item is next applied.
     if (item.getFlag(ID, 'backup')) await item.unsetFlag(ID, 'backup');
     try {
-      await writeSnapshot(item, prepared.after);
-      if (item.getFlag(ID, 'disabled')) {
+      if (!prepared.metadataOnly) await writeSnapshot(item, prepared.after);
+      else if(prepared.descriptionChanged){
+        if(!await item.update({'system.description':prepared.after.system.description}))throw new Error('The description update was cancelled.');
+      }
+      if (!prepared.metadataOnly && item.getFlag(ID, 'disabled')) {
         const active = prepared.after.effects.filter(effect => !effect.disabled).map(effect => effect._id);
         await item.setFlag(ID, 'disabledEffectIds', active);
         if (active.length) await item.updateEmbeddedDocuments('ActiveEffect', active.map(_id => ({ _id, disabled: true })));
       }
       const meta = metadata(entry.data);
-      await item.setFlag(ID, 'applied', { key: meta.key, name: entry.data.name, version: meta.version, sourceUuid: entry.uuid, appliedAt: Date.now() });
+      await item.setFlag(ID, 'applied', { key: meta.key, name: entry.data.name, version: meta.version, sourceUuid: entry.uuid, appliedAt: Date.now(),
+        ...(prepared.weaponProfile?{weaponProfile:prepared.weaponProfile}:{}) });
 
     } catch (error) {
       try {
-        await writeSnapshot(item, prepared.before);
-        if (item.getFlag(ID, 'disabled')) await item.setFlag(ID, 'disabledEffectIds', previousDisabledEffects);
+        if (!prepared.metadataOnly) await writeSnapshot(item, prepared.before);
+        else if(prepared.descriptionChanged&&item.toObject().system?.description!==prepared.before.system.description){
+          if(!await item.update({'system.description':prepared.before.system.description}))throw new Error('The description restoration was cancelled.');
+        }
+        if (!prepared.metadataOnly && item.getFlag(ID, 'disabled')) await item.setFlag(ID, 'disabledEffectIds', previousDisabledEffects);
         if (previousApplied) await item.setFlag(ID, 'applied', previousApplied);
         else await item.unsetFlag(ID, 'applied');
       } catch (rollbackError) {
@@ -154,6 +162,12 @@ export async function setPremadeEnabled(item, enabled) {
   if (!item.getFlag(ID, 'applied') && !item.getFlag(ID, 'premade')) throw new Error('This feature has no applied premade.');
   return exclusive(item, async () => {
     if (Boolean(item.getFlag(ID, 'disabled')) === !enabled) return;
+    if (['weapon','armor'].includes(item.type)) {
+      // Disabling optional weapon automation must not disable the weapon itself.
+      if (enabled) await item.unsetFlag(ID, 'disabled');
+      else await item.setFlag(ID, 'disabled', true);
+      return;
+    }
     if (!enabled) {
       const active = item.effects.filter(effect => !effect.disabled).map(effect => effect.id);
       await item.setFlag(ID, 'disabledEffectIds', active);
@@ -171,7 +185,7 @@ export async function setPremadeEnabled(item, enabled) {
 }
 export function registerPremadeDisableHooks() {
   Hooks.on('daggerheart.preUseAction', action => {
-    if (action.item?.flags?.[ID]?.disabled) {
+    if (!['weapon','armor'].includes(action.item?.type) && action.item?.flags?.[ID]?.disabled) {
       ui.notifications.info('This premade is disabled. Enable it in Medkit to use its actions.');
       return false;
     }
@@ -180,10 +194,10 @@ export function registerPremadeDisableHooks() {
   if (registry?.registerItemTriggers && !registry.dhpDisableGuard) {
     const original = registry.registerItemTriggers;
     registry.registerItemTriggers = function(item, ...args) {
-      if (item?.flags?.[ID]?.disabled) return;
+      if (!['weapon','armor'].includes(item?.type) && item?.flags?.[ID]?.disabled) return;
       return original.call(this, item, ...args);
     };
     registry.dhpDisableGuard = true;
-    for (const actor of game.actors ?? []) registry.unregisterItemTriggers(actor.items.filter(item => item.flags?.[ID]?.disabled));
+    for (const actor of game.actors ?? []) registry.unregisterItemTriggers(actor.items.filter(item => !['weapon','armor'].includes(item.type) && item.flags?.[ID]?.disabled));
   }
 }

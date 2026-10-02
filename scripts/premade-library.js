@@ -1,4 +1,13 @@
 import {withPremadeSetup} from './premade-setup-context.js';
+import {ensureWeaponQuick} from './premades/weapon-quick-data.js';
+import {ensureWeaponVersatile} from './premades/weapon-versatile-data.js';
+import {ensureWeaponPiercing} from './premades/weapon-piercing-data.js';
+import {ensureWeaponOtherworldly} from './premades/weapon-otherworldly-data.js';
+import {ensureWeaponRicochet} from './premades/weapon-ricochet-data.js';
+import {ensureWeaponReloading} from './premades/weapon-reloading-data.js';
+import {ensureWeaponAimed} from './premades/weapon-aimed-data.js';
+import {ensureWeaponFollowUp} from './premades/weapon-follow-up-data.js';
+import {ensureArmorBulky} from './premades/armor-bulky-data.js';
 import {ensureRuthlessPredator} from "./premades/ruthless-predator-data.js";
 import {ensureElusivePredator} from "./premades/elusive-predator-data.js";
 import {ensureApexPredator} from "./premades/apex-predator-data.js";
@@ -354,6 +363,15 @@ export const PREMADE_SEEDS=[
   ensureReassurance,
   ensureForcefulPush,
   ensureIAmYourShield,
+  ensureWeaponQuick,
+  ensureWeaponVersatile,
+  ensureWeaponPiercing,
+  ensureWeaponOtherworldly,
+  ensureWeaponRicochet,
+  ensureWeaponReloading,
+  ensureWeaponAimed,
+  ensureWeaponFollowUp,
+  ensureArmorBulky,
 ];
 
 export async function setupPremadeLibrary(){

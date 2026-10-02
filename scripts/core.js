@@ -1,3 +1,4 @@
+import {weaponModeProfile} from './weapon-modes.js';
 export const ID = 'daggerheart-premades';
 export const CATEGORIES = {
   'class-features': 'Class Features',
@@ -6,7 +7,9 @@ export const CATEGORIES = {
   'ancestry-features': 'Ancestry Features',
   'community-features': 'Community Features',
   'beastform-features': 'Beastform Features',
-  'transformation-features': 'Transformation Features'
+  'transformation-features': 'Transformation Features',
+  'weapon-features': 'Weapon Features',
+  'armor-features': 'Armor Features'
 };
 // Deliberately limited to automation. Advancement, vault and granting links stay on the target.
 export const FIELDS = ['actions', 'resource', 'actorResources', 'featureForm'];
@@ -19,7 +22,20 @@ export function canonical(value) {
 }
 export const equal = (a, b) => JSON.stringify(canonical(a)) === JSON.stringify(canonical(b));
 export const metadata = item => item.flags?.[ID]?.premade;
-export const supported = item => ['feature', 'domainCard'].includes(item.type);
+export const supported = item => ['feature', 'domainCard', 'weapon', 'armor'].includes(item.type);
+export const weaponPremade = item => metadata(item)?.category === 'weapon-features';
+export const armorPremade = item => metadata(item)?.category === 'armor-features';
+export function armorMatches(target,source){
+  const meta=metadata(source);
+  return target.type==='armor'&&armorPremade(source)&&target.system?.armorFeatures?.some(feature=>feature.value===meta.armorFeature);
+}
+export function weaponMatches(target, source) {
+  const meta = metadata(source);
+  const profiles=meta?.weaponProfiles??meta?.weaponItems;
+  return target.type === 'weapon' && weaponPremade(source) &&
+    (profiles ? Boolean(weaponModeProfile(target,profiles)) :
+      target.system?.weaponFeatures?.some(feature => feature.value === meta.weaponFeature));
+}
 export function featureActive(item) {
   if (item.system?.inactive) return false;
   if (item.actor && item.system?.granter?.type === 'subclass' && typeof item.actor.system?.isItemAvailable === 'function')
@@ -28,14 +44,29 @@ export function featureActive(item) {
 }
 export function categoryFor(item) {
   if (item.type === 'domainCard') return 'domain-cards';
+  if (item.type === 'weapon') return 'weapon-features';
+  if (item.type === 'armor') return 'armor-features';
   const category = `${item.system?.granter?.type}-features`;
   return CATEGORIES[category] ? category : null;
 }
 export function validatePremade(item, category) {
   const meta = metadata(item);
-  if (!supported(item)) throw new Error('Premades must be features or domain cards.');
+  if (!supported(item)) throw new Error('Premades must be features, domain cards, weapons or armor.');
   if (!CATEGORIES[category] || meta?.category !== category) throw new Error('Premade category does not match its compendium.');
   if ((item.type === 'domainCard') !== (category === 'domain-cards')) throw new Error('Document type does not match its category.');
+  const modeProfiles=Array.isArray(meta?.weaponProfiles)&&meta.weaponProfiles.length>0&&meta.weaponProfiles.every(p=>
+    typeof p.name==='string'&&/^Compendium\.daggerheart\.weapons\.Item\.[a-zA-Z0-9]{16}$/.test(p.sourceUuid)&&
+    ['agility','strength','finesse','instinct','presence','knowledge'].includes(p.trait)&&
+    ['melee','veryClose','close','far','veryFar'].includes(p.range)&&/^d(6|8|10|12)$/.test(p.dice)&&Number.isFinite(p.bonus));
+  const weaponItems=Array.isArray(meta?.weaponItems)&&meta.weaponItems.length>0&&meta.weaponItems.every(p=>
+    typeof p.name==='string'&&p.name.trim()&&/^Compendium\.daggerheart\.weapons\.Item\.[a-zA-Z0-9]{16}$/.test(p.sourceUuid));
+  if (category === 'weapon-features' && (item.type !== 'feature' || (!modeProfiles&&!weaponItems&&!/^[a-zA-Z][a-zA-Z0-9]*$/.test(meta.weaponFeature ?? '')) ||
+      Object.keys(item.system?.actions ?? {}).length || (item.effects ?? []).length))
+    throw new Error('Weapon feature premades must be marker-only features with a native weapon property or valid item-specific modes.');
+  if (item.type === 'weapon') throw new Error('Save a weapon feature template, not a complete weapon.');
+  if(category==='armor-features'&&(item.type!=='feature'||!/^[a-zA-Z][a-zA-Z0-9]*$/.test(meta.armorFeature??'')||
+    Object.keys(item.system?.actions??{}).length||(item.effects??[]).length))throw new Error('Armor feature premades must be marker-only features with a native armor property.');
+  if(item.type==='armor')throw new Error('Save an armor feature template, not a complete armor item.');
   if (!meta.key || !/^\d+\.\d+\.\d+$/.test(meta.version ?? '')) throw new Error('A premade needs a stable key and an x.y.z version.');
   validateReferences(item);
   return meta;
@@ -52,7 +83,7 @@ export function validateReferences(item) {
 }
 export function matches(target, entries) {
   if (!featureActive(target)) return [];
-  const compatible = entries.filter(e => e.data.type === target.type);
+  const compatible = entries.filter(e => target.type === 'weapon' ? weaponMatches(target, e.data) : target.type==='armor'?armorMatches(target,e.data):!weaponPremade(e.data)&&!armorPremade(e.data) && e.data.type === target.type);
   const applied = target.flags?.[ID]?.applied;
   if (applied?.key) {
     const byKey = compatible.filter(e => metadata(e.data)?.key === applied.key);
@@ -64,6 +95,7 @@ export function matches(target, entries) {
   // A removed/replaced premade can be recovered through its original source UUID,
   // but never silently replaced just because another item has the same name.
   if (applied?.key) return [];
+  if (['weapon','armor'].includes(target.type)) return compatible;
   const category = categoryFor(target);
   return compatible.filter(e => {
     const meta = metadata(e.data);
@@ -111,6 +143,33 @@ export function rebase(value, sourceUuid, targetUuid) {
   return value;
 }
 export function plan(target, source, sourceUuid, targetUuid) {
+  if(target.type==='armor'&&armorMatches(target,source)){
+    validatePremade(source,metadata(source)?.category);
+    const before=snapshot(target);
+    return {before,after:clone(before),changed:false,descriptionChanged:false,metadataOnly:true};
+  }
+  if (target.type === 'weapon' && weaponMatches(target, source)) {
+    validatePremade(source, metadata(source)?.category);
+    // Weapon properties are generated natively. Medkit only opts this weapon
+    // into the handler; never replace its attack, custom actions or effects.
+    const before = snapshot(target);
+    const profiles=metadata(source).weaponProfiles??metadata(source).weaponItems;
+    const profile=profiles?weaponModeProfile(target,profiles):null;
+    const after=clone(before);
+    if(profile){
+      const escape=text=>String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const rule=metadata(source).weaponProfiles?
+        `This weapon can also be used with these statistics—${profile.trait[0].toUpperCase()+profile.trait.slice(1)}, ${profile.range.replace(/([A-Z])/g,' $1').replace(/^./,c=>c.toUpperCase())}, ${profile.dice}${profile.bonus?`+${profile.bonus}`:''}${profile.type==='physical'?' phy':profile.type==='magical'?' mag':''}.`:
+        source.system.description;
+      before.system.description=target.system?.description??'';
+      const plain=text=>normalize(String(text).replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/g,' ').replace(/&mdash;|&#8212;/g,'—').replace(/&minus;|&#8722;/g,'−'));
+      const addition=`<p><strong>${escape(source.name)}:</strong> ${metadata(source).weaponProfiles?escape(rule):String(rule).replace(/^<p>|<\/p>$/g,'')}</p>`;
+      after.system.description=plain(before.system.description).includes(plain(rule))?before.system.description:before.system.description+addition;
+    }
+    const descriptionChanged=before.system.description!==after.system.description;
+    return { before, after, changed: descriptionChanged, descriptionChanged, metadataOnly: true,
+      ...(profile?{weaponProfile:profile.sourceUuid}:{}) };
+  }
   if (target.type !== source.type || !supported(target)) throw new Error('Premade and target types must match.');
   validatePremade(source, metadata(source)?.category);
   const before = snapshot(target);

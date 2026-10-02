@@ -10,6 +10,7 @@ import { RETRACT_KEY } from './premades/retract-data.js';
 import { etherealAdvantage } from './premades/ethereal-visage.js';
 import { vexingAdvantage } from './premades/vexing-malison.js';
 import { beastformAttackAdvantage } from './beastform-advantage.js';
+import { aimedDisadvantage } from './premades/weapon-aimed.js';
 const WRAPPED=Symbol.for(`${ID}.vulnerableAdvantage`);
 const sources=new WeakMap();
 export function registerVulnerableSetting(){
@@ -61,7 +62,7 @@ export function installVulnerableAdvantage(D20Roll){
   D20Roll.applyKeybindings=function(config){
     const priorAdvantage=config.advantage,priorDisadvantage=config.disadvantage;
     const advantage=beastformAttackAdvantage(config)||elementalAir(config)||isolatingAdvantage(config)||etherealAdvantage(config)||vexingAdvantage(config)||(game.settings.get(ID,'vulnerableAdvantage')&&vulnerableTargets(config));
-    const disadvantage=defensiveTargets(config).length>0||corpseDisadvantage(config)||midnightDisadvantage(config)||retractDisadvantage(config)||sturdyTargets(config)||hiddenTargets(config);
+    const disadvantage=aimedDisadvantage(config)||defensiveTargets(config).length>0||corpseDisadvantage(config)||midnightDisadvantage(config)||retractDisadvantage(config)||sturdyTargets(config)||hiddenTargets(config);
     if(advantage)config.advantage=true;
     if(disadvantage)config.disadvantage=true;
     try{
