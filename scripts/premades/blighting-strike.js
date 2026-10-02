@@ -6,6 +6,7 @@ import {ownerFor} from './aura-rules.js';
 import {withHopeLock} from './hope-lock.js';
 import {markReactiveStress} from './stress-payment.js';
 import {BLIGHTING_KEY,BLIGHTING_ACTION,BLIGHTING_EFFECT} from './blighting-strike-data.js';
+import {resolvedAttackOutcome,attackHitTargets} from '../attack-outcome.js';
 
 const QUERY=`${ID}.blightingStrike`,PROMPT=`${QUERY}Prompt`;
 const TARGET_WRAP=Symbol.for(`${QUERY}Targets`),FORMULA_WRAP=Symbol.for(`${QUERY}Formula`),DAMAGE_WRAP=Symbol.for(`${QUERY}Damage`),APPLY_WRAP=Symbol.for(`${QUERY}Apply`);
@@ -23,29 +24,10 @@ export function blightingDice(roll){
   return !roll?.isCritical&&(roll?.withFear===true||roll?.result?.duality===-1)?'d10':'d6';
 }
 export function blightingOutcome(message){
-  const data=message?.system,roll=data?.roll;
-  if(data?.action?.type!=='attack'||!Number.isFinite(roll?.total))return 'unknown';
-  if(roll.isCritical||roll.options?.[ID]?.trueStrike||roll.options?.[ID]?.witchsCharm)return 'success';
-  const targets=data._getCurrentTargets?.()??data.targets??[];
-  // Native target data uses 0 as the empty threshold; do not mistake it for a known hit.
-  const outcomes=targets.map(target=>{
-    const dc=Number(target.difficulty||target.evasion);
-    if(target.hit===true)return 'success';
-    if(!(dc>0&&Number.isFinite(dc)))return 'unknown';
-    return (target.hitResult?.success??roll.total>=dc)?'success':'failure';
-  });
-  if(outcomes.includes('success'))return 'success';
-  if(outcomes.length)return outcomes.every(result=>result==='failure')?'failure':'unknown';
-  return roll.difficulty!=null&&roll.difficulty!==''&&Number.isFinite(Number(roll.difficulty))&&Number(roll.difficulty)>0?
-    (roll.total>=Number(roll.difficulty)?'success':'failure'):'unknown';
+  return resolvedAttackOutcome(message);
 }
 function hitTargets(message){
-  const data=message.system,roll=data.roll,targets=data._getCurrentTargets?.()??data.targets??[];
-  return targets.filter(target=>{
-    const dc=target.difficulty||target.evasion;
-    return roll.isCritical||roll.options?.[ID]?.trueStrike||roll.options?.[ID]?.witchsCharm||target.hit===true||
-      dc!=null&&Number.isFinite(Number(dc))&&Number(dc)>0&&(target.hitResult?.success??roll.total>=Number(dc));
-  });
+  return attackHitTargets(message);
 }
 const paymentOptions=actor=>({hope:Number(actor.system.resources?.hope?.value)>=1,
   stress:Number(actor.system.resources?.stress?.value)<Number(actor.system.resources?.stress?.max)});

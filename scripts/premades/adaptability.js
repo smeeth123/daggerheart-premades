@@ -1,6 +1,7 @@
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import {criticalRerollResult} from '../roll-rerolls.js';
+import {markRerolledDice} from '../reroll-indicators.js';
 import { ID } from '../core.js';
 import { ADAPT_KEY,ADAPT_ACTION } from './adaptability-data.js';
 import { consumeResolutionTicket } from '../resolution-manager.js';
@@ -55,6 +56,7 @@ export async function rerollAdaptability(roll){
   const replacement=foundry.dice.Roll.fromTerms(terms);
   await replacement.evaluate();
   if(!Number.isFinite(replacement.total))throw new Error('Adaptability reroll did not produce a valid total.');
+  markRerolledDice(replacement.dice);
   roll.terms=replacement.terms;roll._total=roll._evaluateTotal();return replacement;
 }
 export function registerAdaptability(){

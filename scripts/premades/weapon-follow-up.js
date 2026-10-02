@@ -5,6 +5,7 @@ import {ownerFor,unavailableActor} from './aura-rules.js';
 import {sourceToken} from './hallowed-aura.js';
 import {markReactiveStress} from './stress-payment.js';
 import {blightingOutcome} from './blighting-strike.js';
+import {resolvedAttackTargets,attackHitTargets} from '../attack-outcome.js';
 import {WEAPON_FOLLOW_UP_KEY} from './weapon-follow-up-data.js';
 
 const QUERY=`${ID}.weaponFollowUp`,PROMPT=`${QUERY}Prompt`,WRAPPED=Symbol.for(QUERY);
@@ -16,13 +17,8 @@ export function followUpWeapon(item){
 }
 export function followUpInMelee(message){
   if(blightingOutcome(message)!=='success')return false;
-  const data=message.system,action=data.action,roll=data.roll;
-  const targets=data._getCurrentTargets?.()??data.targets??[];
-  const hits=targets.filter(target=>{
-    if(roll.isCritical||roll.options?.[ID]?.trueStrike||roll.options?.[ID]?.witchsCharm||target.hit===true)return true;
-    if(typeof target.hitResult?.success==='boolean')return target.hitResult.success;
-    const dc=Number(target.difficulty||target.evasion);return dc>0&&Number.isFinite(dc)&&roll.total>=dc;
-  });
+  const data=message.system,action=data.action;
+  const targets=resolvedAttackTargets(message),hits=attackHitTargets(message);
   // Native Melee attacks support theater-of-the-mind / manually declared rolls.
   // A measurable target uses its actual range even if the action says Melee.
   if(!targets.length)return action.range==='melee';

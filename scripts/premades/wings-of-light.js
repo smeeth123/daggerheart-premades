@@ -6,10 +6,13 @@ import {ownerFor} from './aura-rules.js';
 import {withHopeLock} from './hope-lock.js';
 import {WINGS_LIGHT_KEY} from './wings-of-light-data.js';
 import {powerOfTheGodsItem} from './power-of-the-gods.js';
+import {resolvedAttackOutcome} from '../attack-outcome.js';
 const QUERY=`${ID}.wingsOfLight`,PROMPT=`${ID}.wingsOfLightPrompt`,WRAPPED=Symbol.for(`${ID}.wingsOfLight`),decisions=new Map();
 export function wingsOfLightItem(actor){return actor?.type==='character'&&actor.statuses?.has('fly')?actor.items?.find(item=>{const flags=item.flags?.[ID];return featureActive(item)&&!flags?.disabled&&(flags?.applied?.key??flags?.premade?.key)===WINGS_LIGHT_KEY;})??null:null;}
 const canPay=actor=>Number(actor?.system.resources?.hope?.value)>=1;
-export function wingsOfLightHit(message){const data=message?.system,roll=data?.roll;if(data?.action?.type!=='attack'||!roll||!Number.isFinite(roll.total))return false;return (data.targets??[]).some(target=>{const difficulty=target.difficulty||target.evasion;return difficulty!=null&&(roll.isCritical||roll.total>=difficulty);});}
+// Outcome conversions such as Witch's Charm do not change the dice total.
+// Use the resolved attack, as other post-hit damage choices do.
+export function wingsOfLightHit(message){return resolvedAttackOutcome(message)==='success';}
 export async function validateWingsOfLight(request,user){if(!user?.active||request.deadline<=decisionNow())return null;const message=await fromUuid(request.messageUuid),actor=message?.system?.action?.actor;if(!actor?.testUserPermission(user,'OWNER')||!wingsOfLightItem(actor)||!wingsOfLightHit(message))return null;return{message,actor};}
 export const wingsOfLightDamageDie=actor=>powerOfTheGodsItem(actor)?'1d12':'1d8';
 export const wingsOfLightPromptContent=actor=>`<p>You made a successful attack while <strong>Flying</strong>.</p><p>Spend <strong>1 Hope</strong> to add <strong>${wingsOfLightDamageDie(actor)} damage</strong>?</p>`;

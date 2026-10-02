@@ -1,6 +1,7 @@
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import {criticalRerollResult} from '../roll-rerolls.js';
+import {markRerolledDice} from '../reroll-indicators.js';
 import { withHopeLock } from './hope-lock.js';
 import { consumeResolutionTicket, resolutionTicketStatus } from '../resolution-manager.js';
 import { ID } from '../core.js';
@@ -134,6 +135,7 @@ export async function rerollDualityDice(roll) {
   });
   const pair=foundry.dice.Roll.fromTerms([fresh[0],new foundry.dice.terms.OperatorTerm({operator:'+'}),fresh[1]]);
   await pair.evaluate();
+  markRerolledDice(fresh);
   for(let index=0;index<original.length;index++){
     const position=roll.terms.indexOf(original[index]);
     if(position<0)throw new Error('The Duality dice are not in the expected roll structure.');

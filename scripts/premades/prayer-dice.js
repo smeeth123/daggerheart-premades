@@ -2,6 +2,7 @@ import { decisionBudget } from '../settings.js';
 import { notifyPending } from '../resolution-manager.js';
 import { decisionCountdown, decisionNow, decisionTimeout, clearDecisionTimeout } from '../decision-clock.js';
 import { ID } from '../core.js';
+import {resolvedAttackTargets,attackHitTargets} from '../attack-outcome.js';
 import { PRAYER_KEY,PRAYER_HOPE_ACTION } from './prayer-dice-data.js';
 import { ownerFor } from './aura-rules.js';
 import { sourceToken } from './hallowed-aura.js';
@@ -33,7 +34,7 @@ export function prayerOptions(message,bearer){
     if(Number.isFinite((data?.roll??(!data?.damage?.main?message.rolls?.[0]:null))?.total))options.push({mode:'roll',actorUuid:roller.uuid,label:`Add to ${roller.name}’s roll`});
     if(!data.hasHealing&&Number(data.damage?.main?.total)>0)options.push({mode:'damageBonus',actorUuid:roller.uuid,label:`Add to ${roller.name}’s damage`});
   }
-  if(!data?.hasHealing&&Number(data?.damage?.main?.total)>0)for(const target of (data.targets??[]).filter(t=>!data.roll||data.roll.isCritical||((t.difficulty||t.evasion)!=null&&data.roll.total>=(t.difficulty||t.evasion)))){
+  if(!data?.hasHealing&&Number(data?.damage?.main?.total)>0)for(const target of (data.roll?attackHitTargets(message):resolvedAttackTargets(message))){
     const recipient=foundry.utils.fromUuidSync(target.actorId);
     if(recipient&&prayerRange(bearer,recipient)&&!applied(message,target))options.push({mode:'damage',actorUuid:recipient.uuid,targetId:target.id,label:`Reduce damage to ${recipient.name}`});
   }
@@ -120,7 +121,7 @@ export async function spendPrayer(request,{user}){
     else{
       const main=message.system.damage.main;
       const reductions={...main.options[ID]?.prayerReductions};reductions[option.actorUuid]=Number(reductions[option.actorUuid]??0)+total;
-      const hits=(message.system.targets??[]).filter(t=>!message.system.roll||message.system.roll.isCritical||((t.difficulty||t.evasion)!=null&&message.system.roll.total>=(t.difficulty||t.evasion)));
+      const hits=message.system.roll?attackHitTargets(message):resolvedAttackTargets(message);
       if(hits.length===1){
         await reducePrayerCardDamage(main,reductions[option.actorUuid]);
         delete reductions[option.actorUuid];

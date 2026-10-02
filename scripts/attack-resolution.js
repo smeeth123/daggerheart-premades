@@ -3,6 +3,7 @@ import { decisionBudget } from './settings.js';
 import { decisionNow } from './decision-clock.js';
 import { collectTimeChoices,payTime } from './premades/not-this-time.js';
 import { ID } from './core.js';
+import {markRerolledDice} from './reroll-indicators.js';
 import { ownerFor,allied,tokenState } from './premades/aura-rules.js';
 import { markReactiveStress } from './premades/stress-payment.js';
 import { faerieWingsItem,wingsWouldMiss,AVOIDED } from './premades/faerie-wings.js';
@@ -159,6 +160,7 @@ export async function executeDefenseChoice(choice,attacker,config){
   }else if(choice.kind==='danger'||choice.kind==='time-attack'){
     const original=message.system.roll;
     const rerolled=await original.reroll();
+    markRerolledDice(rerolled.dice);
     updateAttackTargets(config,rerolled);
     await animateLuckbenderReroll(rerolled,{source:{message:message.id}},message);
     await message.update({rolls:[rerolled.toJSON()],'system.targets':config.targets,[`flags.${ID}.${choice.kind==='danger'?'dangerSense':'notThisTimeAttack'}`]:paid.bearerName});

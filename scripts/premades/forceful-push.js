@@ -1,4 +1,5 @@
 import {ID,featureActive} from '../core.js';
+import {resolvedAttackTargets,attackTargetOutcome} from '../attack-outcome.js';
 import {decisionNow} from '../decision-clock.js';
 import {decisionBudget} from '../settings.js';
 import {timedDialog} from '../dialog.js';
@@ -34,15 +35,13 @@ function confirmedForcefulPush(config){
 }
 export function forcefulPushHit(message){
   const marker=message?.flags?.[ID]?.forcefulPush,data=message?.system,action=data?.action,actor=action?.actor;
-  const item=actor?.items?.get?.(marker?.itemId),roll=data?.roll,targets=data?.targets??[];
+  const item=actor?.items?.get?.(marker?.itemId),roll=data?.roll,targets=resolvedAttackTargets(message);
   if(!marker||!forcefulPushItem(item)||item.uuid!==marker.itemUuid||action?.type!=='attack'||action.actionType==='reaction'||
     action.item?.uuid!==marker.weaponUuid||action.id!==action.item?.system?.attack?.id||!Number.isFinite(roll?.total)||
     message.speaker?.scene&&message.speaker.scene!==marker.sceneId)return null;
   // Other post-hit features can append targets; the captured original still decides eligibility.
   const hit=targets.find(target=>target.id===marker.targetId&&target.actorId===marker.targetActorUuid);
-  if(!hit)return null;const threshold=Number(hit.difficulty||hit.evasion);
-  if(!(roll.isCritical||roll.options?.[ID]?.trueStrike||
-    roll.options?.[ID]?.witchsCharm||Number.isFinite(threshold)&&threshold>0&&roll.total>=threshold))return null;
+  if(!hit||attackTargetOutcome(roll,hit)!=='success')return null;
   return {actor,item,hit,marker};
 }
 export function forcefulPushHope(message){

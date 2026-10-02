@@ -3,6 +3,7 @@ import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import {criticalRerollResult} from '../roll-rerolls.js';
 import { ID } from '../core.js';
+import {resolvedAttackTargets,attackTargetOutcome} from '../attack-outcome.js';
 import { FOCUS_KEY,FOCUS_ACTION,FOCUS_EFFECT } from './rangers-focus-data.js';
 import { withHopeLock } from './hope-lock.js';
 import { prioritizeFaerieWings } from './faerie-wings.js';
@@ -57,10 +58,11 @@ export async function resolveFocus(request,{user}){
   return withHopeLock(actor.uuid,async()=>{
     const prime=primedFocus(actor);if(!prime||prime.id!==request.primeId)return false;
     const message=await fromUuid(request.messageUuid),data=message?.system;
-    if(attackBeneficiary(data?.action?.actor)?.uuid!==actor.uuid||data.action.type!=='attack'||!Number.isFinite(data.roll?.total)||data.targets?.length!==1)return false;
-    const hit=data.targets[0],target=await fromUuid(hit.actorId),threshold=hit.difficulty||hit.evasion;
-    if(!target||threshold==null)return false;
-    if(data.roll.isCritical||data.roll.total>=threshold){
+    const targets=resolvedAttackTargets(message);
+    if(attackBeneficiary(data?.action?.actor)?.uuid!==actor.uuid||data.action.type!=='attack'||!Number.isFinite(data.roll?.total)||targets.length!==1)return false;
+    const hit=targets[0],target=await fromUuid(hit.actorId),outcome=attackTargetOutcome(data.roll,hit);
+    if(!target||outcome==='unknown')return false;
+    if(outcome==='success'){
       const effect=focusItem(actor).effects.get(FOCUS_EFFECT),previous=focusEffects(actor);
       await game.system.api.fields.ActionFields.EffectsField.applyEffect(effect,target);
       if(!focusEffects(actor,target).length)throw new Error('Could not apply Ranger’s Focus.');

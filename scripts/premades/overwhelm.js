@@ -1,6 +1,7 @@
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import { ID,featureActive } from '../core.js';
+import {attackHitTargets} from '../attack-outcome.js';
 import { OVERWHELM_KEY } from './overwhelm-data.js';
 import { ownerFor } from './aura-rules.js';
 import { timedDialog } from '../dialog.js';
@@ -9,7 +10,7 @@ import { prioritizeFaerieWings } from './faerie-wings.js';
 const QUERY=`${ID}.overwhelm`,PROMPT=`${ID}.overwhelmPrompt`,pending=new Set();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function overwhelmItem(actor){return Number(actor?.system?.resources?.hope?.value)>=1?actor.items.find(item=>{const f=item.flags?.[ID];return featureActive(item)&&!f?.disabled&&(f?.applied?.key??f?.premade?.key)===OVERWHELM_KEY;})??null:null;}
-export function overwhelmHits(message){const d=message?.system;if(d?.action?.type!=='attack'||!Number.isFinite(d.roll?.total))return [];return (d.targets??[]).filter(t=>{const threshold=t.difficulty||t.evasion;return threshold!=null&&(d.roll.options?.[ID]?.trueStrike||d.roll.options?.[ID]?.witchsCharm||d.roll.isCritical||d.roll.total>=threshold);});}
+export function overwhelmHits(message){const d=message?.system;if(d?.action?.type!=='attack'||!Number.isFinite(d.roll?.total))return [];return attackHitTargets(message);}
 export async function promptOverwhelm(data,{user}){const actor=await fromUuid(data.actorUuid);if(!user?.isGM||!actor?.testUserPermission(game.user,'OWNER')||!overwhelmItem(actor))return null;return timedDialog(`Overwhelm — ${actor.name}`,`<p>Spend <strong>1 Hope</strong> after hitting <strong>${esc(data.targetName)}</strong> to choose one:</p>`,[{action:'stress',label:'Mark 1 Stress on Target',callback:()=> 'stress'},{action:'throw',label:'Throw within Close (manual)',callback:()=> 'throw'},{action:'decline',label:'Decline',default:true,callback:()=>null}]);}
 async function validate(request,user){const message=await fromUuid(request.messageUuid),actor=message?.system?.action?.actor,hit=overwhelmHits(message).find(t=>t.id===request.targetId);if(!user?.active||!actor?.testUserPermission(user,'OWNER')||!overwhelmItem(actor)||!hit)return null;const target=await fromUuid(hit.actorId);return target&&['character','adversary'].includes(target.type)?{message,actor,target}:null;}
 export async function resolveOverwhelm(request,{user},ask=promptOverwhelm){

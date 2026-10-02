@@ -1,6 +1,7 @@
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import { ID } from '../core.js';
+import {markRerolledDice} from '../reroll-indicators.js';
 import { TIME_KEY,TIME_ACTION } from './not-this-time-data.js';
 import { sourceToken } from './hallowed-aura.js';
 import { ownerFor,tokenState } from './aura-rules.js';
@@ -48,6 +49,7 @@ export async function resolveTime(request,{user},authorize=consumeResolutionTick
 export async function payTime(choice){const gm=game.users.activeGM;if(!gm)throw new Error('Not This Time needs an active GM.');const request={...choice.request,resolutionToken:choice.token,deadline:decisionNow()+decisionBudget(120000)};return gm.isSelf?resolveTime(request,{user:game.user}):gm.query(QUERY,request,{timeout:decisionBudget(125000)});}
 export async function rerollTimeDamage(config,message,paid){
   const replacement=await config.damage.main.reroll();
+  markRerolledDice(replacement.dice);
   for(const die of replacement.dice)for(const result of die.results)result.hidden=false;
   replacement.options[ID]={...replacement.options[ID],notThisTime:paid};config.damage.main=replacement;
   await animateLuckbenderReroll(replacement,{source:{message:message?.id},selectedMessageMode:config.selectedMessageMode??config.rollMode},message);

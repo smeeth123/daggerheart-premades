@@ -168,6 +168,7 @@ import { registerAdaptability } from './premades/adaptability.js';
 import { registerInternalCompass } from './premades/internal-compass.js';
 import { registerLuckbringer } from './premades/luckbringer.js';
 import { registerAttackResolution } from './attack-resolution.js';
+import { registerRerollIndicators } from './reroll-indicators.js';
 import { registerNimbleFingers } from './premades/nimble-fingers.js';
 import { registerResolutionManager, installDamageReductionMonitoring, addPendingDecisionsControl } from './resolution-manager.js';
 import { registerRollProviders, resolveManagedRoll, resolveManagedAura } from './roll-resolution.js';
@@ -322,6 +323,7 @@ Hooks.once('ready', async () => {
   registerTranscendence();
   registerResolutionManager();
   registerRollProviders();
+  registerRerollIndicators();
   registerVulnerableAdvantage();
   registerSturdyEffects();
   registerHelpAlly();

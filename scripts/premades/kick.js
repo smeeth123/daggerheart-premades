@@ -1,6 +1,7 @@
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import { ID } from '../core.js';
+import {attackHitTargets} from '../attack-outcome.js';
 import { timedDialog } from '../dialog.js';
 import { ownerFor, tokenState } from './aura-rules.js';
 import { sourceToken } from './hallowed-aura.js';
@@ -28,10 +29,7 @@ export function kickHit(message){
   if(data?.action?.type!=='attack'||!roll||!Number.isFinite(roll.total))return null;
   // The native damage roll is shared by all hit targets. Do not add a single
   // target's Kick to an entire multi-target attack.
-  const hits=(data.targets??[]).filter(target=>{
-    const difficulty=target.difficulty||target.evasion;
-    return difficulty!=null&&(roll.isCritical||roll.total>=difficulty);
-  });
+  const hits=attackHitTargets(message);
   return hits.length===1?hits[0]:null;
 }
 export async function validateKick(request,user){

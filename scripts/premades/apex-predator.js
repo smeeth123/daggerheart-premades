@@ -1,4 +1,5 @@
 import {ID,featureActive} from '../core.js';
+import {attackHitTargets} from '../attack-outcome.js';
 import {APEX_KEY} from './apex-predator-data.js';
 import {focusEffects} from './rangers-focus.js';
 import {honedAction} from './honed.js';
@@ -15,7 +16,7 @@ const canPay=actor=>Boolean(apexItem(actor)&&Number(actor.system.resources?.hope
 export function apexTargets(actor,targets){return [...new Set((targets??[]).filter(t=>focusEffects(actor,t).length).map(t=>t.uuid))];}
 export function apexHit(message,actorUuid,targetUuids){
  const data=message?.system,roll=data?.roll;if(data?.action?.type!=='attack'||data.action.actor?.uuid!==actorUuid||!Number.isFinite(roll?.total))return false;
- return (data.targets??[]).some(t=>targetUuids.includes(t.actorId)&&(roll.isCritical||roll.total>=(t.difficulty||t.evasion)));
+ return attackHitTargets(message).some(t=>targetUuids.includes(t.actorId));
 }
 export async function promptApex(data,{user}){const actor=await fromUuid(data.actorUuid);if(!user?.isGM||!actor?.testUserPermission(game.user,'OWNER')||!canPay(actor)||fear()<=0)return false;return Boolean(await timedDialog(`Apex Predator — ${actor.name}`,'<p>Spend <strong>1 Hope</strong> on this attack against your Focus? If it succeeds, remove <strong>1 Fear</strong> from the GM pool.</p>',[{action:'use',label:'Spend Hope',callback:()=>true},{action:'decline',label:'Decline',default:true,callback:()=>false}]));}
 export async function resolveApex(request,{user},ask=promptApex){

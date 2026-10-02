@@ -21,6 +21,7 @@ import { sourceToken,collectCandidates,auraRangeState,validatedCandidate,queuedO
 import { luckbenderCandidates,validateLuckbender,resolveLuckbender,rerollDualityDice,animateLuckbenderReroll } from './premades/luckbender.js';
 import { consumeResolutionTicket,resolutionRequest,registerResolutionProvider } from './resolution-manager.js';
 import { diminishItem,diminishTargets,validateDiminish,resolveDiminish } from './premades/diminish-my-foes.js';
+import {convertedAttackSuccess} from './attack-outcome.js';
 import {courageItem,courageOutcome,validateCourage,resolveCourage} from './premades/courage.js';
 import {reassuranceCandidates,validateReassurance,resolveReassurance,rerollReassurance} from './premades/reassurance.js';
 export function registerRollProviders(){
@@ -170,7 +171,7 @@ export function collectRollChoices(roll,actor,{auraOnly=false,used=new Set(),con
   }
   return rows.filter(row=>!isActionRerollChoice(row.kind)||!criticalRerollResult(values));
 }
-export function collectDiminishChoices(roll,actor,config={}){const item=diminishItem(actor),values={hope:roll.dHope.total,fear:roll.dFear.total,total:roll.total};return item?diminishTargets(actor,roll,config).map(target=>({id:`diminish:${item.uuid}:${target.targetUuid}`,kind:'diminish',request:{sourceUuid:actor.uuid,targetUuid:target.targetUuid,candidate:{itemUuid:item.uuid},actionType:'action',withHope:true,critical:Boolean(roll.isCritical),...target,...values}})):[];}
+export function collectDiminishChoices(roll,actor,config={}){const item=diminishItem(actor),values={hope:roll.dHope.total,fear:roll.dFear.total,total:roll.total};return item?diminishTargets(actor,roll,config).map(target=>({id:`diminish:${item.uuid}:${target.targetUuid}`,kind:'diminish',request:{sourceUuid:actor.uuid,targetUuid:target.targetUuid,candidate:{itemUuid:item.uuid},actionType:'action',withHope:true,critical:Boolean(roll.isCritical),convertedSuccess:convertedAttackSuccess(roll),...target,...values}})):[];}
 export async function executeRollChoice(choice,roll,config,preview){
   if(isActionRerollChoice(choice.kind)&&criticalRerollResult({critical:roll.isCritical,hope:roll.dHope?.total,fear:roll.dFear?.total}))return false;
   const gm=game.users.activeGM;if(!gm)throw new Error('The GM disconnected during roll resolution.');

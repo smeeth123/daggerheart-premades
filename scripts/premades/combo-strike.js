@@ -3,6 +3,7 @@ import { decisionNow } from '../decision-clock.js';
 import { flowActive,flowPayments,spendFlowFocus } from './flow-state.js';
 import { isWeaponAttack } from './weapon-attack.js';
 import { ID } from '../core.js';
+import {attackHitTargets} from '../attack-outcome.js';
 import { COMBO_KEY,COMBO_ACTION } from './combo-strike-data.js';
 import { markReactiveStress } from './stress-payment.js';
 import { ownerFor } from './aura-rules.js';
@@ -16,7 +17,7 @@ export function comboHit(message){
   const data=message?.system,action=data?.action;
   if(action?.type!=='attack'||action.range!=='melee'||!Number.isFinite(data.roll?.total))return false;
   if(!isWeaponAttack(data))return false;
-  return (data.targets??[]).filter(target=>{const threshold=target.difficulty||target.evasion;return threshold!=null&&(data.roll.isCritical||data.roll.total>=threshold);}).length===1;
+  return attackHitTargets(message).length===1;
 }
 export const comboPayments=actor=>[Number(actor?.system.resources?.stress?.value)<Number(actor?.system.resources?.stress?.max)?'stress':null,flowActive(actor)&&flowPayments(actor).includes('focus')?'focus':null].filter(Boolean);
 const canPay=actor=>comboPayments(actor).length>0;

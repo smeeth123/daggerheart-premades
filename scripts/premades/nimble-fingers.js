@@ -1,6 +1,7 @@
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import {criticalRerollResult} from '../roll-rerolls.js';
+import {markRerolledDice} from '../reroll-indicators.js';
 import { ID } from '../core.js';
 import { consumeResolutionTicket } from '../resolution-manager.js';
 import { withHopeLock } from './hope-lock.js';
@@ -35,6 +36,7 @@ export async function rerollHopeDie(roll){
   const options={...original.options};delete options.sfx;
   const die=new original.constructor({number:original.number,faces:original.faces,modifiers:[...original.modifiers],options});
   const pair=foundry.dice.Roll.fromTerms([die]);await pair.evaluate();
+  markRerolledDice([die]);
   roll.terms[position]=die;roll._total=roll._evaluateTotal();return pair;
 }
 export function registerNimbleFingers(){

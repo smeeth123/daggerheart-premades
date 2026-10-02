@@ -3,6 +3,7 @@ import { decisionNow } from '../decision-clock.js';
 import { isWeaponAttack } from './weapon-attack.js';
 import { prioritizeFaerieWings } from './faerie-wings.js';
 import { ID } from '../core.js';
+import {attackHitTargets,attackTargetOutcome} from '../attack-outcome.js';
 import { MARK_KEY,MARK_EFFECT,MARK_BONUS } from './marked-for-death-data.js';
 import { ownerFor } from './aura-rules.js';
 import { markReactiveStress } from './stress-payment.js';
@@ -24,7 +25,7 @@ function allActors(){
 export function markHit(message){
   const data=message?.system;
   if(data?.action?.type!=='attack'||!isWeaponAttack(data)||!Number.isFinite(data.roll?.total))return null;
-  const hits=(data.targets??[]).filter(target=>{const threshold=target.difficulty||target.evasion;return threshold!=null&&(data.roll.options?.[ID]?.trueStrike||data.roll.options?.[ID]?.witchsCharm||data.roll.isCritical||data.roll.total>=threshold);});
+  const hits=attackHitTargets(message);
   return hits.length===1?hits[0]:null;
 }
 async function validate(request,user){
@@ -78,8 +79,8 @@ export function selectMarkBonus(roll,config){
   const message=game.messages.get(config.source?.message),actor=message?.system?.action?.actor??config.data?.parent,item=markItem(actor);
   if(!item||config.hasHealing)return;
   const targets=(message?.system?.targets??config.targets??[]).filter(target=>{
-    const attack=message?.system?.roll,threshold=target.difficulty||target.evasion;
-    return !attack||(threshold!=null&&(attack.options?.[ID]?.trueStrike||attack.options?.[ID]?.witchsCharm||attack.isCritical||attack.total>=threshold));
+    const attack=message?.system?.roll;
+    return !attack||attackTargetOutcome(attack,target)==='success';
   });
   const selected=targets.length===1&&ownMark(actor,foundry.utils.fromUuidSync(targets[0].actorId));
   const effect=roll.options.bonusEffects?.[MARK_BONUS]??config.bonusEffects?.[MARK_BONUS];

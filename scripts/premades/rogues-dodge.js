@@ -1,4 +1,5 @@
 import { ID } from '../core.js';
+import {attackHitTargets} from '../attack-outcome.js';
 import { DODGE_KEY,DODGE_EFFECT } from './rogues-dodge-data.js';
 const QUERY=`${ID}.expireDodge`,WRAPPED=Symbol.for(`${ID}.roguesDodge`);
 export function dodgeEffects(actor){
@@ -13,7 +14,7 @@ export async function expireDodge(request,{user}){
   if(request.messageUuid){
     const message=await fromUuid(request.messageUuid),data=message?.system;
     if(data?.action?.type!=='attack'||!data.action.actor?.testUserPermission(user,'OWNER')||!Number.isFinite(data.roll?.total))return false;
-    if(!data.targets?.some(t=>t.actorId===actor.uuid&&(t.difficulty||t.evasion)!=null&&(data.roll.isCritical||data.roll.total>=(t.difficulty||t.evasion))))return false;
+    if(!attackHitTargets(message).some(t=>t.actorId===actor.uuid))return false;
   }else if(!actor.testUserPermission(user,'OWNER'))return false;
   const allowed=new Set(request.effectIds??[]);
   for(const effect of dodgeEffects(actor))if(allowed.has(effect.id))await effect.delete();
