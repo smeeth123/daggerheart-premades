@@ -31,7 +31,7 @@ Most feature-specific automation requires an applied premade. Some quality-of-li
 
 ## Requirements and settings
 
-- **Foundry VTT v14** with the **Daggerheart v2** system. Daggerheart 2.x updates are allowed without a module compatibility bump. Automated checks currently use Foundry 14.368 and Daggerheart 2.10.7/2.10.8; other 2.x versions have not all been tested.
+- **Foundry VTT v14** with the **Daggerheart v2** system. The compatibility range is 2–2.999.999, allowing future 2.x updates without routine compatibility bumps while excluding v3. Automated checks currently use Foundry 14.368 and Daggerheart 2.10.7/2.10.8; other 2.x versions have not all been tested.
 - **Dice So Nice is optional**, for supported 3D dice presentation.
 - Keep an **active GM connected** for coordinated decisions and resource updates. Some range-based features require the GM to display the relevant scene.
 - Decision countdowns default to **60 seconds** and can be configured from **5 to 600 seconds** in the module settings. The GM can pause and resume shared timers.
