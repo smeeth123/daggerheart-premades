@@ -2,7 +2,7 @@
 
 How all 219 premades work by compendium
 
-Daggerheart Premades 0.3.1   |   Daggerheart 2.10.8 / 2.10.9   |   October 5 2026
+Daggerheart Premades 0.3.2   |   Daggerheart 2.10.8 / 2.10.9   |   October 5 2026
 
 This reference explains how each premade works at the table: what you activate, what triggers automatically, which choices and costs appear, and what remains manual. It covers every entry in the nine module compendiums. Upgrades have their own entries even when they only enhance another feature.
 
@@ -1122,7 +1122,7 @@ The utility is added to character sheets without Medkit. Before another active P
 
 ### Rest loadouts and vault recall
 
-After a completed short or long rest, Choose Loadout lets a character select up to five Domain Cards, with descriptions on hover. The current loadout is preselected; other cards move to the vault. It has no timer and costs no Recall payment. Keep Current Loadout closes it without saving changes; explicitly confirming an empty selection moves the cards to the vault. Rest benefits such as Self-Healing do not wait for this picker. Outside a rest, trying to move a card out of the vault prompts its native Recall Cost. Mnemonic can offer free recall; otherwise Perfect Recall can discount that payment.
+After a completed short or long rest, Choose Loadout appears only if the character has Domain Cards in the vault. Select up to five cards; each shows its level and offers its description on hover. The current loadout is preselected. Apply Loadout saves the selection and moves all other cards to the vault; closing the window leaves the current loadout unchanged. Explicitly applying an empty selection moves all cards to the vault. The picker has no timer and costs no Recall payment. Rest benefits such as Self-Healing do not wait for this picker. Outside a rest, trying to move a card out of the vault prompts its native Recall Cost. Mnemonic can offer free recall; otherwise Perfect Recall can discount that payment.
 
 ### Level-up domain cards
 

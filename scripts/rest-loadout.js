@@ -43,12 +43,11 @@ async function dispatch(actor,cardIds){
   return gm.isSelf?applyLoadout(request,{user:game.user}):gm.query(QUERY,request,{timeout:decisionBudget(65000)});
 }
 export async function promptChooseLoadout(actor,send=dispatch){
-  const cards=domainCards(actor);if(!cards.length)return false;
+  const cards=domainCards(actor);if(!cards.some(card=>card.system?.inVault))return false;
   const selected=new Set(selectedLoadout(actor));
-  const content=`<p>Choose up to <strong>${MAX_LOADOUT} Domain Cards</strong> for your active loadout. Every other Domain Card will remain in your vault.</p><p class="dhp-loadout-count" aria-live="polite"></p><div class="dhp-loadout-list">${cards.map(card=>`<label class="dhp-loadout-card" data-tooltip="${esc(cardDescription(card)||'No description available.')}" data-tooltip-direction="UP"><input type="checkbox" name="dhpLoadout" value="${esc(card.id)}"${selected.has(card.id)?' checked':''}><img src="${esc(card.img)}" alt=""><span>${esc(card.name)}</span></label>`).join('')}</div>`;
+  const content=`<p>Choose up to <strong>${MAX_LOADOUT} Domain Cards</strong> for your active loadout. Every other Domain Card will remain in your vault.</p><p class="dhp-loadout-count" aria-live="polite"></p><div class="dhp-loadout-list">${cards.map(card=>`<label class="dhp-loadout-card" data-tooltip="${esc(cardDescription(card)||'No description available.')}" data-tooltip-direction="UP"><input type="checkbox" name="dhpLoadout" value="${esc(card.id)}"${selected.has(card.id)?' checked':''}><img src="${esc(card.img)}" alt=""><span>${esc(card.name)} — Level ${esc(card.system?.level??'?')}</span></label>`).join('')}</div>`;
   const choice=await untimedDialog(`Choose Loadout — ${actor.name}`,content,[
-    {action:'apply',label:'Apply Loadout',callback:(_event,_button,dialog)=>[...dialog.element.querySelectorAll('[name="dhpLoadout"]:checked')].map(input=>input.value)},
-    {action:'cancel',label:'Keep Current Loadout',default:true,callback:()=>false}
+    {action:'apply',label:'Apply Loadout',default:true,callback:(_event,_button,dialog)=>[...dialog.element.querySelectorAll('[name="dhpLoadout"]:checked')].map(input=>input.value)}
   ],dialog=>{
     const inputs=[...dialog.element.querySelectorAll('[name="dhpLoadout"]')],counter=dialog.element.querySelector('.dhp-loadout-count');
     const update=()=>{const count=inputs.filter(input=>input.checked).length;if(counter)counter.textContent=`${count} of ${MAX_LOADOUT} selected`;for(const input of inputs)input.disabled=!input.checked&&count>=MAX_LOADOUT;};
