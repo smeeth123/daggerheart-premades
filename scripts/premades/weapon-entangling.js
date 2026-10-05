@@ -7,6 +7,7 @@ import {ownerFor,unavailableActor} from './aura-rules.js';
 import {sourceToken} from './hallowed-aura.js';
 import {attackHitTargets} from '../attack-outcome.js';
 import {withHopeLock} from './hope-lock.js';
+import {primaryWeaponAttack,attackSourceDocument} from '../primary-weapon.js';
 import {WEAPON_ENTANGLING_KEY} from './weapon-entangling-data.js';
 const QUERY=`${ID}.weaponEntangling`,PROMPT=`${QUERY}Prompt`,WRAPPED=Symbol.for(QUERY),receipts=new Map();
 const canPay=actor=>hopeCapacity(actor)>=1;
@@ -15,8 +16,8 @@ export function entanglingWeapon(item){return Boolean(item?.type==='weapon'&&ite
 export function entanglingContext(message){
  const data=message?.system,action=data?.action,actor=action?.actor,primary=action?.item,source=data?.source;
  if(actor?.type!=='character'||unavailableActor(actor)||action?.type!=='attack'||data.hasHealing||!Number.isFinite(data.roll?.total)||
-  primary?.type!=='weapon'||!primary.system.equipped||primary.system.secondary||actor.system.primaryWeapon?.uuid!==primary.uuid||
-  source?.actor!==actor.uuid||source.item!==primary.id||typeof source.action!=='string'||!source.action||source.action!==action.id||actor.items?.get?.(primary.id)?.uuid!==primary.uuid)return null;
+  !primaryWeaponAttack(action)||
+  source?.actor!==actor.uuid||source.item!==primary.id||typeof source.action!=='string'||!source.action||source.action!==action.id||attackSourceDocument(actor,source)?.uuid!==primary.uuid)return null;
  const item=[...(actor.items?.values?.()??actor.items??[])].find(entanglingWeapon);
  return item?{actor,item,action}:null;
 }

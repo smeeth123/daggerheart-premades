@@ -2,7 +2,7 @@
 
 How all 219 premades work by compendium
 
-Daggerheart Premades 0.3.4   |   Daggerheart 2.10.8 / 2.10.9   |   October 5 2026
+Daggerheart Premades 0.3.5   |   Daggerheart 2.10.8 / 2.10.9   |   October 5 2026
 
 This reference explains how each premade works at the table: what you activate, what triggers automatically, which choices and costs appear, and what remains manual. It covers every entry in the nine module compendiums. Upgrades have their own entries even when they only enhance another feature.
 
@@ -60,7 +60,7 @@ After successful Melee weapon damage against exactly one hit target, the prompt 
 
 #### I Am the Weapon
 
-Keeps the native Brawler’s Strike setup. Its +1 Evasion applies only when no weapon is equipped; equipping either a primary or secondary weapon suppresses that Evasion bonus automatically. An unequipped weapon in inventory does not suppress it. Recognized Brawler’s Strike attacks can use the module’s weapon-attack features.
+Keeps the native Brawler’s Strike setup. Its +1 Evasion applies only when no weapon is equipped; equipping either a primary or secondary weapon suppresses that Evasion bonus automatically. An unequipped weapon in inventory does not suppress it. While no other weapon is equipped, Brawler’s Strike counts as your primary weapon for Forceful Push, Menacing Reach, and applicable weapon-attack features. Normal unarmed and Beastform attacks do not qualify. Each feature’s own range requirements still apply, and equipping a secondary weapon does not allow Brawler’s Strike to trigger Follow-Up.
 
 ### Ranger
 
@@ -420,7 +420,7 @@ After damage dice and earlier reroll decisions, choose damage dice and spend 1 F
 
 #### Menacing Reach
 
-Spend 1 Favor to bind the effect to your currently equipped primary weapon and increase its displayed range by one step, up to Very Far. The next finalized successful attack with that weapon removes the effect and restores its range. Misses and other weapons preserve it. Targeting and range adjudication remain player-managed; unrelated later weapon-range edits are preserved.
+Spend 1 Favor to bind the effect to your currently equipped primary weapon and increase its displayed range by one step, up to Very Far. Brawler’s Strike also qualifies while no other weapon is equipped. The next finalized successful attack with that weapon removes the effect and restores its range. Misses and other weapons preserve it. Targeting and range adjudication remain player-managed; unrelated later weapon-range edits are preserved.
 
 #### Otherworldly Ire
 
@@ -734,7 +734,7 @@ After confirming a Presence-roll dialog, optionally spend 1 Hope to add current 
 
 #### Forceful Push
 
-Use the card’s Forceful Push action to delegate to your equipped primary weapon’s real attack against one Melee target. A successful Hope result, including a critical, selects +1d6 in damage Effects. After a successful attack, you may spend 1 Hope to make the surviving original target temporarily Vulnerable. Moving that target to Close remains manual. No redundant Spend Hope sheet action is needed.
+Use the card’s Forceful Push action to delegate to your equipped primary weapon’s real attack against one Melee target, including Brawler’s Strike while no other weapon is equipped. The attack keeps its normal traits and damage dice, with automatic damage or the usual Roll Damage button. A successful Hope result, including a critical, selects +1d6 in damage Effects. After a successful attack, you may spend 1 Hope to make the surviving original target temporarily Vulnerable. Moving that target to Close remains manual. No redundant Spend Hope sheet action is needed.
 
 #### I Am Your Shield
 

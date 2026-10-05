@@ -6,7 +6,7 @@ import {decisionBudget} from '../settings.js';
 import {timedDialog} from '../dialog.js';
 import {ownerFor,unavailableActor} from './aura-rules.js';
 import {sourceToken} from './hallowed-aura.js';
-import {primaryWeapon} from './menacing-reach.js';
+import {primaryWeapon,attackSourceDocument} from '../primary-weapon.js';
 import {meleeLimit} from './kick.js';
 import {withHopeLock} from './hope-lock.js';
 import {FORCEFUL_PUSH_KEY,FORCEFUL_PUSH_ATTACK,FORCEFUL_PUSH_EFFECT} from './forceful-push-data.js';
@@ -139,7 +139,7 @@ export function installForcefulPush(Action,Duality,Damage,dispatch){
     Duality.build=async function(config,...args){
       const result=await build.call(this,config,...args),marker=result?.[ID]?.forcefulPush;
       if(result?.message&&result.evaluate!==false&&Number.isFinite(result.roll?.total)&&marker&&
-        result.data?.parent?.items?.get?.(result.source?.item)?.uuid===marker.weaponUuid){
+        attackSourceDocument(result.data?.parent,result.source)?.uuid===marker.weaponUuid){
         // Finish shared reroll decisions and persist before native DamageField (order 20).
         // Using build also covers actions whose native workflow was cached before ready.
         try{

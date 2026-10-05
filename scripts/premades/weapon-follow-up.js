@@ -6,6 +6,7 @@ import {sourceToken} from './hallowed-aura.js';
 import {markReactiveStress} from './stress-payment.js';
 import {blightingOutcome} from './blighting-strike.js';
 import {resolvedAttackTargets,attackHitTargets} from '../attack-outcome.js';
+import {primaryWeaponAttack} from '../primary-weapon.js';
 import {WEAPON_FOLLOW_UP_KEY} from './weapon-follow-up-data.js';
 
 const QUERY=`${ID}.weaponFollowUp`,PROMPT=`${QUERY}Prompt`,WRAPPED=Symbol.for(QUERY);
@@ -39,7 +40,7 @@ export function followUpInMelee(message){
 export function followUpContext(message){
   const data=message?.system,action=data?.action,actor=action?.actor,primary=action?.item,source=data?.source;
   if(actor?.type!=='character'||unavailableActor(actor)||action.type!=='attack'||action.actionType==='reaction'||data.hasHealing||
-    primary?.type!=='weapon'||!primary.system.equipped||primary.system.secondary||actor.system.primaryWeapon?.uuid!==primary.uuid||
+    !primaryWeaponAttack(action)||
     source?.actor!==actor.uuid||source.item!==primary.id||source.action!==action.id||!followUpInMelee(message))return null;
   const item=[...(actor.items?.values?.()??actor.items??[])].find(followUpWeapon);
   return item?{actor,item,action,message}:null;
