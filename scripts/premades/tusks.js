@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import { ID } from '../core.js';
@@ -23,7 +24,7 @@ export function tusksItem(actor){
     return item.type==='feature'&&!flags?.disabled&&!item.system.inactive&&(flags?.applied?.key??flags?.premade?.key)===TUSKS_KEY;
   })??null;
 }
-const canPay=actor=>Number(actor?.system.resources.hope.value)>=1;
+const canPay=actor=>hopeCapacity(actor)>=1;
 export function tusksHit(message){
   const data=message?.system,roll=data?.roll;
   if(data?.action?.type!=='attack'||!roll||!Number.isFinite(roll.total))return null;
@@ -72,13 +73,13 @@ export async function resolveTusks(request,{user}){
     const accepted=recipient.isSelf?await promptTusks(data,{user:game.user}):await recipient.query(PROMPT,data,{timeout:decisionBudget(65000)});
     if(!accepted)return false;
     valid=await validateTusks(request,user);if(!valid)return false;
-    const paid=await withHopeLock(valid.actor.uuid,async()=>{
+    const paid=await withHopeLock(valid.actor.uuid,async()=>{try{let hopePayment;
       if(!tusksItem(valid.actor)||!canPay(valid.actor))return false;
-      const next=Number(valid.actor.system.resources.hope.value)-1;
-      const updated=await valid.actor.update({'system.resources.hope.value':next});
-      if(!updated||Number(valid.actor.system.resources.hope.value)!==next)throw new Error('Could not spend Tusks Hope.');
+      const next=hopeCapacity(valid.actor)-1;
+      const updated=(hopePayment=await spendHope(valid.actor,1));
+      if(!updated||!hopePayment)throw new Error('Could not spend Tusks Hope.');
       return true;
-    });if(!paid)return false;
+    }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});if(!paid)return false;
     await valid.message.update({[`flags.${ID}.tusks`]:{actorUuid:valid.actor.uuid,targetId:valid.hit.id}});
     return true;
   })();

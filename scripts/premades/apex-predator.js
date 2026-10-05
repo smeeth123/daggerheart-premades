@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import {ID,featureActive} from '../core.js';
 import {attackHitTargets} from '../attack-outcome.js';
 import {APEX_KEY} from './apex-predator-data.js';
@@ -12,7 +13,7 @@ const QUERY=`${ID}.apexPredator`,PROMPT=`${ID}.apexPredatorPrompt`,WRAPPED=Symbo
 let fearQueue=Promise.resolve();
 const fear=()=>Number(ui.resources?.currentFear??game.settings.get(CONFIG.DH.id,CONFIG.DH.SETTINGS.gameSettings.Resources.Fear));
 export function apexItem(actor){return actor?.type==='character'?actor.items?.find(i=>{const f=i.flags?.[ID];return featureActive(i)&&!f?.disabled&&(f?.applied?.key??f?.premade?.key)===APEX_KEY;})??null:null;}
-const canPay=actor=>Boolean(apexItem(actor)&&Number(actor.system.resources?.hope?.value)>=1);
+const canPay=actor=>Boolean(apexItem(actor)&&hopeCapacity(actor)>=1);
 export function apexTargets(actor,targets){return [...new Set((targets??[]).filter(t=>focusEffects(actor,t).length).map(t=>t.uuid))];}
 export function apexHit(message,actorUuid,targetUuids){
  const data=message?.system,roll=data?.roll;if(data?.action?.type!=='attack'||data.action.actor?.uuid!==actorUuid||!Number.isFinite(roll?.total))return false;
@@ -33,7 +34,7 @@ export async function resolveApex(request,{user},ask=promptApex){
  const actor=await fromUuid(decision.actorUuid);
  if(request.op==='pay'){
   if(decision.paid||fear()<=0)return false;
-  const paid=await withHopeLock(actor.uuid,async()=>{if(!canPay(actor)||fear()<=0)return false;const next=Number(actor.system.resources.hope.value)-1,updated=await actor.update({'system.resources.hope.value':next});if(!updated||Number(actor.system.resources.hope.value)!==next)throw new Error('Could not spend Apex Predator Hope.');return true;});
+  const paid=await withHopeLock(actor.uuid,async()=>{try{let hopePayment;if(!canPay(actor)||fear()<=0)return false;const next=hopeCapacity(actor)-1,updated=(hopePayment=await spendHope(actor,1));if(!updated||!hopePayment)throw new Error('Could not spend Apex Predator Hope.');return true;}catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
   decision.paid=Boolean(paid);return decision.paid;
  }
  if(request.op!=='settle'||!decision.paid||decision.settled)return false;decision.settled=true;

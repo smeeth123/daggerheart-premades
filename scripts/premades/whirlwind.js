@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope,refundHope} from './hope-payment.js';
 import {ID,featureActive} from '../core.js';
 import {timedDialog} from '../dialog.js';
 import {decisionBudget} from '../settings.js';
@@ -64,7 +65,7 @@ export function whirlwindState(message,originUuid=null){
 
 export async function promptWhirlwind(data,{user}){
   const actor=await fromUuid(data.actorUuid);
-  if(!user?.isGM||!actor?.testUserPermission(game.user,'OWNER')||!whirlwindItem(actor)||Number(actor.system.resources?.hope?.value)<1)return false;
+  if(!user?.isGM||!actor?.testUserPermission(game.user,'OWNER')||!whirlwindItem(actor)||hopeCapacity(actor)<1)return false;
   return Boolean(await timedDialog(`Whirlwind — ${actor.name}`,
     `<p>Spend <strong>1 Hope</strong> to use this attack (${Number(data.total)}) against the other adversaries within Very Close? Original targets keep normal damage; additional hits take <strong>half damage</strong>.</p>`+
     data.targets.map(target=>`<p>${esc(target.name)} — <strong>${target.hitResult.success?'Hit (half damage)':'Miss'}</strong></p>`).join(''),
@@ -77,7 +78,7 @@ export async function resolveWhirlwind(request,{user},ask=promptWhirlwind){
     !Number.isFinite(request.deadline)||request.deadline<=decisionNow()||request.deadline>decisionNow()+decisionBudget(125000))return false;
   const message=await fromUuid(request.messageUuid);
   let state=whirlwindState(message,request.originUuid);
-  if(!state||!state.actor.testUserPermission(user,'OWNER')||Number(state.actor.system.resources?.hope?.value)<1||
+  if(!state||!state.actor.testUserPermission(user,'OWNER')||hopeCapacity(state.actor)<1||
     message.flags?.[ID]?.whirlwindOffered||message.flags?.[ID]?.whirlwind)return false;
   pending.add(request.messageUuid);
   try{
@@ -86,22 +87,22 @@ export async function resolveWhirlwind(request,{user},ask=promptWhirlwind){
     const data={actorUuid:state.actor.uuid,total:message.system.roll.total,targets:state.targets};
     const accepted=owner.isSelf?await ask(data,{user:game.user}):await owner.query(PROMPT,data,{timeout:decisionBudget(65000)});
     if(accepted!==true||!owner.active||!user.active||request.deadline<=decisionNow())return false;
-    return await withHopeLock(state.actor.uuid,async()=>{
-      const fresh=whirlwindState(message,request.originUuid),hope=Number(fresh?.actor.system.resources?.hope?.value);
+    return await withHopeLock(state.actor.uuid,async()=>{try{let hopePayment;
+      const fresh=whirlwindState(message,request.originUuid),hope=hopeCapacity(fresh?.actor);
       if(!fresh||!whirlwindItem(fresh.actor)||!fresh.actor.testUserPermission(user,'OWNER')||!user.active||hope<1||
         request.deadline<=decisionNow()||message.flags?.[ID]?.whirlwind)return false;
       // A changed candidate set needs a new decision, not unapproved new targets.
       const signature=targets=>JSON.stringify(targets.map(target=>[target.id,target.actorId,target.difficulty,target.evasion,target.hitResult.success]).sort());
       if(signature(fresh.targets)!==signature(state.targets))return false;
       const record={actorUuid:fresh.actor.uuid,originUuid:fresh.origin.document.uuid,targets:fresh.targets};
-      const paid=await fresh.actor.update({'system.resources.hope.value':hope-1});
+      const paid=(hopePayment=await spendHope(fresh.actor,1));
       if(!paid)throw Error('Whirlwind could not spend Hope.');
       try{
         const updated=await message.update({'system.targets':[...message.system.targets,...fresh.targets],[`flags.${ID}.whirlwind`]:record});
         if(!updated)throw Error('Whirlwind could not add its targets.');
-      }catch(error){await fresh.actor.update({'system.resources.hope.value':hope});throw error;}
+      }catch(error){await refundHope(fresh.actor,hopePayment);throw error;}
       return record;
-    });
+    }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
   }finally{pending.delete(request.messageUuid);}
 }
 
@@ -114,7 +115,7 @@ export function installWhirlwindTargets(RollField,dispatch){
     const result=await native.call(this,config,...args);
     if(result===false||!config.message||config.hasHealing||config.actionType==='reaction'||!whirlwindItem(this.actor)||config[ID]?.whirlwind)return result;
     const state=whirlwindState(config.message);
-    if(!state||Number(this.actor.system.resources?.hope?.value)<1||config.message.flags?.[ID]?.whirlwindOffered)return result;
+    if(!state||hopeCapacity(this.actor)<1||config.message.flags?.[ID]?.whirlwindOffered)return result;
     const record=await dispatch({messageUuid:config.message.uuid,originUuid:state.origin.document.uuid,deadline:decisionNow()+decisionBudget(120000)});
     if(record){
       const existing=new Set((config.targets??[]).map(target=>target.id));

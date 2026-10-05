@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope,refundHope} from './hope-payment.js';
 import {ID,featureActive} from '../core.js';
 import {resolvedAttackTargets,attackTargetOutcome} from '../attack-outcome.js';
 import {decisionNow} from '../decision-clock.js';
@@ -69,7 +70,7 @@ async function vulnerableState(message){
 }
 export async function promptForcefulPush(data,{user}){
   const actor=await fromUuid(data.actorUuid),item=actor?.items?.get?.(data.itemId);
-  if(!user?.isGM||!actor?.testUserPermission(game.user,'OWNER')||!forcefulPushItem(item)||!(Number(actor.system.resources?.hope?.value)>=1))return false;
+  if(!user?.isGM||!actor?.testUserPermission(game.user,'OWNER')||!forcefulPushItem(item)||!(hopeCapacity(actor)>=1))return false;
   return Boolean(await timedDialog(`Forceful Push — ${actor.name}`,
     `<p>You hit <strong>${esc(data.targetName)}</strong>. Move them to Close range manually.</p><p>Spend <strong>1 Hope</strong> to make them temporarily <strong>Vulnerable</strong>?</p>`,[
       {action:'use',label:'Spend 1 Hope',callback:()=>true},{action:'decline',label:'Decline',default:true,callback:()=>false}]));
@@ -80,33 +81,33 @@ export async function resolveForcefulPush(request,{user},ask=promptForcefulPush)
   pending.add(request.messageUuid);
   try{
     const message=await fromUuid(request.messageUuid),state=await vulnerableState(message);
-    if(!state||!state.actor.testUserPermission(user,'OWNER')||!(Number(state.actor.system.resources?.hope?.value)>=1)||
+    if(!state||!state.actor.testUserPermission(user,'OWNER')||!(hopeCapacity(state.actor)>=1)||
       !state.item.effects?.get?.(FORCEFUL_PUSH_EFFECT)||message.flags?.[ID]?.forcefulPushOffered)return false;
     await message.setFlag(ID,'forcefulPushOffered',true);
     const owner=ownerFor(state.actor,[...game.users],game.user),data={actorUuid:state.actor.uuid,itemId:state.item.id,targetName:state.target.name};
     const accepted=owner.isSelf?await ask(data,{user:game.user}):await owner.query(PROMPT,data,{timeout:decisionBudget(65000)});
     if(accepted!==true)return false;
-    return await withHopeLock(state.actor.uuid,async()=>{
+    return await withHopeLock(state.actor.uuid,async()=>{try{let hopePayment;
       const fresh=await vulnerableState(message);
       if(!fresh||fresh.item.uuid!==state.item.uuid||fresh.target.uuid!==state.target.uuid||fresh.marker.targetUuid!==state.marker.targetUuid||!game.user.isActiveGM||
         !owner.active||!user.active||!fresh.actor.testUserPermission(user,'OWNER')||!fresh.actor.testUserPermission(owner,'OWNER')||
         request.deadline<=decisionNow()||message.flags?.[ID]?.forcefulPushPaid)return false;
-      const effect=fresh.item.effects?.get?.(FORCEFUL_PUSH_EFFECT),hope=Number(fresh.actor.system.resources?.hope?.value);
+      const effect=fresh.item.effects?.get?.(FORCEFUL_PUSH_EFFECT),hope=hopeCapacity(fresh.actor);
       if(!effect||!(hope>=1))return false;
-      const paid=await fresh.actor.update({'system.resources.hope.value':hope-1});
-      if(!paid||Number(fresh.actor.system.resources.hope.value)!==hope-1)throw Error('Forceful Push could not spend Hope.');
+      const paid=(hopePayment=await spendHope(fresh.actor,1));
+      if(!paid||!hopePayment)throw Error('Forceful Push could not spend Hope.');
       const before=new Set([...fresh.target.effects].map(effect=>effect.id));
       try{
         await game.system.api.fields.ActionFields.EffectsField.applyEffect(effect,fresh.target);
         if(![...fresh.target.effects].some(applied=>!before.has(applied.id)&&applied.origin===effect.uuid&&!applied.disabled&&applied.statuses?.has('vulnerable')))
           throw Error('The Vulnerable effect was not created.');
-      }catch(error){await fresh.actor.update({'system.resources.hope.value':hope});throw error;}
+      }catch(error){await refundHope(fresh.actor,hopePayment);throw error;}
       const record={actorUuid:fresh.actor.uuid,targetUuid:fresh.target.uuid,tokenUuid:fresh.marker.targetUuid};
       await message.setFlag(ID,'forcefulPushPaid',record);
       await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:fresh.actor}),content:
         `<p><strong>Forceful Push:</strong> ${esc(fresh.actor.name)} spends 1 Hope; ${esc(fresh.target.name)} becomes temporarily Vulnerable.</p>`});
       return record;
-    });
+    }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
   }finally{pending.delete(request.messageUuid);}
 }
 export function installForcefulPush(Action,Duality,Damage,dispatch){
@@ -118,7 +119,7 @@ export function installForcefulPush(Action,Duality,Damage,dispatch){
       if(!marker){ui.notifications.warn('Forceful Push requires an equipped primary weapon and one living target within Melee range.');return;}
       // Delegate to the real weapon, never forge a weapon action or damage source.
       const config=await primaryWeapon(this.actor).system.attack.use(event,{...options,[ID]:{...options[ID],forcefulPush:marker}},...rest);
-      if(config?.message&&forcefulPushHit(config.message)&&Number(this.actor.system.resources?.hope?.value)>=1){
+      if(config?.message&&forcefulPushHit(config.message)&&hopeCapacity(this.actor)>=1){
         try{
           if(game.dice3d)await game.dice3d.waitFor3DAnimationByMessageID(config.message.id);
           await dispatch({messageUuid:config.message.uuid,deadline:decisionNow()+decisionBudget(120000)});

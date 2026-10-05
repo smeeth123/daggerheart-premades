@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import { attackBeneficiary } from '../companion-context.js';
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
@@ -30,19 +31,19 @@ export function focusAttack(actor,source){
   return [actor?.system?.attack,item?.system?.attack,...(item?.system?.actionsList??[])].find(action=>action&&(action.id??action._id)===source?.action)?.type==='attack';
 }
 export async function primeFocus(actor){
-  return withHopeLock(actor.uuid,async()=>{
+  return withHopeLock(actor.uuid,async()=>{try{let hopePayment;
     const item=focusItem(actor);if(!item||primedFocus(actor))return false;
-    const hope=Number(actor.system.resources.hope.value);if(hope<1)return false;
+    const hope=hopeCapacity(actor);if(hope<1)return false;
     const created=await actor.createEmbeddedDocuments('ActiveEffect',[{
       name:"Ranger's Focus — Primed",img:item.img,type:'base',transfer:false,disabled:false,origin:item.uuid,
       description:'1 Hope spent. Your next completed single-target attack consumes this priming; on a hit, that target becomes your Focus.',
       showIcon:CONST.ACTIVE_EFFECT_SHOW_ICON.ALWAYS,system:{changes:[],duration:{description:''}},flags:{[ID]:{focusPrimed:true}}
     }]);
     if(!created?.length)throw new Error('Could not prime Ranger’s Focus.');
-    try{const update=await actor.update({'system.resources.hope.value':hope-1});if(!update)throw new Error('Could not spend Hope.');}
+    try{const update=(hopePayment=await spendHope(actor,1));if(!update)throw new Error('Could not spend Hope.');}
     catch(error){await created[0].delete();throw error;}
     return true;
-  });
+  }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
 }
 export async function resolveFocus(request,{user}){
   if(!game.user.isActiveGM||!user?.active)return false;

@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import {criticalRerollResult} from '../roll-rerolls.js';
@@ -7,7 +8,7 @@ import { consumeResolutionTicket } from '../resolution-manager.js';
 import { withHopeLock } from './hope-lock.js';
 import { NIMBLE_KEY,NIMBLE_ACTION } from './nimble-fingers-data.js';
 export function nimbleItem(actor){
-  if(actor?.type!=='character'||Number(actor.system.resources.hope.value)<2)return null;
+  if(actor?.type!=='character'||hopeCapacity(actor)<2)return null;
   return actor.items.find(item=>{
     const flags=item.flags?.[ID];
     return item.type==='feature'&&!flags?.disabled&&!item.system.inactive&&(flags?.applied?.key??flags?.premade?.key)===NIMBLE_KEY;
@@ -21,14 +22,14 @@ export async function validateNimble(request,user){
 }
 export async function resolveNimble(request,{user},authorize=consumeResolutionTicket){
   if(!game.user.isActiveGM||!Number.isFinite(request.deadline)||request.deadline>decisionNow()+decisionBudget(125000))throw new Error('Invalid Nimble Fingers request.');
-  return withHopeLock(request.sourceUuid,async()=>{
+  return withHopeLock(request.sourceUuid,async()=>{try{let hopePayment;
     const valid=await validateNimble(request,user);if(!valid)return false;
     if(!authorize(request.resolutionToken,'nimble',valid.item.uuid,user))return false;
-    const next=Number(valid.actor.system.resources.hope.value)-2;
-    const updated=await valid.actor.update({'system.resources.hope.value':next});
-    if(!updated||Number(valid.actor.system.resources.hope.value)!==next)throw new Error('Could not spend Nimble Fingers Hope.');
+    const next=hopeCapacity(valid.actor)-2;
+    const updated=(hopePayment=await spendHope(valid.actor,2));
+    if(!updated||!hopePayment)throw new Error('Could not spend Nimble Fingers Hope.');
     return {itemUuid:valid.item.uuid,bearerName:valid.actor.name};
-  });
+  }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
 }
 export async function rerollHopeDie(roll){
   const original=roll.dHope,position=roll.terms.indexOf(original);

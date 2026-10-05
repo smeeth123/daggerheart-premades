@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope,refundHope} from './hope-payment.js';
 import {ID,featureActive} from '../core.js';
 import {decisionNow} from '../decision-clock.js';
 import {decisionBudget} from '../settings.js';
@@ -41,7 +42,7 @@ export async function promptViciousEntangle(data,{user}){
   const actor=await fromUuid(data.actorUuid),item=actor?.items?.get?.(data.itemId);
   const action=item?.system?.actions?.get?.(ENTANGLE_CAST)??item?.system?.actions?.[ENTANGLE_CAST];
   if(!user?.isGM||!actor?.testUserPermission(game.user,'OWNER')||!viciousEntangleAction(action)||
-    !(Number(actor.system.resources?.hope?.value)>=1)||!data.targets?.length)return false;
+    !(hopeCapacity(actor)>=1)||!data.targets?.length)return false;
   return timedDialog(`Vicious Entangle — ${actor.name}`,
     '<p>Spend <strong>1 Hope</strong> to temporarily <strong>Restrain</strong> one other adversary within Very Close of the target you hit? The extra target takes no damage.</p>'+
     data.targets.map((target,index)=>`<label style="display:block;margin:.35rem 0"><input type="radio" name="entangleTarget" value="${esc(target.id)}" ${index?'':'checked'}> ${esc(target.name)}</label>`).join(''),
@@ -54,35 +55,35 @@ export async function resolveViciousEntangle(request,{user},ask=promptViciousEnt
   pending.add(request.messageUuid);
   try{
     const message=await fromUuid(request.messageUuid),state=viciousEntangleState(message);
-    if(!state||!state.actor.testUserPermission(user,'OWNER')||!(Number(state.actor.system.resources?.hope?.value)>=1)||
+    if(!state||!state.actor.testUserPermission(user,'OWNER')||!(hopeCapacity(state.actor)>=1)||
       !state.item.effects?.get?.(ENTANGLE_EXTRA_EFFECT)||message.flags?.[ID]?.viciousEntangleOffered)return false;
     await message.setFlag(ID,'viciousEntangleOffered',true);
     const owner=ownerFor(state.actor,[...game.users],game.user),data={actorUuid:state.actor.uuid,itemId:state.item.id,targets:state.targets};
     const selected=owner.isSelf?await ask(data,{user:game.user}):await owner.query(PROMPT,data,{timeout:decisionBudget(65000)});
     const chosen=state.targets.find(target=>target.id===selected);if(!chosen)return false;
-    return await withHopeLock(state.actor.uuid,async()=>{
+    return await withHopeLock(state.actor.uuid,async()=>{try{let hopePayment;
       const fresh=viciousEntangleState(message),target=fresh?.targets.find(target=>target.id===chosen.id&&target.actorId===chosen.actorId&&
         target.tokenUuid===chosen.tokenUuid&&target.anchorUuid===chosen.anchorUuid&&target.anchorActorId===chosen.anchorActorId);
       if(!fresh||!target||!game.user.isActiveGM||!owner.active||!user.active||!fresh.actor.testUserPermission(user,'OWNER')||
         !fresh.actor.testUserPermission(owner,'OWNER')||request.deadline<=decisionNow()||message.flags?.[ID]?.viciousEntangle)return false;
-      const recipient=canvas.tokens.get(target.id)?.actor,effect=fresh.item.effects?.get?.(ENTANGLE_EXTRA_EFFECT),hope=Number(fresh.actor.system.resources?.hope?.value);
+      const recipient=canvas.tokens.get(target.id)?.actor,effect=fresh.item.effects?.get?.(ENTANGLE_EXTRA_EFFECT),hope=hopeCapacity(fresh.actor);
       if(!recipient||recipient.uuid!==target.actorId||!effect||!(hope>=1))return false;
-      const paid=await fresh.actor.update({'system.resources.hope.value':hope-1});
-      if(!paid||Number(fresh.actor.system.resources.hope.value)!==hope-1)throw Error('Vicious Entangle could not spend Hope.');
+      const paid=(hopePayment=await spendHope(fresh.actor,1));
+      if(!paid||!hopePayment)throw Error('Vicious Entangle could not spend Hope.');
       // Apply only the native extra effect, not another attack workflow or damage target.
       const before=new Set([...recipient.effects].map(effect=>effect.id));
       try{
         await game.system.api.fields.ActionFields.EffectsField.applyEffect(effect,recipient);
         if(![...recipient.effects].some(applied=>!before.has(applied.id)&&applied.origin===effect.uuid&&!applied.disabled&&applied.statuses?.has('restrained')))
           throw Error('The extra Restrained effect was not created.');
-      }catch(error){await fresh.actor.update({'system.resources.hope.value':hope});throw error;}
+      }catch(error){await refundHope(fresh.actor,hopePayment);throw error;}
       const record={actorUuid:fresh.actor.uuid,targetUuid:recipient.uuid,tokenUuid:target.tokenUuid,anchorUuid:target.anchorUuid};
       // Once the effect is committed, a receipt/chat failure must not refund a real benefit.
       await message.setFlag(ID,'viciousEntangle',record);
       await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:fresh.actor}),content:
         `<p><strong>Vicious Entangle:</strong> ${esc(fresh.actor.name)} spends 1 Hope; ${esc(recipient.name)} becomes temporarily Restrained.</p>`});
       return record;
-    });
+    }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
   }finally{pending.delete(request.messageUuid);}
 }
 export function installViciousEntangle(Action,dispatch){
@@ -91,7 +92,7 @@ export function installViciousEntangle(Action,dispatch){
     const config=await native.apply(this,args);
     // Native use commits roll Hope before returning. Damage and primary effects remain native.
     if(config?.message&&viciousEntangleAction(this)&&!config.message.flags?.[ID]?.viciousEntangleOffered&&
-      Number(this.actor.system.resources?.hope?.value)>=1&&viciousEntangleState(config.message)){
+      hopeCapacity(this.actor)>=1&&viciousEntangleState(config.message)){
       try{
         if(game.dice3d)await game.dice3d.waitFor3DAnimationByMessageID(config.message.id);
         await dispatch({messageUuid:config.message.uuid,deadline:decisionNow()+decisionBudget(120000)});

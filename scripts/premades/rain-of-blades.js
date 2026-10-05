@@ -28,9 +28,9 @@ export function prepareRainOfBlades(config){
   config[ID]={...config[ID],rainOfBlades:{targets:vulnerable}};
   return true;
 }
-export function rainOfBladesBonus(main){
-  const dice=(main?.dice??[]).filter(die=>die.options?.flavor===RAIN_FLAVOR);if(!dice.length)return 0;
-  const metadata=main.options?.[ID]?.rainOfBladesFormula;
+export function rainOfBladesBonus(main,{flavor=RAIN_FLAVOR,formulaKey='rainOfBladesFormula'}={}){
+  const dice=(main?.dice??[]).filter(die=>die.options?.flavor===flavor);if(!dice.length)return 0;
+  const metadata=main.options?.[ID]?.[formulaKey];
   const maximum=dice.reduce((sum,die)=>sum+Number(die.faces)*die.results.filter(result=>result.active!==false&&!result.discarded).length,0);
   // Native configured critical damage is inside the formula's multiplier. The
   // DamageRoll critical getter adds its maximum outside it; generic Roll does not.
@@ -52,13 +52,13 @@ export function tagRainOfBlades(config,nativeScaling=false){
   main.options[ID]={...main.options[ID],rainOfBlades:{targets:record.targets,bonus:rainOfBladesBonus(main),referenceTotal:main.total,nativeScaling}};
   serializeDamage(config);return true;
 }
-export function rainOfBladesPacket(packet,actor){
+export function rainOfBladesPacket(packet,actor,{recordKey='rainOfBlades',appliedKey='rainOfBladesApplied',...bonusOptions}={}){
   const main=packet?.main??(Number.isFinite(packet?.total)?packet:null),meta=main?.options?.[ID];
-  let record=meta?.rainOfBlades;
-  if(!Number.isFinite(main?.total)||!record||meta.rainOfBladesApplied)return packet;
+  let record=meta?.[recordKey];
+  if(!Number.isFinite(main?.total)||!record||meta[appliedKey])return packet;
   // The source-less chat fallback passes a prepared Roll directly, without the
   // native field's scaling step. Recalculate after any later chat-card reroll.
-  if(typeof main.toJSON==='function')record={...record,bonus:rainOfBladesBonus(main),referenceTotal:main.total,nativeScaling:false};
+  if(typeof main.toJSON==='function')record={...record,bonus:rainOfBladesBonus(main,bonusOptions),referenceTotal:main.total,nativeScaling:false};
   let subtract=0;
   if(!record.targets.some(target=>target.actorId===actor.uuid)){
     subtract=record.bonus;
@@ -67,7 +67,14 @@ export function rainOfBladesPacket(packet,actor){
       subtract=Math.ceil(record.referenceTotal*multiplier)-Math.ceil(Math.max(0,record.referenceTotal-record.bonus)*multiplier);
     }
   }
-  const adjusted={...main,total:Math.max(0,main.total-subtract),options:{...main.options,[ID]:{...meta,rainOfBlades:record,rainOfBladesApplied:true}}};
+  const updated={...meta,[recordKey]:record,[appliedKey]:true};
+  // Sequential conditional bonuses must round the remaining shared damage, not
+  // independently round each deduction against the original total.
+  if(subtract&&record.nativeScaling)for(const [key,value]of Object.entries(meta)){
+    if(key!==recordKey&&value?.nativeScaling&&Array.isArray(value.targets)&&Number.isFinite(value.referenceTotal)&&Number.isFinite(value.bonus))
+      updated[key]={...value,referenceTotal:Math.max(0,value.referenceTotal-record.bonus)};
+  }
+  const adjusted={...main,total:Math.max(0,main.total-subtract),options:{...main.options,[ID]:updated}};
   return main===packet?{...adjusted,resources:packet.resources}:{...packet,main:adjusted,resources:packet.resources};
 }
 export function installRainOfBlades(Damage,DamageField,Actor){

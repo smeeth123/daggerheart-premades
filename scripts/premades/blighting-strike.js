@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import {ID,featureActive} from '../core.js';
 import {decisionNow} from '../decision-clock.js';
 import {decisionBudget} from '../settings.js';
@@ -29,7 +30,7 @@ export function blightingOutcome(message){
 function hitTargets(message){
   return attackHitTargets(message);
 }
-const paymentOptions=actor=>({hope:Number(actor.system.resources?.hope?.value)>=1,
+const paymentOptions=actor=>({hope:hopeCapacity(actor)>=1,
   stress:Number(actor.system.resources?.stress?.value)<Number(actor.system.resources?.stress?.max)});
 
 export async function promptBlightingFailure(data,{user}){
@@ -81,12 +82,12 @@ export async function resolveBlightingStrike(request,{user},ask=promptBlightingF
     const eligible=current=>authorized()&&owner.active&&current.testUserPermission(user,'OWNER')&&current.testUserPermission(owner,'OWNER')&&
       blightingAction(action)&&blightingOutcome(message)!=='success'&&request.deadline>decisionNow()&&!message.flags?.[ID]?.blightingCast;
     let paid=false;
-    if(choice==='hope')paid=await withHopeLock(actor.uuid,async()=>{
-      const current=await fromUuid(actor.uuid),hope=Number(current?.system.resources?.hope?.value);
+    if(choice==='hope')paid=await withHopeLock(actor.uuid,async()=>{try{let hopePayment;
+      const current=await fromUuid(actor.uuid),hope=hopeCapacity(current);
       if(!current||!eligible(current)||hope<1)return false;
-      const updated=await current.update({'system.resources.hope.value':hope-1});
-      if(!updated||Number(current.system.resources.hope.value)!==hope-1)throw Error('Blighting Strike could not spend Hope.');return true;
-    });
+      const updated=(hopePayment=await spendHope(current,1));
+      if(!updated||!hopePayment)throw Error('Blighting Strike could not spend Hope.');return true;
+    }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
     else paid=await markReactiveStress(actor.uuid,eligible);
     await message.setFlag(ID,'blightingCast',{outcome:'failure',cost:paid?choice:'unresolved'});
     return paid;

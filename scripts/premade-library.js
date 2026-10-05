@@ -7,7 +7,27 @@ import {ensureWeaponRicochet} from './premades/weapon-ricochet-data.js';
 import {ensureWeaponReloading} from './premades/weapon-reloading-data.js';
 import {ensureWeaponAimed} from './premades/weapon-aimed-data.js';
 import {ensureWeaponFollowUp} from './premades/weapon-follow-up-data.js';
+import {ensureWeaponDeadly} from './premades/weapon-deadly-data.js';
+import {ensureWeaponNonlethal} from './premades/weapon-nonlethal-data.js';
+import {ensureWeaponDeflecting} from './premades/weapon-deflecting-data.js';
+import {ensureWeaponScary} from './premades/weapon-scary-data.js';
+import {ensureWeaponEntangling} from './premades/weapon-entangling-data.js';
+import {ensureWeaponEruptive} from './premades/weapon-eruptive-data.js';
+import {ensureWeaponPersuasive} from './premades/weapon-persuasive-data.js';
+import {ensureWeaponInvigorating} from './premades/weapon-invigorating-data.js';
+import {ensureWeaponOmnipresent} from './premades/weapon-omnipresent-data.js';
+import {ensureWeaponVolleyed} from './premades/weapon-volleyed-data.js';
+import {ensureWeaponParry} from './premades/weapon-parry-data.js';
 import {ensureArmorBulky} from './premades/armor-bulky-data.js';
+import {ensureArmorResilient} from './premades/armor-resilient-data.js';
+import {ensureArmorReinforced} from './premades/armor-reinforced-data.js';
+import {ensureArmorShifting} from './premades/armor-shifting-data.js';
+import {ensureArmorHopeful} from './premades/armor-hopeful-data.js';
+import {ensureArmorMnemonic} from './premades/armor-mnemonic-data.js';
+import {ensureArmorAbsorbing} from './premades/armor-absorbing-data.js';
+import {ensureArmorQuickStriding} from './premades/armor-quick-striding-data.js';
+import {ensureArmorSelfHealing} from './premades/armor-self-healing-data.js';
+import {ensureArmorResplendent} from './premades/armor-resplendent-data.js';
 import {ensureRuthlessPredator} from "./premades/ruthless-predator-data.js";
 import {ensureElusivePredator} from "./premades/elusive-predator-data.js";
 import {ensureApexPredator} from "./premades/apex-predator-data.js";
@@ -37,6 +57,18 @@ import {ensureViciousEntangle} from "./premades/vicious-entangle-data.js";
 import {ensureReassurance} from "./premades/reassurance-data.js";
 import {ensureForcefulPush} from "./premades/forceful-push-data.js";
 import {ensureIAmYourShield} from "./premades/i-am-your-shield-data.js";
+import {ensureCinderGrasp} from "./premades/cinder-grasp-data.js";
+import {ensureReckless} from "./premades/reckless-data.js";
+import {ensureFerocity} from "./premades/ferocity-data.js";
+import {ensureStrategicApproach} from "./premades/strategic-approach-data.js";
+import {ensureBookOfSitil} from "./premades/book-of-sitil-data.js";
+import {ensureHideousRetribution} from "./premades/hideous-retribution-data.js";
+import {ensureSiphonEssence} from "./premades/siphon-essence-data.js";
+import {ensureMidnightSpirit} from "./premades/midnight-spirit-data.js";
+import {ensureConjureSwarm} from "./premades/conjure-swarm-data.js";
+import {ensureNaturalFamiliar} from "./premades/natural-familiar-data.js";
+import {ensureBodyBasher} from "./premades/body-basher-data.js";
+import {ensureBoldPresence} from "./premades/bold-presence-data.js";
 import {ensureEnchantedAid} from "./premades/enchanted-aid-data.js";
 import {ensureArcaneCharge} from "./premades/arcane-charge-data.js";
 import {ensureElementalist} from "./premades/elementalist-data.js";
@@ -363,6 +395,18 @@ export const PREMADE_SEEDS=[
   ensureReassurance,
   ensureForcefulPush,
   ensureIAmYourShield,
+  ensureCinderGrasp,
+  ensureReckless,
+  ensureFerocity,
+  ensureStrategicApproach,
+  ensureBookOfSitil,
+  ensureHideousRetribution,
+  ensureSiphonEssence,
+  ensureMidnightSpirit,
+  ensureConjureSwarm,
+  ensureNaturalFamiliar,
+  ensureBodyBasher,
+  ensureBoldPresence,
   ensureWeaponQuick,
   ensureWeaponVersatile,
   ensureWeaponPiercing,
@@ -371,7 +415,27 @@ export const PREMADE_SEEDS=[
   ensureWeaponReloading,
   ensureWeaponAimed,
   ensureWeaponFollowUp,
+  ensureWeaponDeadly,
+  ensureWeaponNonlethal,
+  ensureWeaponDeflecting,
+  ensureWeaponScary,
+  ensureWeaponEntangling,
+  ensureWeaponEruptive,
+  ensureWeaponPersuasive,
+  ensureWeaponInvigorating,
+  ensureWeaponOmnipresent,
+  ensureWeaponVolleyed,
+  ensureWeaponParry,
   ensureArmorBulky,
+  ensureArmorResilient,
+  ensureArmorReinforced,
+  ensureArmorShifting,
+  ensureArmorHopeful,
+  ensureArmorMnemonic,
+  ensureArmorAbsorbing,
+  ensureArmorQuickStriding,
+  ensureArmorSelfHealing,
+  ensureArmorResplendent,
 ];
 
 export async function setupPremadeLibrary(){

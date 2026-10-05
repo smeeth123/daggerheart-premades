@@ -11,8 +11,12 @@ import { etherealAdvantage } from './premades/ethereal-visage.js';
 import { vexingAdvantage } from './premades/vexing-malison.js';
 import { beastformAttackAdvantage } from './beastform-advantage.js';
 import { aimedDisadvantage } from './premades/weapon-aimed.js';
+import {omnipresentDisadvantage} from './premades/weapon-omnipresent.js';
+import { recklessAdvantage } from './premades/reckless.js';
+import { strategicAdvantage } from './premades/strategic-approach.js';
 const WRAPPED=Symbol.for(`${ID}.vulnerableAdvantage`);
 const sources=new WeakMap();
+const configuredSources=new WeakMap();
 export function registerVulnerableSetting(){
   game.settings.register(ID,'vulnerableAdvantage',{
     name:'Advantage against Vulnerable targets',
@@ -42,8 +46,30 @@ export function finalizeRollSources(roll,config){
   // adds a manual source; it cannot silently discard an active opposite source.
   if(selected===state.initial)return;
   const mode=cancelAdvantage(state.advantage||selected===1,state.disadvantage||selected===-1);
+  const configured=configuredSources.get(config);
+  if(configured){configured.advantage||=selected===1;configured.disadvantage||=selected===-1;configured.initial=mode;}
   config.roll.advantage=mode;roll.options.roll.advantage=mode;
   roll.constructFormula(config);
+}
+// A choice made after configuration must not lose disadvantage hidden by an
+// earlier advantage/disadvantage cancellation (including keyboard sources).
+export function configuredDisadvantage(config){return Boolean(configuredSources.get(config)?.disadvantage||Number(config.roll?.advantage?.type??config.roll?.advantage??0)===-1);}
+export function grantConfiguredDisadvantage(roll,config){
+  if(!roll?.constructFormula||roll._evaluated)return false;
+  const selected=Number(config.roll.advantage?.type??config.roll.advantage??0),state=configuredSources.get(config);
+  const mode=cancelAdvantage(Boolean(state?.advantage||selected===1),true);
+  config.roll.advantage=mode;roll.options.roll.advantage=mode;
+  if(state){state.disadvantage=true;state.initial=mode;}
+  roll.constructFormula(config);return true;
+}
+export function grantConfiguredAdvantage(roll,config){
+  if(!roll?.constructFormula||roll._evaluated)return false;
+  const selected=Number(config.roll.advantage?.type??config.roll.advantage??0),state=configuredSources.get(config);
+  const disadvantage=Boolean(state?.disadvantage||selected===-1);
+  const mode=cancelAdvantage(true,disadvantage);
+  config.roll.advantage=mode;roll.options.roll.advantage=mode;
+  if(state){state.advantage=true;state.initial=mode;}
+  roll.constructFormula(config);return true;
 }
 export function vulnerableTargets(config){
   const targets=Array.isArray(config.targets)?config.targets:[...(game.user.targets??[])];
@@ -61,12 +87,17 @@ export function installVulnerableAdvantage(D20Roll){
   const native=D20Roll.applyKeybindings,configure=D20Roll.buildConfigure;
   D20Roll.applyKeybindings=function(config){
     const priorAdvantage=config.advantage,priorDisadvantage=config.disadvantage;
-    const advantage=beastformAttackAdvantage(config)||elementalAir(config)||isolatingAdvantage(config)||etherealAdvantage(config)||vexingAdvantage(config)||(game.settings.get(ID,'vulnerableAdvantage')&&vulnerableTargets(config));
-    const disadvantage=aimedDisadvantage(config)||defensiveTargets(config).length>0||corpseDisadvantage(config)||midnightDisadvantage(config)||retractDisadvantage(config)||sturdyTargets(config)||hiddenTargets(config);
+    const selected=Number(config.roll.advantage?.type??config.roll.advantage??0);
+    // Reckless must record its use even when another source already grants advantage.
+    const reckless=recklessAdvantage(config);
+    const advantage=reckless||strategicAdvantage(config)||beastformAttackAdvantage(config)||elementalAir(config)||isolatingAdvantage(config)||etherealAdvantage(config)||vexingAdvantage(config)||(game.settings.get(ID,'vulnerableAdvantage')&&vulnerableTargets(config));
+    const disadvantage=omnipresentDisadvantage(config)||aimedDisadvantage(config)||defensiveTargets(config).length>0||corpseDisadvantage(config)||midnightDisadvantage(config)||retractDisadvantage(config)||sturdyTargets(config)||hiddenTargets(config);
     if(advantage)config.advantage=true;
     if(disadvantage)config.disadvantage=true;
     try{
       const result=native.call(this,config);
+      configuredSources.set(config,{advantage:Boolean(advantage||priorAdvantage||selected===1||config.event?.altKey),
+        disadvantage:Boolean(disadvantage||priorDisadvantage||selected===-1||config.event?.ctrlKey),initial:config.roll.advantage});
       if(advantage||disadvantage)sources.set(config,{advantage,disadvantage,initial:config.roll.advantage});
       return result;
     }finally{

@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import { ID,featureActive } from '../core.js';
@@ -7,7 +8,7 @@ import { consumeResolutionTicket } from '../resolution-manager.js';
 import { withHopeLock } from './hope-lock.js';
 export const TRUE_ACTION='kECUBjkHOxnSOVqE';
 const uses=item=>(item?.system.actions?.get?.(TRUE_ACTION)??item?.system.actions?.[TRUE_ACTION])?.uses;
-export function trueItem(actor){return Number(actor?.system?.resources?.hope?.value)>=1?actor.items.find(item=>{const f=item.flags?.[ID];return featureActive(item)&&!f?.disabled&&(f?.applied?.key??f?.premade?.key)===FEATURE_KEY&&Number(uses(item)?.value??0)===0&&uses(item)?.recovery==='longRest';})??null:null;}
+export function trueItem(actor){return hopeCapacity(actor)>=1?actor.items.find(item=>{const f=item.flags?.[ID];return featureActive(item)&&!f?.disabled&&(f?.applied?.key??f?.premade?.key)===FEATURE_KEY&&Number(uses(item)?.value??0)===0&&uses(item)?.recovery==='longRest';})??null:null;}
 export function trueAttack(actor,source){
  const item=actor?.items?.get?.(source?.item),id=source?.action;
  const action=(item?.system.actionsList??[]).find(a=>(a.id??a._id)===id)??item?.system.actions?.get?.(id)??item?.system.actions?.[id]??((item?.system.attack?.id??item?.system.attack?._id)===id?item.system.attack:null)??((actor?.system.attack?.id??actor?.system.attack?._id)===id?actor.system.attack:null);
@@ -21,14 +22,14 @@ export async function validateTrue(request,user){
 }
 export async function resolveTrue(request,{user},authorize=consumeResolutionTicket){
  if(!game.user.isActiveGM||!Number.isFinite(request.deadline)||request.deadline>decisionNow()+decisionBudget(125000))return false;
- return withHopeLock(request.sourceUuid,async()=>{
+ return withHopeLock(request.sourceUuid,async()=>{try{let hopePayment;
   const valid=await validateTrue(request,user);if(!valid||!authorize(request.resolutionToken,'true-strike',valid.item.uuid,user))return false;
-  const next=Number(valid.actor.system.resources.hope.value)-1;
+  const next=hopeCapacity(valid.actor)-1;
   await valid.item.update({[`system.actions.${TRUE_ACTION}.uses.value`]:1});
   if(Number(uses(valid.item)?.value)!==1)throw new Error('Could not spend True Strike use.');
-  try{const updated=await valid.actor.update({'system.resources.hope.value':next});if(!updated||Number(valid.actor.system.resources.hope.value)!==next)throw new Error('Could not spend True Strike Hope.');}catch(error){await valid.item.update({[`system.actions.${TRUE_ACTION}.uses.value`]:0});throw error;}
+  try{const updated=(hopePayment=await spendHope(valid.actor,1));if(!updated||!hopePayment)throw new Error('Could not spend True Strike Hope.');}catch(error){await valid.item.update({[`system.actions.${TRUE_ACTION}.uses.value`]:0});throw error;}
   return {itemUuid:valid.item.uuid,bearerName:valid.actor.name};
- });
+ }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
 }
 export function registerTrueStrike(){
  CONFIG.queries[`${ID}.trueStrike`]=resolveTrue;

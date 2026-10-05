@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope,refundHope} from './premades/hope-payment.js';
 import {ID,featureActive} from './core.js';
 import {HELP_ACTION,helpAllyData,helpFeature} from './help-ally-data.js';
 import {timedDialog} from './dialog.js';
@@ -41,12 +42,12 @@ export async function resolveHelp(request,{user},rollDie=async faces=>new Roll(`
  if(helper?.type!=='character'||ally?.type!=='character'||helper.uuid===ally.uuid||!helper.testUserPermission(user,'OWNER')||!helpFeature(helper))throw Error('Choose another character to help using a character you own.');
  if(!validHelpRecipient(helper,ally))throw Error('Choose an ally from the active Party.');
  trimReceipts(requests);const key=`${user.id}:${request.id}`;if(requests.has(key))return requests.get(key).promise;
- const promise=lockActors([helper.uuid,ally.uuid].sort(),async()=>{
+ const promise=lockActors([helper.uuid,ally.uuid].sort(),async()=>{try{let hopePayment;
   if(!helpFeature(helper)||!helper.testUserPermission(user,'OWNER')||!user.active||!validHelpRecipient(helper,ally))throw Error('Help an Ally is no longer available.');
   if(readyHelp(ally).some(h=>h.helperUuid===helper.uuid))throw Error('This character already has your help ready.');
-  const hope=Number(helper.system.resources.hope.value);if(hope<1)throw Error('You need 1 Hope to Help an Ally.');
-  const paid=await helper.update({'system.resources.hope.value':hope-1});
-  if(!paid||Number(helper.system.resources.hope.value)!==hope-1)throw Error('Could not spend Hope.');
+  const hope=hopeCapacity(helper);if(hope<1)throw Error('You need 1 Hope to Help an Ally.');
+  const paid=(hopePayment=await spendHope(helper,1));
+  if(!paid||!hopePayment)throw Error('Could not spend Hope.');
   const faces=companionHelpDie(helper);let roll,created;
   try{
    roll=await rollDie(faces);if(!Number.isInteger(roll.total)||roll.total<1||roll.total>faces)throw Error(`Invalid Help an Ally d${faces} result.`);
@@ -57,11 +58,11 @@ export async function resolveHelp(request,{user},rollDie=async faces=>new Roll(`
     system:{changes:[],duration:{type:''}}
    }]);
    if(created?.length!==1)throw Error('Could not prepare the help on the ally.');
-  }catch(error){await helper.update({'system.resources.hope.value':hope});throw error;}
+  }catch(error){await refundHope(helper,hopePayment);throw error;}
   try{await roll.toMessage({speaker:ChatMessage.getSpeaker({actor:helper}),flags:{[ID]:{unshakeableRoll:true}},flavor:`<strong>Help an Ally — ${esc(helper.name)} → ${esc(ally.name)}</strong><p>Spent 1 Hope. A <strong>${roll.total}</strong> on the d${faces} helps ${esc(ally.name)}’s upcoming action roll.</p>`});}
   catch(error){console.error(`${ID} | Help die chat card`,error);ui.notifications.warn('Help is ready, but its chat card could not be created.');}
   return {value:roll.total,effectId:created[0].id};
- });requests.set(key,{promise,expires:decisionNow()+decisionBudget(600000)});return promise;
+ }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});requests.set(key,{promise,expires:decisionNow()+decisionBudget(600000)});return promise;
 }
 export async function claimHelp(request,{user}){
  if(!game.user.isActiveGM||!user?.active||typeof request.id!=='string'||request.id.length>64)throw Error('Invalid Help an Ally roll request.');
@@ -93,7 +94,7 @@ export function claimedHelp(user,id,actorUuid){const receipt=claims.get(`${user?
 async function dispatch(name,data){const gm=game.users.activeGM;if(!gm)throw Error('Help an Ally needs an active GM.');return gm.isSelf?CONFIG.queries[name](data,{user:game.user}):gm.query(name,data,{timeout:decisionBudget(125000)});}
 export async function promptHelp(helper){
  if(!helper?.isOwner||!helpFeature(helper))return;
- if(Number(helper.system.resources.hope.value)<1)throw Error('You need 1 Hope to Help an Ally.');
+ if(hopeCapacity(helper)<1)throw Error('You need 1 Hope to Help an Ally.');
  const faces=companionHelpDie(helper),allies=helpRecipients(helper).sort((a,b)=>a.name.localeCompare(b.name));
  if(!allies.length)throw Error('There are no other characters in the active Party to help.');
  const targeted=[...(game.user.targets??[])].map(t=>t.actor).filter(Boolean);

@@ -48,13 +48,13 @@ export async function promptChooseLoadout(actor,send=dispatch){
   const content=`<p>Choose up to <strong>${MAX_LOADOUT} Domain Cards</strong> for your active loadout. Every other Domain Card will remain in your vault.</p><p class="dhp-loadout-count" aria-live="polite"></p><div class="dhp-loadout-list">${cards.map(card=>`<label class="dhp-loadout-card" data-tooltip="${esc(cardDescription(card)||'No description available.')}" data-tooltip-direction="UP"><input type="checkbox" name="dhpLoadout" value="${esc(card.id)}"${selected.has(card.id)?' checked':''}><img src="${esc(card.img)}" alt=""><span>${esc(card.name)}</span></label>`).join('')}</div>`;
   const choice=await untimedDialog(`Choose Loadout — ${actor.name}`,content,[
     {action:'apply',label:'Apply Loadout',callback:(_event,_button,dialog)=>[...dialog.element.querySelectorAll('[name="dhpLoadout"]:checked')].map(input=>input.value)},
-    {action:'cancel',label:'Keep Current Loadout',default:true,callback:()=>null}
+    {action:'cancel',label:'Keep Current Loadout',default:true,callback:()=>false}
   ],dialog=>{
     const inputs=[...dialog.element.querySelectorAll('[name="dhpLoadout"]')],counter=dialog.element.querySelector('.dhp-loadout-count');
     const update=()=>{const count=inputs.filter(input=>input.checked).length;if(counter)counter.textContent=`${count} of ${MAX_LOADOUT} selected`;for(const input of inputs)input.disabled=!input.checked&&count>=MAX_LOADOUT;};
     for(const input of inputs)input.addEventListener('change',update);update();
   });
-  if(!choice)return false;
+  if(!Array.isArray(choice))return false;
   if(!await send(actor,choice))throw Error('The selected loadout could not be saved.');
   return true;
 }
@@ -69,4 +69,11 @@ export function installRestLoadout(Downtime,prompt=promptChooseLoadout){
   Downtime.DEFAULT_OPTIONS.actions.takeDowntime=take;Downtime.takeDowntime=take;
   Object.defineProperty(Downtime,WRAPPED,{value:true});
 }
-export function registerRestLoadout(){CONFIG.queries[QUERY]=applyLoadout;installRestLoadout(game.system.api.applications.dialogs.Downtime);}
+// Native rest tooltips resolve only global homebrew moves. Our contextual moves
+// exist on this dialog alone, so supply their descriptions directly instead.
+export function contextualRestTooltips(app,html){const root=html?.querySelectorAll?html:html?.[0]??app.element;
+  for(const element of root?.querySelectorAll?.('.activity-container[data-category][data-move]')??[]){const {category,move:key}=element.dataset,move=app.moveData?.[category]?.moves?.[key];if(!move||game.system.settings.homebrew.restMoves?.[category]?.moves?.[key])continue;
+    element.dataset.tooltip=`<strong>${esc(move.name)}</strong><div>${move.description??''}</div>`;
+  }
+}
+export function registerRestLoadout(){CONFIG.queries[QUERY]=applyLoadout;const Downtime=game.system.api.applications.dialogs.Downtime;installRestLoadout(Downtime);Hooks.on('renderApplicationV2',(app,html)=>{if(app instanceof Downtime)contextualRestTooltips(app,html);});}

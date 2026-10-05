@@ -1,4 +1,5 @@
 import {weaponModeProfile} from './weapon-modes.js';
+import {createVolleyAction,WEAPON_VOLLEYED_KEY,VOLLEY_ACTION} from './weapon-volley-action.js';
 export const ID = 'daggerheart-premades';
 export const CATEGORIES = {
   'class-features': 'Class Features',
@@ -153,6 +154,15 @@ export function plan(target, source, sourceUuid, targetUuid) {
     // Weapon properties are generated natively. Medkit only opts this weapon
     // into the handler; never replace its attack, custom actions or effects.
     const before = snapshot(target);
+    // Explicit Volleyed exception: add one native attack without replacing
+    // the base attack, existing custom actions, resources or embedded effects.
+    if(metadata(source).key===WEAPON_VOLLEYED_KEY&&metadata(source).weaponFeature==='volleyed'){
+      before.system.attack=clone(target.system.attack);
+      const after=clone(before),action=createVolleyAction(target);
+      after.system.actions??={};after.system.actions[VOLLEY_ACTION]=action;
+      return {before,after,changed:!equal(before,after),descriptionChanged:false,metadataOnly:true,
+        weaponActionUpdate:{id:VOLLEY_ACTION,before:clone(target.system.actions?.[VOLLEY_ACTION]??null),after:action}};
+    }
     const profiles=metadata(source).weaponProfiles??metadata(source).weaponItems;
     const profile=profiles?weaponModeProfile(target,profiles):null;
     const after=clone(before);

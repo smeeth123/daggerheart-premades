@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope,refundHope} from './hope-payment.js';
 import { decisionBudget } from '../settings.js';
 import {ID,featureActive} from '../core.js';
 import {PROTECTION_KEY,PROTECTION_ACTION} from './wardens-protection-data.js';
@@ -19,24 +20,24 @@ export function protectionAllies(actor){
  }return [...result.values()];
 }
 const choices=actor=>protectionAllies(actor).map(({actor,...data})=>({...data,actorUuid:actor.uuid}));
-export async function startProtection(actor){return withHopeLock(actor.uuid,async()=>{
+export async function startProtection(actor){return withHopeLock(actor.uuid,async()=>{try{let hopePayment;
  const item=protectionItem(actor),action=actionFor(item);if(!item||!action)throw new Error('Medkit the active Warden’s Protection feature first.');
  const pending=protectionPending(item);if(pending)return {...pending,allies:choices(actor)};
  if(Number(action.uses.value??0)>=1)throw new Error('Warden’s Protection has already been used this long rest.');
  if(!protectionAllies(actor).length)throw new Error('No injured allies within Close range. Place or select your token on the active scene.');
- const hope=Number(actor.system.resources.hope?.value);if(!(hope>=2))throw new Error('Warden’s Protection requires 2 Hope.');
+ const hope=hopeCapacity(actor);if(!(hope>=2))throw new Error('Warden’s Protection requires 2 Hope.');
  const path=`system.actions.${PROTECTION_ACTION}.uses.value`;const spent=await item.update({[path]:1});if(!spent||Number(actionFor(item).uses.value)!==1)throw new Error('Could not spend Warden’s Protection use.');
  let paid=false,stored=false;
  try{
-  const updated=await actor.update({'system.resources.hope.value':hope-2});if(!updated||Number(actor.system.resources.hope.value)!==hope-2)throw new Error('Could not spend 2 Hope.');paid=true;
+  const updated=(hopePayment=await spendHope(actor,2));if(!updated||!hopePayment)throw new Error('Could not spend 2 Hope.');paid=true;
   const roll=await new foundry.dice.Roll('1d4').evaluate(),count=Number(roll.total);
   if(!Number.isInteger(count)||count<1||count>4)throw new Error('Invalid Warden’s Protection roll.');
   const result={id:foundry.utils.randomID(),count,completed:[]};await item.update({[`flags.${ID}.protectionPending`]:result});stored=true;
   const message=await roll.toMessage({speaker:ChatMessage.getSpeaker({actor}),flavor:`<strong>Warden’s Protection — ${esc(actor.name)}</strong><p>Spends 2 Hope. Choose up to ${count} allies within Close to clear 2 HP each.</p>`});
   if(message&&game.dice3d)await game.dice3d.waitFor3DAnimationByMessageID(message.id);
   return {...result,allies:choices(actor)};
- }catch(error){if(!stored){await item.update({[path]:0});if(paid)await actor.update({'system.resources.hope.value':hope});}throw error;}
-});}
+ }catch(error){if(!stored){await item.update({[path]:0});if(paid)await refundHope(actor,hopePayment);}throw error;}
+}catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});}
 export async function finishProtection(actor,request){
  const item=protectionItem(actor),pending=protectionPending(item);
  if(!pending||request.id!==pending.id)throw new Error('The Warden’s Protection selection expired. Reopen the action.');

@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import { ID,featureActive } from '../core.js';
@@ -13,23 +14,23 @@ export function crushingItem(actor){
  const origin=item?.effects?.get(CRUSHING_EFFECT)?.uuid;
  return origin&&actor.effects.some(e=>e.origin===origin&&!e.disabled&&!e.isSuppressed)?item:null;
 }
-export async function payCrushing(actorUuid){return withHopeLock(actorUuid,async()=>{
+export async function payCrushing(actorUuid){return withHopeLock(actorUuid,async()=>{try{let hopePayment;
  const actor=await fromUuid(actorUuid);
- if(!crushingItem(actor)||!(Number(actor.system.resources.hope.value)>=1))return false;
- const next=Number(actor.system.resources.hope.value)-1;
- const updated=await actor.update({'system.resources.hope.value':next});
- if(!updated||Number(actor.system.resources.hope.value)!==next)throw new Error('Could not spend Crushing Hope.');
+ if(!crushingItem(actor)||!(hopeCapacity(actor)>=1))return false;
+ const next=hopeCapacity(actor)-1;
+ const updated=(hopePayment=await spendHope(actor,1));
+ if(!updated||!hopePayment)throw new Error('Could not spend Crushing Hope.');
  return true;
-});}
+}catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});}
 export function crushingSevere(updates){return updates?.find(u=>u.key==='hitPoints'&&!u.clear&&!u.itemId&&u.damageTypes!=null&&Number(u.value)>=3);}
 export async function promptCrushing(data,{user}){
- const actor=await fromUuid(data.actorUuid);if(!user?.isGM||!actor?.testUserPermission(game.user,'OWNER')||!crushingItem(actor)||!(Number(actor.system.resources.hope.value)>=1))return false;
+ const actor=await fromUuid(data.actorUuid);if(!user?.isGM||!actor?.testUserPermission(game.user,'OWNER')||!crushingItem(actor)||!(hopeCapacity(actor)>=1))return false;
  return Boolean(await timedDialog(`Crushing — ${actor.name}`,`<p>You dealt Severe damage to <strong>${esc(data.targetName)}</strong>. Spend <strong>1 Hope</strong> to make them mark <strong>1 additional HP</strong>?</p>`,[{action:'use',label:'Spend Hope',callback:()=>true},{action:'decline',label:'Decline',default:true,callback:()=>false}]));
 }
 export async function resolveCrushing(request,{user},ask=promptCrushing,pay=payCrushing){
  if(!game.user.isActiveGM||!user?.active||!Number.isFinite(request.deadline)||request.deadline<decisionNow()||request.deadline>decisionNow()+decisionBudget(125000)||request.severity<3||!Number.isFinite(request.severity))return false;
  const actor=await fromUuid(request.actorUuid),target=await fromUuid(request.targetUuid);
- if(!actor||!target||!['character','adversary'].includes(target.type)||(!actor.testUserPermission(user,'OWNER')&&!target.testUserPermission(user,'OWNER'))||!crushingItem(actor)||!(Number(actor.system.resources.hope.value)>=1))return false;
+ if(!actor||!target||!['character','adversary'].includes(target.type)||(!actor.testUserPermission(user,'OWNER')&&!target.testUserPermission(user,'OWNER'))||!crushingItem(actor)||!(hopeCapacity(actor)>=1))return false;
  const hp=()=>target.system.resources.hitPoints;
  if(Number(hp().value)>=Number(hp().max))return false;
  for(const [id,expiry]of requests)if(expiry<decisionNow())requests.delete(id);

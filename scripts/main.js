@@ -17,6 +17,7 @@ import {registerNotGoodEnough} from './premades/not-good-enough.js';
 import {registerWhirlwind} from './premades/whirlwind.js';
 import {registerDeftManeuvers} from './premades/deft-maneuvers.js';
 import {registerISeeItComing} from './premades/i-see-it-coming.js';
+import {registerWeaponDeflecting} from './premades/weapon-deflecting.js';
 import {registerBookOfAva} from './premades/book-of-ava.js';
 import {registerBookOfIlliat} from './premades/book-of-illiat.js';
 import {registerBlightingStrike} from './premades/blighting-strike.js';
@@ -28,6 +29,18 @@ import {registerViciousEntangle} from './premades/vicious-entangle.js';
 import {registerReassurance} from './premades/reassurance.js';
 import {registerForcefulPush} from './premades/forceful-push.js';
 import {registerIAmYourShield} from './premades/i-am-your-shield.js';
+import {registerCinderGrasp} from './premades/cinder-grasp.js';
+import {registerReckless} from './premades/reckless.js';
+import {registerFerocity} from './premades/ferocity.js';
+import {registerStrategicApproach} from './premades/strategic-approach.js';
+import {registerBookOfSitil} from './premades/book-of-sitil.js';
+import {registerHideousRetribution} from './premades/hideous-retribution.js';
+import {registerSiphonEssence} from './premades/siphon-essence.js';
+import {registerMidnightSpirit} from './premades/midnight-spirit.js';
+import {registerConjureSwarm} from './premades/conjure-swarm.js';
+import {registerNaturalFamiliar} from './premades/natural-familiar.js';
+import {registerBodyBasher} from './premades/body-basher.js';
+import {registerBoldPresence} from './premades/bold-presence.js';
 import {registerEnchantedAid} from './premades/enchanted-aid.js';
 import {registerArcaneCharge} from './premades/arcane-charge.js';
 import {registerElementalist} from './premades/elementalist.js';
@@ -192,6 +205,24 @@ import { registerWeaponRicochet } from './premades/weapon-ricochet.js';
 import { registerWeaponReloading } from './premades/weapon-reloading.js';
 import { registerWeaponAimed } from './premades/weapon-aimed.js';
 import { registerWeaponFollowUp } from './premades/weapon-follow-up.js';
+import {registerWeaponDeadly} from './premades/weapon-deadly.js';
+import {registerWeaponNonlethal} from './premades/weapon-nonlethal.js';
+import {registerWeaponScary} from './premades/weapon-scary.js';
+import {registerWeaponEntangling} from './premades/weapon-entangling.js';
+import {registerWeaponInvigorating} from './premades/weapon-invigorating.js';
+import {registerWeaponVolleyed} from './premades/weapon-volleyed.js';
+import {registerWeaponParry} from './premades/weapon-parry.js';
+import {registerWeaponEruptive} from './premades/weapon-eruptive.js';
+import {registerWeaponPersuasive} from './premades/weapon-persuasive.js';
+import {registerArmorResilient} from './premades/armor-resilient.js';
+import {registerArmorReinforced} from './premades/armor-reinforced.js';
+import {registerArmorShifting} from './premades/armor-shifting.js';
+import {registerArmorHopeful} from './premades/armor-hopeful.js';
+import {registerArmorMnemonic} from './premades/armor-mnemonic.js';
+import {registerArmorAbsorbing} from './premades/armor-absorbing.js';
+import {registerArmorQuickStriding} from './premades/armor-quick-striding.js';
+import {registerArmorSelfHealing} from './premades/armor-self-healing.js';
+import {registerArmorResplendent} from './premades/armor-resplendent.js';
 import { registerArmorBulky } from './premades/armor-bulky.js';
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -309,6 +340,11 @@ Hooks.once('ready', async () => {
   registerWeaponQuick();
   registerWeaponVersatile();
   registerWeaponPiercing();
+  registerWeaponDeadly();
+  registerWeaponNonlethal();
+  registerWeaponScary();
+  registerWeaponEntangling();
+  registerWeaponInvigorating();
   registerWeaponOtherworldly();
   registerWeaponRicochet();
   registerWeaponReloading();
@@ -482,11 +518,14 @@ Hooks.once('ready', async () => {
   registerThriveInChaos();
   registerBeastformRollDamage();
   registerRuneWard();
+  // Inside damage redirection/packet adjustments and later post-damage retaliation.
+  registerConjureSwarm();
   // Outer to recipient defenses, inner to Whirlwind/Rain's per-target packet adjustments.
   registerIAmYourShield();
   registerWhirlwind();
   registerDeftManeuvers();
   registerISeeItComing();
+  registerWeaponDeflecting();
   registerBookOfAva();
   registerBookOfIlliat();
   registerBlightingStrike();
@@ -497,8 +536,35 @@ Hooks.once('ready', async () => {
   registerViciousEntangle();
   registerReassurance();
   registerForcefulPush();
+  registerCinderGrasp();
+  registerReckless();
+  registerFerocity();
+  registerStrategicApproach();
+  registerBookOfSitil();
+  registerSiphonEssence();
+  registerMidnightSpirit();
+  registerNaturalFamiliar();
+  registerBodyBasher();
+  registerBoldPresence();
+  // Halve Volley damage before recipient defenses and redirection.
+  registerWeaponVolleyed();
+  // Discard recipient-specific damage dice before half-damage and defenses.
+  registerWeaponParry();
+  registerWeaponEruptive();
+  registerWeaponPersuasive();
+  registerArmorResilient();
+  registerArmorReinforced();
+  registerArmorShifting();
+  registerArmorHopeful();
+  registerArmorMnemonic();
+  registerArmorAbsorbing();
+  registerArmorQuickStriding();
+  registerArmorSelfHealing();
+  registerArmorResplendent();
   // Observe final HP receipts after every recipient defense/prevention wrapper.
   registerArmorBulky();
+  // Observe committed damage after redirection, prevention, and Bulky consequences.
+  registerHideousRetribution();
   if (game.user.isActiveGM) {
     try {
       const count = await setupPremadeLibrary();

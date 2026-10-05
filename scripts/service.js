@@ -93,6 +93,7 @@ export async function apply(item, entry, expected) {
     }
     const current = item.toObject();
     const currentSnapshot=snapshot(current);
+    if(expected&&Object.hasOwn(expected.before.system,'attack'))currentSnapshot.system.attack=clone(current.system.attack);
     if(expected&&Object.hasOwn(expected.before.system,'description'))currentSnapshot.system.description=current.system?.description??'';
     if (expected && !equal(currentSnapshot, expected.before)) throw new Error('The target changed. Reopen Medkit to refresh the selection.');
     const prepared = plan(current, entry.data, entry.uuid, item.uuid);
@@ -102,6 +103,10 @@ export async function apply(item, entry, expected) {
     if (item.getFlag(ID, 'backup')) await item.unsetFlag(ID, 'backup');
     try {
       if (!prepared.metadataOnly) await writeSnapshot(item, prepared.after);
+      else if(prepared.weaponActionUpdate){
+        const action=prepared.weaponActionUpdate;
+        if(!await item.update({[`system.actions.${action.id}`]:clone(action.after)}))throw new Error('The Volley action update was cancelled.');
+      }
       else if(prepared.descriptionChanged){
         if(!await item.update({'system.description':prepared.after.system.description}))throw new Error('The description update was cancelled.');
       }
@@ -117,6 +122,11 @@ export async function apply(item, entry, expected) {
     } catch (error) {
       try {
         if (!prepared.metadataOnly) await writeSnapshot(item, prepared.before);
+        else if(prepared.weaponActionUpdate){
+          const action=prepared.weaponActionUpdate;
+          const update=action.before?{[`system.actions.${action.id}`]:clone(action.before)}:{[`system.actions.-=${action.id}`]:null};
+          if(!await item.update(update))throw new Error('The Volley action restoration was cancelled.');
+        }
         else if(prepared.descriptionChanged&&item.toObject().system?.description!==prepared.before.system.description){
           if(!await item.update({'system.description':prepared.before.system.description}))throw new Error('The description restoration was cancelled.');
         }

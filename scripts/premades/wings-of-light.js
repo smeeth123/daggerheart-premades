@@ -4,12 +4,13 @@ import {ID,featureActive} from '../core.js';
 import {timedDialog} from '../dialog.js';
 import {ownerFor} from './aura-rules.js';
 import {withHopeLock} from './hope-lock.js';
+import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import {WINGS_LIGHT_KEY} from './wings-of-light-data.js';
 import {powerOfTheGodsItem} from './power-of-the-gods.js';
 import {resolvedAttackOutcome} from '../attack-outcome.js';
 const QUERY=`${ID}.wingsOfLight`,PROMPT=`${ID}.wingsOfLightPrompt`,WRAPPED=Symbol.for(`${ID}.wingsOfLight`),decisions=new Map();
 export function wingsOfLightItem(actor){return actor?.type==='character'&&actor.statuses?.has('fly')?actor.items?.find(item=>{const flags=item.flags?.[ID];return featureActive(item)&&!flags?.disabled&&(flags?.applied?.key??flags?.premade?.key)===WINGS_LIGHT_KEY;})??null:null;}
-const canPay=actor=>Number(actor?.system.resources?.hope?.value)>=1;
+const canPay=actor=>hopeCapacity(actor)>=1;
 // Outcome conversions such as Witch's Charm do not change the dice total.
 // Use the resolved attack, as other post-hit damage choices do.
 export function wingsOfLightHit(message){return resolvedAttackOutcome(message)==='success';}
@@ -21,7 +22,7 @@ export async function resolveWingsOfLight(request,{user},ask=promptWingsOfLight)
  if(!game.user.isActiveGM||typeof request.messageUuid!=='string'||!Number.isFinite(request.deadline)||request.deadline>decisionNow()+decisionBudget(125000))throw new Error('Invalid Wings of Light request.');
  let valid=await validateWingsOfLight(request,user);if(!valid)return false;if(valid.message.flags?.[ID]?.wingsOfLight)return true;
  for(const[key,entry]of decisions)if(entry.expires<decisionNow())decisions.delete(key);if(decisions.has(request.messageUuid))return decisions.get(request.messageUuid).promise;
- const promise=(async()=>{if(!canPay(valid.actor))return false;const owner=ownerFor(valid.actor,[...game.users],game.user),data={actorUuid:valid.actor.uuid},accepted=owner.isSelf?await ask(data,{user:game.user}):await owner.query(PROMPT,data,{timeout:decisionBudget(65000)});if(!accepted)return false;valid=await validateWingsOfLight(request,user);if(!valid)return false;const paid=await withHopeLock(valid.actor.uuid,async()=>{if(!wingsOfLightItem(valid.actor)||!canPay(valid.actor))return false;const next=Number(valid.actor.system.resources.hope.value)-1,updated=await valid.actor.update({'system.resources.hope.value':next});if(!updated||Number(valid.actor.system.resources.hope.value)!==next)throw new Error('Could not spend Wings of Light Hope.');return true;});if(!paid)return false;await valid.message.update({[`flags.${ID}.wingsOfLight`]:{actorUuid:valid.actor.uuid}});return true;})();
+ const promise=(async()=>{if(!canPay(valid.actor))return false;const owner=ownerFor(valid.actor,[...game.users],game.user),data={actorUuid:valid.actor.uuid},accepted=owner.isSelf?await ask(data,{user:game.user}):await owner.query(PROMPT,data,{timeout:decisionBudget(65000)});if(!accepted)return false;valid=await validateWingsOfLight(request,user);if(!valid)return false;const paid=await withHopeLock(valid.actor.uuid,async()=>{try{if(!wingsOfLightItem(valid.actor)||!canPay(valid.actor))return false;return Boolean(await spendHope(valid.actor,1,{label:'Wings of Light'}));}catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});if(!paid)return false;await valid.message.update({[`flags.${ID}.wingsOfLight`]:{actorUuid:valid.actor.uuid}});return true;})();
  decisions.set(request.messageUuid,{promise,expires:decisionNow()+decisionBudget(300000)});return promise;
 }
 export async function offerWingsOfLight(config){const message=game.messages.get(config.source?.message),actor=message?.system?.action?.actor;if(!wingsOfLightItem(actor)||config.hasHealing||!config.damageFormula||!wingsOfLightHit(message))return false;if(message.flags?.[ID]?.wingsOfLight)return true;if(!canPay(actor))return false;const gm=game.users.activeGM;if(!gm)throw new Error('Wings of Light needs an active GM.');const request={messageUuid:message.uuid,deadline:decisionNow()+decisionBudget(120000)};return gm.isSelf?resolveWingsOfLight(request,{user:game.user}):gm.query(QUERY,request,{timeout:decisionBudget(125000)});}

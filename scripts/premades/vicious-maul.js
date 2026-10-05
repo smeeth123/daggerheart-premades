@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope,refundHope} from './hope-payment.js';
 import {ID,featureActive} from '../core.js';
 import {decisionBudget} from '../settings.js';
 import {decisionNow} from '../decision-clock.js';
@@ -13,7 +14,7 @@ const ACTION_WRAP=Symbol.for(`${ID}.viciousMaulActionV4`),DAMAGE_WRAP=Symbol.for
 const pending=new Set();
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-export function viciousMaulItem(actor,requireHope=false){if(actor?.type!=='character'||requireHope&&Number(actor.system.resources?.hope?.value)<1)return null;return actor.items?.find(item=>{const flags=item.flags?.[ID];return featureActive(item)&&!flags?.disabled&&(flags?.applied?.key??flags?.premade?.key)===VICIOUS_MAUL_KEY;})??null;}
+export function viciousMaulItem(actor,requireHope=false){if(actor?.type!=='character'||requireHope&&hopeCapacity(actor)<1)return null;return actor.items?.find(item=>{const flags=item.flags?.[ID];return featureActive(item)&&!flags?.disabled&&(flags?.applied?.key??flags?.premade?.key)===VICIOUS_MAUL_KEY;})??null;}
 export function viciousMaulHits(message){return overwhelmHits(message);}
 export function hasEmbeddedActionSource(message,actor){return embeddedActionSource(message?.system?.source,actor);}
 export const syncViciousMaulAction=syncBeastformAttackAction;
@@ -22,7 +23,7 @@ export function viciousMaulProficiencyData(messageUuid){return{name:'Vicious Mau
 
 export async function promptViciousMaul(data,{user}){const actor=await fromUuid(data.actorUuid);if(!user?.active||!actor?.testUserPermission(game.user,'OWNER')||!viciousMaulItem(actor,true)||!data.targets?.length)return false;return timedDialog(`Vicious Maul — ${actor.name}`,`<p>Spend <strong>1 Hope</strong> to gain <strong>+1 Proficiency</strong> for this attack and make one hit target temporarily <strong>Vulnerable</strong>?</p>${data.targets.map((target,index)=>`<label style="display:block;margin:.35rem 0"><input type="radio" name="viciousTarget" value="${esc(target.id)}" ${index?'':'checked'}> ${esc(target.name)}</label>`).join('')}`,[{action:'use',label:'Spend 1 Hope',callback:(_event,_button,dialog)=>dialog.element.querySelector('[name="viciousTarget"]:checked')?.value??false},{action:'decline',label:'Decline',default:true,callback:()=>false}]);}
 
-export async function applyViciousMaul(actor,target,message,item){const template=item.effects?.get?.(VICIOUS_MAUL_EFFECT),hope=Number(actor.system.resources?.hope?.value);if(!template||hope<1)return false;const paid=await actor.update({'system.resources.hope.value':hope-1});if(!paid)throw Error('Vicious Maul could not spend Hope.');let proficiency;
+export async function applyViciousMaul(actor,target,message,item){try{let hopePayment;const template=item.effects?.get?.(VICIOUS_MAUL_EFFECT),hope=hopeCapacity(actor);if(!template||hope<1)return false;const paid=(hopePayment=await spendHope(actor,1));if(!paid)throw Error('Vicious Maul could not spend Hope.');let proficiency;
  try{
   [proficiency]=await actor.createEmbeddedDocuments('ActiveEffect',[viciousMaulProficiencyData(message.uuid)]);
   if(!proficiency)throw Error('Vicious Maul could not create its Proficiency effect.');
@@ -31,8 +32,8 @@ export async function applyViciousMaul(actor,target,message,item){const template
   if(currentAction&&!hasEmbeddedActionSource(message,actor))updates['system.source.action']=currentAction;
   await message.update(updates);
   return true;
- }catch(error){if(proficiency)await actor.deleteEmbeddedDocuments('ActiveEffect',[proficiency.id]);await actor.update({'system.resources.hope.value':hope});throw error;}
-}
+ }catch(error){if(proficiency)await actor.deleteEmbeddedDocuments('ActiveEffect',[proficiency.id]);await refundHope(actor,hopePayment);throw error;}
+}catch(error){if(isHopePaymentCancellation(error))return false;throw error;}}
 
 export async function resolveViciousMaul(request,{user},ask=promptViciousMaul){if(!game.user.isActiveGM||!user?.active||!Number.isFinite(request.deadline)||request.deadline<decisionNow()||request.deadline>decisionNow()+decisionBudget(125000)||pending.has(request.messageUuid))return false;const message=await fromUuid(request.messageUuid),actor=message?.system?.action?.actor,item=viciousMaulItem(actor,true);if(!item||!actor.testUserPermission(user,'OWNER')||message.flags?.[ID]?.viciousMaulOffered)return false;let hits=viciousMaulHits(message);if(!hits.length)return false;const targets=(await Promise.all(hits.map(async hit=>({id:hit.id,actorId:hit.actorId,name:(await fromUuid(hit.actorId))?.name})))).filter(target=>target.name);if(!targets.length)return false;pending.add(request.messageUuid);
  try{

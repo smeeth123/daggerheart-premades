@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import {criticalRerollResult} from '../roll-rerolls.js';
@@ -22,7 +23,7 @@ export function luckbenderAvailable(item) {
   return item?.type==='feature'&&!flags?.disabled&&!item.system.inactive&&
     (flags?.applied?.key??flags?.premade?.key)===LUCK_KEY&&action?.uses?.recovery==='session'&&Number(action.uses.value??0)===0;
 }
-const affordable = actor => actor?.type==='character' && Number(actor.system.resources.hope.value)>=3;
+const affordable = actor => actor?.type==='character' && hopeCapacity(actor)>=3;
 export function luckbenderCandidates(actor) {
   const found=new Map();
   if(affordable(actor))for(const item of actor.items.filter(luckbenderAvailable))found.set(item.uuid,{itemUuid:item.uuid});
@@ -97,17 +98,17 @@ export async function resolveLuckbender(request,{user}) {
       if(request.resolutionToken)await resolutionTicketStatus(request.resolutionToken,'Resolving');
     }
     valid=await validateLuckbender(request,user);if(!valid)return false;
-    return withHopeLock(valid.bearer.uuid,async()=>{
+    return withHopeLock(valid.bearer.uuid,async()=>{try{let hopePayment;
     valid=await validateLuckbender(request,user);if(!valid)return false;
-    const hope=Number(valid.bearer.system.resources.hope.value),path=`system.actions.${LUCK_ACTION}.uses.value`;
+    const hope=hopeCapacity(valid.bearer),path=`system.actions.${LUCK_ACTION}.uses.value`;
     const spent=await valid.item.update({[path]:1});
     if(!spent||luckbenderAvailable(valid.item))throw new Error('Could not spend Luckbender’s session use.');
     try {
-      const updated=await valid.bearer.update({'system.resources.hope.value':hope-3});
-      if(!updated||Number(valid.bearer.system.resources.hope.value)!==hope-3)throw new Error('Could not spend Luckbender’s Hope.');
+      const updated=(hopePayment=await spendHope(valid.bearer,3));
+      if(!updated||!hopePayment)throw new Error('Could not spend Luckbender’s Hope.');
     } catch(error) {await valid.item.update({[path]:0});throw error;}
     return {bearerName:valid.bearer.name,itemUuid:valid.item.uuid};
-    });
+    }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
   });
   queues.set(queueKey,promise);requests.set(key,{promise,expires:decisionNow()+decisionBudget(300000)});
   try{return await promise;}finally{if(queues.get(queueKey)===promise)queues.delete(queueKey);}

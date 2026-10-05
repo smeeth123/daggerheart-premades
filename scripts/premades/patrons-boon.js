@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import {criticalRerollResult} from '../roll-rerolls.js';
@@ -6,7 +7,7 @@ import { BOON_KEY,BOON_ACTION } from './patrons-boon-data.js';
 import { adaptabilityOutcome,rerollAdaptability } from './adaptability.js';
 import { consumeResolutionTicket } from '../resolution-manager.js';
 import { withHopeLock } from './hope-lock.js';
-export function boonItem(actor){return actor?.type==='character'&&Number(actor.system.resources?.hope?.value)>=3?actor.items.find(item=>{const f=item.flags?.[ID];return !f?.disabled&&!item.system.inactive&&(f?.applied?.key??f?.premade?.key)===BOON_KEY;})??null:null;}
+export function boonItem(actor){return actor?.type==='character'&&hopeCapacity(actor)>=3?actor.items.find(item=>{const f=item.flags?.[ID];return !f?.disabled&&!item.system.inactive&&(f?.applied?.key??f?.premade?.key)===BOON_KEY;})??null:null;}
 export async function validateBoon(request,user){
   if(!user?.active||criticalRerollResult(request)||request.deadline<=decisionNow()||!Number.isFinite(request.total))return null;
   const actor=await fromUuid(request.sourceUuid),item=boonItem(actor);
@@ -16,12 +17,12 @@ export async function validateBoon(request,user){
 }
 export async function resolveBoon(request,{user},authorize=consumeResolutionTicket){
   if(!game.user.isActiveGM||!Number.isFinite(request.deadline)||request.deadline>decisionNow()+decisionBudget(125000))return false;
-  return withHopeLock(request.sourceUuid,async()=>{
+  return withHopeLock(request.sourceUuid,async()=>{try{let hopePayment;
     const valid=await validateBoon(request,user);if(!valid||!authorize(request.resolutionToken,'boon',valid.item.uuid,user))return false;
-    const next=Number(valid.actor.system.resources.hope.value)-3,updated=await valid.actor.update({'system.resources.hope.value':next});
-    if(!updated||Number(valid.actor.system.resources.hope.value)!==next)throw new Error('Could not spend Patron’s Boon Hope.');
+    const next=hopeCapacity(valid.actor)-3,updated=(hopePayment=await spendHope(valid.actor,3));
+    if(!updated||!hopePayment)throw new Error('Could not spend Patron’s Boon Hope.');
     return {itemUuid:valid.item.uuid,bearerName:valid.actor.name};
-  });
+  }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
 }
 export async function rerollBoon(roll,config){
   const previous=Number(roll.options.roll.advantage?.type??roll.options.roll.advantage??0);

@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import { ID } from '../core.js';
@@ -13,7 +14,7 @@ const QUERY=`${ID}.notThisTime`;
 const rules=()=>game.settings.get(CONFIG.DH.id,CONFIG.DH.SETTINGS.gameSettings.variantRules).rangeMeasurement;
 const rangeState=scene=>JSON.stringify([scene.grid,scene.flags?.daggerheart?.rangeMeasurement,rules()]);
 export function timeLimit(scene){const r=rules(),local=scene.flags?.daggerheart?.rangeMeasurement;return Number(r.enabled&&local?.setting===CONFIG.DH.GENERAL.sceneRangeMeasurementSetting.custom.id?local.far:r.far);}
-export function timeItem(actor){return actor?.type==='character'&&Number(actor.system.resources?.hope?.value)>=3?actor.items.find(item=>{const f=item.flags?.[ID];return !f?.disabled&&!item.system.inactive&&(f?.applied?.key??f?.premade?.key)===TIME_KEY;})??null:null;}
+export function timeItem(actor){return actor?.type==='character'&&hopeCapacity(actor)>=3?actor.items.find(item=>{const f=item.flags?.[ID];return !f?.disabled&&!item.system.inactive&&(f?.applied?.key??f?.premade?.key)===TIME_KEY;})??null:null;}
 export function collectTimeChoices(attacker,message,total,kind,used=new Set()){
   // An enemy crit is a valid defensive reroll: its replacement can miss.
   const origin=sourceToken(attacker);if(attacker?.type!=='adversary'||!origin||(kind==='time-attack'&&!message?.uuid)||!Number.isFinite(total))return [];
@@ -40,11 +41,11 @@ export async function validateTime(request,user){
 export async function resolveTime(request,{user},authorize=consumeResolutionTicket){
   if(!game.user.isActiveGM||!Number.isFinite(request.deadline)||request.deadline>decisionNow()+decisionBudget(125000))return false;
   const item=await fromUuid(request.candidate?.itemUuid);if(!item?.actor)return false;
-  return withHopeLock(item.actor.uuid,async()=>{const valid=await validateTime(request,user);if(!valid||!authorize(request.resolutionToken,request.kind,item.uuid,user))return false;
-    const next=Number(valid.actor.system.resources.hope.value)-3,updated=await valid.actor.update({'system.resources.hope.value':next});
-    if(!updated||Number(valid.actor.system.resources.hope.value)!==next)throw new Error('Could not spend Not This Time Hope.');
+  return withHopeLock(item.actor.uuid,async()=>{try{let hopePayment;const valid=await validateTime(request,user);if(!valid||!authorize(request.resolutionToken,request.kind,item.uuid,user))return false;
+    const next=hopeCapacity(valid.actor)-3,updated=(hopePayment=await spendHope(valid.actor,3));
+    if(!updated||!hopePayment)throw new Error('Could not spend Not This Time Hope.');
     return {bearerName:valid.actor.name,itemUuid:item.uuid};
-  });
+  }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
 }
 export async function payTime(choice){const gm=game.users.activeGM;if(!gm)throw new Error('Not This Time needs an active GM.');const request={...choice.request,resolutionToken:choice.token,deadline:decisionNow()+decisionBudget(120000)};return gm.isSelf?resolveTime(request,{user:game.user}):gm.query(QUERY,request,{timeout:decisionBudget(125000)});}
 export async function rerollTimeDamage(config,message,paid){

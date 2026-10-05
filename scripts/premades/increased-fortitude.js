@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import { decisionBudget } from '../settings.js';
 import { decisionCountdown, decisionNow, decisionTimeout, clearDecisionTimeout } from '../decision-clock.js';
 import { ID } from '../core.js';
@@ -10,7 +11,7 @@ const queues = new Map();
 const receipts = new Map();
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function fortitudeItem(actor) {
-  if (actor?.type !== 'character' || !(Number(actor.system.resources.hope.value) >= 3)) return null;
+  if (actor?.type !== 'character' || !(hopeCapacity(actor) >= 3)) return null;
   return actor.items.find(item => {
     const flags = item.flags?.[ID];
     return item.type === 'feature' && !item.flags?.[ID]?.disabled && !item.system.inactive &&
@@ -69,7 +70,7 @@ export async function resolveFortitude(request, { user }) {
   // Deduplicate repeated delivery of the same request for five minutes.
   for (const [id, receipt] of receipts) if (receipt.expires < decisionNow()) receipts.delete(id);
   const record = {expires:decisionNow()+decisionBudget(300000)};
-  const promise = serial(request.actorUuid, async()=>{
+  const promise = serial(request.actorUuid, async()=>{try{let hopePayment;
     let actor = await fromUuid(request.actorUuid);
     if (!actor || (!user.isGM && !actor.testUserPermission(user,'OWNER'))) throw new Error('You do not own this actor.');
     if (request.deadline <= decisionNow() || !fortitudeItem(actor)) return false;
@@ -85,11 +86,11 @@ export async function resolveFortitude(request, { user }) {
     if (!accepted || request.deadline <= decisionNow() || !user.active) return false;
     actor=await fromUuid(request.actorUuid);
     if (!fortitudeItem(actor)) return false;
-    const hope=Number(actor.system.resources.hope.value);
-    const updated=await actor.update({'system.resources.hope.value':hope-3});
-    if (!updated || Number(actor.system.resources.hope.value)!==hope-3) throw new Error('Increased Fortitude could not spend Hope.');
+    const hope=hopeCapacity(actor);
+    const updated=(hopePayment=await spendHope(actor,3,{locked:false}));
+    if (!updated || !hopePayment) throw new Error('Increased Fortitude could not spend Hope.');
     return true;
-  });
+  }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
   record.promise=promise;
   receipts.set(key,record);
   return promise;

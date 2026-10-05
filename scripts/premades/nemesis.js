@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import {ID,featureActive} from '../core.js';
@@ -12,16 +13,16 @@ export async function prioritizeNemesis(request,{user}){
  if(!game.user.isActiveGM||!user?.active)return false;
  const actor=await fromUuid(request.actorUuid),target=await fromUuid(request.targetUuid);
  if(!actor?.testUserPermission(user,'OWNER')||target?.type!=='adversary'||target.uuid===actor.uuid)return false;
- return withHopeLock(actor.uuid,async()=>{
-  const item=nemesisItem(actor),hope=Number(actor.system.resources?.hope?.value);if(!item||hope<2)throw new Error('Nemesis requires its active premade and 2 Hope.');
+ return withHopeLock(actor.uuid,async()=>{try{let hopePayment;
+  const item=nemesisItem(actor),hope=hopeCapacity(actor);if(!item||hope<2)throw new Error('Nemesis requires its active premade and 2 Hope.');
   if(nemesisMark(actor)?.flags[ID].nemesisTarget===target.uuid)return false;
   const old=actor.effects.filter(e=>e.flags?.[ID]?.nemesisTarget&&e.origin===item.uuid);
   const created=await actor.createEmbeddedDocuments('ActiveEffect',[{name:`Nemesis — ${target.name}`,img:item.img,type:'base',transfer:false,origin:item.uuid,description:`Prioritized adversary: ${target.name}. Swap Hope and Fear Dice when attacking this adversary.`,system:{changes:[],duration:{type:'shortRest'}},flags:{[ID]:{nemesisTarget:target.uuid}}}]);
   if(!created?.length)throw new Error('Could not prioritize the adversary.');
-  try{const paid=await actor.update({'system.resources.hope.value':hope-2});if(!paid||Number(actor.system.resources.hope.value)!==hope-2)throw new Error('Could not spend Nemesis Hope.');}catch(error){await actor.deleteEmbeddedDocuments('ActiveEffect',created.map(e=>e.id));throw error;}
+  try{const paid=(hopePayment=await spendHope(actor,2));if(!paid||!hopePayment)throw new Error('Could not spend Nemesis Hope.');}catch(error){await actor.deleteEmbeddedDocuments('ActiveEffect',created.map(e=>e.id));throw error;}
   if(old.length)await actor.deleteEmbeddedDocuments('ActiveEffect',old.map(e=>e.id));
   const esc=s=>foundry.utils.escapeHTML(String(s));await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor}),content:`<p><strong>Nemesis</strong>: ${esc(actor.name)} spends 2 Hope to prioritize ${esc(target.name)} until their next rest.</p>`});return true;
- });
+ }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
 }
 export async function validateNemesis(request,user){
  if(!user?.active||!Number.isFinite(request.deadline)||request.deadline<=decisionNow()||![request.hope,request.fear].every(Number.isFinite)||request.hope===request.fear)return null;

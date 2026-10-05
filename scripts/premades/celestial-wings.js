@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import { decisionBudget } from '../settings.js';
 import { decisionCountdown, decisionNow, decisionTimeout, clearDecisionTimeout } from '../decision-clock.js';
 import { eligibleStable, spendStable, STABLE_QUERY } from './stable.js';
@@ -5,6 +6,7 @@ import { ID } from '../core.js';
 import { WINGS_KEY, WINGS_ACTION } from './celestial-wings-data.js';
 import { LUNAR_PHASES_KEY, LUNAR_NEW } from './lunar-phases-data.js';
 import { unyieldingItem, applyUnyielding } from './unyielding.js';
+import { resilientArmor, resilientLastSlot, applyResilient } from './armor-resilient.js';
 import { shieldArmorRequest, shieldArmorFor, configureShieldArmor } from './i-am-your-shield.js';
 
 const QUERY = `${ID}.celestialWingsSpend`;
@@ -19,11 +21,11 @@ export function wingsAvailable(item) {
     action?.uses?.recovery === 'scene' && Number(action.uses.value ?? 0) === 0;
 }
 export function eligibleWings(actor) {
-  if (!actor?.statuses?.has('fly') || !(Number(actor.system.resources.hope.value) >= 1)) return null;
+  if (!actor?.statuses?.has('fly') || !(hopeCapacity(actor) >= 1)) return null;
   return actor.items.find(wingsAvailable) ?? null;
 }
 export function eligibleNewMoon(actor) {
-  if (!(Number(actor?.system?.resources?.hope?.value) >= 1)) return null;
+  if (!(hopeCapacity(actor) >= 1)) return null;
   return actor.items.find(item => {
     const metadata = item.flags?.[ID];
     if (item.type !== 'feature' || metadata?.disabled || item.system?.inactive ||
@@ -57,42 +59,42 @@ export function replaceArmorCost(result) {
 
 export async function spendWings(request, { user }) {
   const previous = queues.get(request.actorUuid) ?? Promise.resolve();
-  const spending = previous.catch(() => {}).then(async () => {
+  const spending = previous.catch(() => {}).then(async () => {try{let hopePayment;
     const actor = await fromUuid(request.actorUuid);
     if (!user?.active || !actor?.testUserPermission(user, 'OWNER')) throw new Error('You do not own this actor.');
     if (!Number.isFinite(request.deadline) || request.deadline <= decisionNow()) throw new Error('This damage dialog has expired.');
     const item = actor.items.get(request.itemId);
-    if (!actor.statuses.has('fly') || !wingsAvailable(item ?? {}) || !(Number(actor.system.resources.hope.value) >= 1))
+    if (!actor.statuses.has('fly') || !wingsAvailable(item ?? {}) || !(hopeCapacity(actor) >= 1))
       throw new Error('Celestial Wings requires Flying, 1 Hope, and an available scene use.');
-    const hope = Number(actor.system.resources.hope.value);
+    const hope = hopeCapacity(actor);
     const path = `system.actions.${WINGS_ACTION}.uses.value`;
     const marked = await item.update({ [path]: 1 });
     if (!marked || wingsAvailable(item)) throw new Error('Could not spend the Celestial Wings use.');
     try {
-      const updated = await actor.update({ 'system.resources.hope.value': hope - 1 });
-      if (!updated || Number(actor.system.resources.hope.value) !== hope - 1) throw new Error('Could not spend Hope.');
+      const updated = (hopePayment=await spendHope(actor,1,{locked:false}));
+      if (!updated || !hopePayment) throw new Error('Could not spend Hope.');
     } catch (error) {
       await item.update({ [path]: 0 });
       throw error;
     }
     return true;
-  });
+  }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
   queues.set(request.actorUuid, spending);
   try { return await spending; }
   finally { if (queues.get(request.actorUuid) === spending) queues.delete(request.actorUuid); }
 }
 export async function spendNewMoon(request, { user }) {
   const previous = queues.get(request.actorUuid) ?? Promise.resolve();
-  const spending = previous.catch(() => {}).then(async () => {
+  const spending = previous.catch(() => {}).then(async () => {try{let hopePayment;
     const actor = await fromUuid(request.actorUuid);
     if (!user?.active || !actor?.testUserPermission(user, 'OWNER')) throw new Error('You do not own this actor.');
     if (!Number.isFinite(request.deadline) || request.deadline <= decisionNow()) throw new Error('This damage dialog has expired.');
     if (!eligibleNewMoon(actor) || Number(request.damage) !== 1) throw new Error('New Moon requires Minor damage, its active phase, and 1 Hope.');
-    const hope = Number(actor.system.resources.hope.value);
-    const updated = await actor.update({ 'system.resources.hope.value': hope - 1 });
-    if (!updated || Number(actor.system.resources.hope.value) !== hope - 1) throw new Error('Could not spend Hope.');
+    const hope = hopeCapacity(actor);
+    const updated = (hopePayment=await spendHope(actor,1,{locked:false}));
+    if (!updated || !hopePayment) throw new Error('Could not spend Hope.');
     return true;
-  });
+  }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
   queues.set(request.actorUuid, spending);
   try { return await spending; }
   finally { if (queues.get(request.actorUuid) === spending) queues.delete(request.actorUuid); }
@@ -184,14 +186,14 @@ export function createWingsDialog(Base) {
         return;
       }
       if (!this.wingsSelected) {
-        if (!unyieldingItem(this.actor) || !damageResult(this).armorChanges.length) return Base.takeDamage.call(this);
+        if ((!unyieldingItem(this.actor) && !resilientLastSlot(this.actor, damageResult(this))) || !damageResult(this).armorChanges.length) return Base.takeDamage.call(this);
         this.wingsBusy = true;
         try {
-          this.resolve(await applyUnyielding(this.actor, damageResult(this)));
+          this.resolve(await applyUnyielding(this.actor, await applyResilient(this.actor, damageResult(this), this)));
           await this.close(true);
         } catch (error) {
-          console.error(`${ID} | Unyielding failed`, error);
-          ui.notifications.error('Unyielding failed; the selected Armor Slots will be marked normally.');
+          console.error(`${ID} | Armor preservation failed`, error);
+          ui.notifications.error('Armor preservation failed; the selected Armor Slots will be marked normally.');
           this.resolve(damageResult(this));
           await this.close(true);
         } finally { this.wingsBusy = false; }
@@ -213,7 +215,10 @@ export function createWingsDialog(Base) {
           ? await gm.query(stable ? STABLE_QUERY : QUERY, request, { timeout: Math.max(1, this.wingsDeadline - decisionNow()) })
           : await (stable ? spendStable : spendWings)(request, { user: game.user });
         if (!paid) throw new Error('Could not spend the selected armor replacement cost.');
-        this.resolve(result);
+        let finalResult=result;
+        try { finalResult=await applyResilient(this.actor,result,this); }
+        catch(error) { console.error(`${ID} | Resilient failed`,error); ui.notifications.error('Resilient failed; remaining Armor Slots will be marked normally.'); }
+        this.resolve(finalResult);
         await this.close(true);
       } catch (error) {
         ui.notifications.error(error.message);
@@ -237,7 +242,7 @@ export function registerCelestialWings() {
         const shield = shieldArmorRequest(data.actorId);
         if (shield) data = { ...data, [ID]: { ...data[ID], iAmYourShield: shield } };
       }
-      if (name === 'armorSlot') { const actor = await fromUuid(data.actorId); if (eligibleWings(actor) || eligibleStable(actor) || eligibleNewMoon(actor) || unyieldingItem(actor)) options = { ...options, timeout: decisionBudget(65000) }; }
+      if (name === 'armorSlot') { const actor = await fromUuid(data.actorId); if (eligibleWings(actor) || eligibleStable(actor) || eligibleNewMoon(actor) || unyieldingItem(actor) || resilientArmor(actor)) options = { ...options, timeout: decisionBudget(65000) }; }
       return nativeQuery.call(this, name, data, options);
     };
     UserClass.dhpArmorTimeout = true;
@@ -249,7 +254,7 @@ export function registerCelestialWings() {
     const actor = await fromUuid(data.actorId);
     if (!actor?.isOwner) return originalQuery.call(this, data, ...args);
     const shield = await shieldArmorFor(data);
-    if (!(shield || eligibleWings(actor) || eligibleStable(actor) || eligibleNewMoon(actor) || unyieldingItem(actor))) return originalQuery.call(this, data, ...args);
+    if (!(shield || eligibleWings(actor) || eligibleStable(actor) || eligibleNewMoon(actor) || unyieldingItem(actor) || resilientArmor(actor))) return originalQuery.call(this, data, ...args);
     return new Promise((resolve, reject) => {
       const dialog = new WingsDialog(resolve, reject, actor, data.damage, data.type);
       if (shield) configureShieldArmor(dialog, shield);

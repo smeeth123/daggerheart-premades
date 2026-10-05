@@ -1,3 +1,4 @@
+import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import { ID } from '../core.js';
@@ -6,7 +7,7 @@ import { adaptabilityOutcome } from './adaptability.js';
 import { prayerRange } from './prayer-dice.js';
 import { consumeResolutionTicket } from '../resolution-manager.js';
 import { withHopeLock } from './hope-lock.js';
-export function charmItem(actor){return actor?.type==='character'&&Number(actor.system.resources?.hope?.value)>=3?actor.items.find(item=>{const f=item.flags?.[ID];return !f?.disabled&&!item.system.inactive&&(f?.applied?.key??f?.premade?.key)===CHARM_KEY;})??null:null;}
+export function charmItem(actor){return actor?.type==='character'&&hopeCapacity(actor)>=3?actor.items.find(item=>{const f=item.flags?.[ID];return !f?.disabled&&!item.system.inactive&&(f?.applied?.key??f?.premade?.key)===CHARM_KEY;})??null:null;}
 export function charmCandidates(source){
   const actors=new Map([[source.uuid,source]]);for(const token of globalThis.canvas?.tokens?.placeables??[])if(token.actor)actors.set(token.actor.uuid,token.actor);
   return [...actors.values()].flatMap(actor=>{const item=charmItem(actor);return item&&prayerRange(actor,source)?[{itemUuid:item.uuid}]:[];});
@@ -22,12 +23,12 @@ export async function resolveCharm(request,{user},authorize=consumeResolutionTic
   if(!game.user.isActiveGM||!Number.isFinite(request.deadline)||request.deadline>decisionNow()+decisionBudget(125000))return false;
   return withHopeLock(request.candidate?.itemUuid,async()=>{
     const valid=await validateCharm(request,user);if(!valid||!authorize(request.resolutionToken,'charm',valid.item.uuid,user))return false;
-    return withHopeLock(valid.actor.uuid,async()=>{
+    return withHopeLock(valid.actor.uuid,async()=>{try{let hopePayment;
       const fresh=await validateCharm(request,user);if(!fresh)return false;
-      const next=Number(fresh.actor.system.resources.hope.value)-3,updated=await fresh.actor.update({'system.resources.hope.value':next});
-      if(!updated||Number(fresh.actor.system.resources.hope.value)!==next)throw new Error('Could not spend Witch’s Charm Hope.');
+      const next=hopeCapacity(fresh.actor)-3,updated=(hopePayment=await spendHope(fresh.actor,3));
+      if(!updated||!hopePayment)throw new Error('Could not spend Witch’s Charm Hope.');
       return {itemUuid:fresh.item.uuid,bearerName:fresh.actor.name};
-    });
+    }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
   });
 }
 export const charmed=roll=>Boolean(roll?.options?.[ID]?.witchsCharm||roll?.options?.[ID]?.trueStrike);

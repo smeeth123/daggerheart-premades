@@ -1,8 +1,8 @@
 # Daggerheart Premade Reference
 
-How all 187 premades work by compendium
+How all 219 premades work by compendium
 
-Daggerheart Premades 0.2.14   |   Daggerheart 2.10.7   |   October 2 2026
+Daggerheart Premades 0.3.0   |   Daggerheart 2.10.8   |   October 4 2026
 
 This reference explains how each premade works at the table: what you activate, what triggers automatically, which choices and costs appear, and what remains manual. It covers every entry in the nine module compendiums. Upgrades have their own entries even when they only enhance another feature.
 
@@ -16,7 +16,7 @@ Weapon and Armor Features are an exception: apply Medkit to the actual equipment
 
 - [Subclass Features   102 premades](#subclass-features)
 
-- [Domain Cards   16 premades](#domain-cards)
+- [Domain Cards   28 premades](#domain-cards)
 
 - [Ancestry Features   19 premades](#ancestry-features)
 
@@ -26,9 +26,9 @@ Weapon and Armor Features are an exception: apply Medkit to the actual equipment
 
 - [Transformation Features   5 premades](#transformation-features)
 
-- [Weapon Features   8 premades](#weapon-features)
+- [Weapon Features   19 premades](#weapon-features)
 
-- [Armor Features   1 premade](#armor-features)
+- [Armor Features   10 premades](#armor-features)
 
 Entries follow the compendium folders, then alphabetical feature names. Transformation Features also groups the entries by transformation. Weapon and Armor Features are listed alphabetically at their compendium roots. Use the linked contents above or GitHub’s document outline for quick access.
 
@@ -39,6 +39,8 @@ Optional prompts normally go to the online owner, with active GM fallback. Most 
 An active GM coordinates resource and effect changes. Range uses Daggerheart’s configured distances and token measurement, not fixed feet. Many proximity features need identifiable tokens on the relevant scene. Keep that scene displayed for the GM when using scene-based automation. The entries identify material targeting restrictions.
 
 Critical successes count as rolls with Hope. Friendly rerolls intended to improve an action or reaction remain available on ordinary successes when the written trigger allows, but not on an already-critical result. Failure-only abilities remain failure-only. Defensive forced rerolls such as Danger Sense and Not This Time can still target enemy critical hits. Native d20 reactions have no Hope or Fear outcome.
+
+Successful-attack benefits use the final resolved outcome, including a miss changed into a hit by another feature. Supported rerolls show the native reroll indicator on the chat-card dice. Hopeful armor can replace supported Hope payments with Armor Slots; it does not add Armor to the displayed Hope total or substitute for Hope spent to recover Armor.
 
 ## Class Features
 
@@ -604,11 +606,15 @@ Target one ally and use Grant Extra Downtime Move, spending the once-per-session
 
 ## Domain Cards
 
-16 premades
+28 premades
 
-The current Domain Cards premades are level 1 cards. Native spell, grimoire, and ability mechanics are preserved unless an entry describes a specific change. Other cards in the system’s domain browser are not part of this premade catalog.
+The current Domain Cards premades cover level 1 and selected level 2 cards. Native spell, grimoire, and ability mechanics are preserved unless an entry describes a specific change. Other cards in the system’s domain browser are not part of this premade catalog.
 
 ### Arcana
+
+#### Cinder Grasp
+
+The native cast, 1d20+3 magic damage, and temporary On Fire effect remain. After a burning creature completes an action, it automatically takes 2d6 magic damage if the captured effect is still active. Direct action trait and Spellcast rolls also qualify; reactions, canceled rolls, and separate damage rolls do not. Removing or disabling On Fire stops the damage. Use On Fire: Damage only as a manual fallback for narrative actions outside Foundry, not again after an automated trigger.
 
 #### Rune Ward
 
@@ -620,6 +626,10 @@ Use Infuse Ward on one active Party character, or with no target to ward yoursel
 
 After damage dice display, a free optional picker offers every damage die showing 1 or 2, including dice discarded by Powerful or Massive. Choose any subset; all begin selected. Keep or drop modifiers recalculate after replacement, and replacement 1s or 2s are kept. This occurs before Volatile Magic, Fearsome Attack, and Manipulate Magic.
 
+#### Reckless
+
+Activate Mark a Stress manually to pay 1 Stress and apply the visible Reckless effect to yourself. It automatically gives advantage on your next completed attack roll, then expires whether the attack hits or misses. Canceling preserves it. Normal advantage cancellation applies; unrelated trait, reaction, and damage rolls do not consume it.
+
 #### Whirlwind
 
 After a successful attack against a target within Very Close, spend 1 Hope to add other eligible visible, living adversaries within Very Close to the same attack card. Added targets are checked against the final attack result. Original hits take full damage; added hits take half the final damage, rounded up before reductions. No second attack or manually placed template is needed.
@@ -630,9 +640,17 @@ After a successful attack against a target within Very Close, spend 1 Hope to ad
 
 Activate manually once per rest, retaining the native 1 Stress cost. The action targets only yourself and creates the +1 attack-roll effect. It expires after your next completed attack, hit or miss, but not after other rolls or canceled attacks. Movement and whether the attack meets the card’s Melee condition remain manual.
 
+#### Ferocity
+
+After your sourced damage actually makes an adversary mark HP, offer spending 2 Hope for a visible Evasion bonus equal to the HP actually marked, accounting for reductions and the target’s remaining HP. It expires after the next completed attack against you, hit or miss, after defensive decisions resolve. Canceled attacks preserve it. Unattributed HP tracker edits cannot identify the source and do not trigger the benefit.
+
 #### I See It Coming
 
 Before an incoming attack rolls, after its roll dialog is confirmed, offer marking 1 Stress and rolling d4 for attack-specific Evasion. The attacker must actually be beyond Melee; a ranged weapon used inside Melee does not qualify. It can stack with other defenses and survives rerolls. Because the choice is before the result, it is not filtered by whether +4 would avert that future hit.
+
+#### Strategic Approach
+
+A long rest replaces the card’s tokens with your current Knowledge, minimum 1. Under this game’s interpretation, a configured attack against an adversary within Close offers spending one token before rolling for advantage, +1d8 damage, or clearing 1 Stress on an eligible friendly ally within Melee of that adversary. The advantage applies to this attack; the damage bonus stays attached to its card for automatic or later Roll Damage. Declining spends nothing. The automation checks current range, not movement history or whether this is the first approach.
 
 ### Codex
 
@@ -644,17 +662,33 @@ Keeps all four native grimoire actions. Tava’s Armor retains Hope payment, tar
 
 Keeps all three native grimoire actions. Slumber expires only when applied damage actually makes the recipient mark HP, or damage Stress for a companion. Fully prevented, canceled, or redirected damage leaves sleep intact. Telepathy and other effects are untouched. The GM’s Fear-spend option to end Slumber remains native or manual.
 
+#### Book of Sitil
+
+Parallela keeps its native cast and 2 Hope cost. After your next completed attack’s final roll decisions and dice display, choose one extra creature within that attack’s range that the final result would hit. It joins the same native attack, damage, and effects without another attack roll. The held spell expires after that attack even if you decline or no extra target qualifies; canceling the attack preserves it. Recasting replaces the caster’s previous held spell. Other grimoire spells remain native.
+
 ### Dread
 
 #### Blighting Strike
 
 Use the single native Spellcast attack: Proficiency d6+1 damage with Hope, including criticals, or d10+1 with Fear. Hits receive a visible Blighted marker. Their next successful attack consumes it and deals half damage, rounded up before recipient reductions, for automatic or deferred damage. Misses preserve Blighted. Failed casts prompt spending 1 Hope or marking 1 Stress; unknown or unpaid consequences require resolving the choice.
 
+#### Hideous Retribution
+
+After a friendly ally within Close actually takes sourced damage from a visible creature, offer a native reaction roll using your Spellcast trait against that source. The attacker has no additional Close-range restriction. A success marks 1 Stress before dealing Proficiency d6 magic damage; failure, cancellation, and decline cost nothing. Native roll configuration, rerolls, and damage remain available. The retained Reaction Roll action handles narrative or otherwise unattributed damage manually.
+
+#### Siphon Essence
+
+Use the native Spellcast Roll attack and its once-per-long-rest successful use. A success with Fear automatically adds +1 Proficiency to that attack’s damage; criticals count as Hope. After applying the attack’s damage and reductions, automatically clear HP on the caster equal to the HP the successful target actually marked, capped by both tracks. Later chat-card Apply Damage is supported. Manual HP edits and redirected damage suffered by someone other than the successful target do not heal the caster.
+
 #### Umbral Veil
 
 Use Mark Stress once per rest to add tokens equal to current GM Fear without another healing roll. After an incoming attack rolls, Roll Resolution offers a bounded token count; each spent token reduces its result against you by 1 before damage. Other targets and permanent Evasion are unchanged. Known misses and critical hits do not prompt. Scene refresh clears unspent tokens.
 
 ### Midnight
+
+#### Midnight Spirit
+
+Summon Spirit spends 1 Hope and creates a friendly, controllable humanoid-sized spirit token beside the caster. Use Attack Adversary on the caster’s card: it retains the native Spellcast attack, Very Far range, and Spellcast-trait d6 magic damage, without another Hope cost. The spirit and its temporary NPC disappear after that completed attack, hit or miss, the caster’s next completed rest, or a successful replacement summon. Canceled attacks and summons preserve it. Movement and carrying remain manual.
 
 #### Rain of Blades
 
@@ -665,6 +699,14 @@ Keeps the native cast, Hope cost, area, targeting, and Proficiency d8+2 damage. 
 Use Don Facade with its native Stress payment to set tokens equal to current Spellcast and create one visible Disguised effect with native contextual Presence advantage. Each completed action or direct action trait or Spellcast roll spends one token after resolution. Reactions, separate damage rolls, and canceled actions do not. Spend Token handles narrative actions. Zero tokens removes the effect; recasting replaces the disguise and pool.
 
 ### Sage
+
+#### Conjure Swarm
+
+Armored Beetles retains its self-targeted Stress cost and native physical and magic severity reduction. After completed incoming damage, including Minor reduced to None, offer spending 1 Hope to keep the captured beetles; otherwise they expire. Canceled, immune, redirected, resource-only, or zero incoming damage preserves them. Recasting replaces older beetles without stacking. The native reduction preview stays accurate. Fire Flies is unchanged, and no summon token or region is added.
+
+#### Natural Familiar
+
+Summon Familiar costs 1 Hope; Summon Flying Familiar costs 2 Hope total. Both create a friendly, controllable small token backed by a temporary NPC. The familiar disappears on the caster’s next completed rest, a successful recast, or a completed attack targeting it, hit or miss. Damage against an adversary within Melee of the familiar gains one extra d6; only qualifying recipients get it on a mixed-target attack. Movement, simple tasks, and viewing through its eyes remain manual or native.
 
 #### Nature's Tongue
 
@@ -681,6 +723,14 @@ Keeps both native actions, damage, and temporary Restrained templates. After a s
 After another active Party character’s action roll, offer a reroll through Roll Resolution. The ally must consent. Acceptance spends the once-per-rest use and rerolls all action dice, preserving flat modifiers. There is no extra Hope, Stress, or range requirement. Ordinary successes remain eligible; an already-critical friendly result does not. Reactions do not qualify. The sheet button is a timing reminder.
 
 ### Valor
+
+#### Body Basher
+
+The native Strength damage bonus applies automatically only to successful weapon attacks whose weapon range is Melee. A ranged weapon used nearby does not qualify, nor do Very Close weapons, ordinary unarmed attacks, or Beastform attacks. Brawler’s I Am the Weapon counts as a weapon. No new cost, prompt, or distance check is added.
+
+#### Bold Presence
+
+After confirming a Presence-roll dialog, optionally spend 1 Hope to add current Strength to that roll before evaluation. When you would gain a supported new condition, a second contextual prompt lets you avoid one condition using the native once-per-rest counter. Describe how your presence helps manually; the automation tracks the use and prevents the chosen condition. Declining leaves the incoming condition unchanged. Sheet buttons are reminders, not additional payments.
 
 #### Forceful Push
 
@@ -932,7 +982,7 @@ When you mark HP, offer marking 1 Stress to enter a visible Wolf Form with +1d10
 
 ## Weapon Features
 
-8 premades
+19 premades
 
 Medkit the supported weapon and equip it for attack automation. Native-property entries also support custom weapons carrying that native property; Versatile, Piercing, and Otherworldly instead match their specifically supported weapons. These are equipment integrations, not replacements for similarly named class or subclass abilities. Only one weapon-property premade can currently be applied to a weapon.
 
@@ -940,13 +990,49 @@ Medkit the supported weapon and equip it for attack automation. Native-property 
 
 Supports the Arcane Rifle series and weapons with native Aimed. Before attack configuration, check whether any target is within Very Close of you or within Melee of a friendly ally. If so, offer marking 1 Stress to ignore Aimed’s disadvantage for this attack. Declining or having no available Stress retains the penalty. Other disadvantage sources remain, and advantage cancels disadvantage normally. A paid preparation cost remains spent if the later attack dialog is canceled.
 
+#### Deadly
+
+After weapon damage still deals Severe or Massive damage following reduction, the native damage receipt adds 1 HP before HP prevention. No second damage roll, activation, or attacker cost is required. Damage reduced below Severe does not qualify. The property stays attached to saved damage and redirected packets; unrelated HP costs and manual tracker edits do not trigger it.
+
+#### Deflecting
+
+Before an incoming attack rolls, offer marking 1 available Armor Slot for an attack-specific Evasion bonus equal to your full Armor Score, not your remaining slots. It survives attack rerolls and stacks with other applicable defensive bonuses without changing permanent Evasion. Duplicate targeted tokens for one wearer pay once. There is no persistent effect, Stress cost, or separate weapon activation.
+
+#### Entangling
+
+Medkit and equip the secondary Entangling weapon. After a successful attack with your equipped primary weapon, each eligible surviving hit actor within Very Close can offer spending 1 Hope to become temporarily Vulnerable. Already-Vulnerable targets do not prompt. Final rerolls and converted hits count. Remove the temporary condition when its rules say it ends; movement remains manual.
+
+#### Eruptive
+
+Applying finalized attack damage to an original successful target within Melee automatically makes other eligible living adversaries within Very Close of the attacker roll native reactions against 14. Failed reactions take half the final rolled weapon damage, rounded up, through their normal defenses. The radius is attacker-centered, not target-centered. Original targets, allies, and the attacker are excluded; the original target dying does not cancel the burst. No Hope, Stress, or extra attack is required, and the same saved attack does not burst twice.
+
 #### Follow-Up
 
 Medkit the secondary Hatchet, including its Improved, Advanced, and Legendary versions, or another secondary weapon with native Follow-Up. After a successful primary-weapon attack against a target within Melee, the damage workflow offers marking 1 Stress for +1 Proficiency on that attack’s damage. It works with automatic damage and the chat card’s Roll Damage. No lasting actor effect is created. Canceling and reopening the same damage dialog retains the paid bonus without charging again; later attacks receive no bonus.
 
+#### Invigorating
+
+After a final successful attack, automatically roll one d4 if the wielder currently has marked Stress. A 4 clears 1 Stress through native healing; other results do nothing. Multiple hit targets do not produce extra rolls, and no roll occurs at zero Stress. There is no activation or resource cost. This weapon property is separate from Beastform Invigorating.
+
+#### Nonlethal
+
+Final main-attack HP damage becomes an equal amount of Stress after Armor and damage reduction, before the native resource update. Stress prevention and normal overflow still apply. Separately supplied HP resource damage is unchanged. No prompt, cost, effect, or replacement attack is created. Saved damage and redirection retain the property.
+
+#### Omnipresent
+
+Under this game’s interpretation, attacks beyond Melee automatically gain disadvantage; Melee attacks do not. Actual token distance and configured scene ranges determine this, and any qualifying target imposes disadvantage on a shared multi-target roll. Advantage cancels normally. The weapon’s stored Melee range remains unchanged; selecting legal extended-range targets remains manual. Use native manual controls when distance cannot be measured.
+
 #### Otherworldly
 
-Supports Shadowblade and its Improved, Advanced, and Legendary versions. After a successful attack and its dice display, choose Physical or Magic before damage configuration. The choice changes only that attack’s main damage, not the weapon’s stored statistics or resource damage. There is no cost; closing the choice retains native damage. Medkit adds the missing rule to the description. This is separate from Martial Artist Otherworldly and Otherworldly Ire.
+Supports Shadowblade and its Improved, Advanced, and Legendary versions, plus Ghostblade. After a successful attack and its dice display, choose Physical or Magic before damage configuration. The choice changes only that attack’s main damage, not the weapon’s stored statistics or resource damage. There is no cost; closing the choice retains native damage. Medkit adds the missing rule to the description. This is separate from Martial Artist Otherworldly and Otherworldly Ire.
+
+#### Parry
+
+When rolled attack damage is applied to an original targeted wearer, automatically roll this weapon’s damage dice using its current Proficiency and dice modifiers, without flat damage bonuses. Matching active attacker results are discarded for this recipient only, and native critical damage is recalculated before defenses. Other targets retain the original shared damage. No cost or optional prompt is required. Unattributed numeric damage without dice remains manual.
+
+#### Persuasive
+
+After confirming a Presence-roll dialog and before evaluation, offer marking 1 Stress for a roll-local +2. Presence reactions can qualify too. Declining or canceling configuration spends nothing; the bonus stays with that roll through rerolls, without a persistent actor effect or repeated payment. Other traits and already-posted chat rerolls do not offer it.
 
 #### Piercing
 
@@ -964,21 +1050,65 @@ After a completed attack, automatically make the native d6 reload check and reco
 
 Supports the Enchanted Chakram series and weapons with native Ricochet. After confirming attack configuration but before rolling, optionally mark 1 Stress and select one additional creature within Very Close of the first original target. Range is measured from that target, not from you; the extra creature need not be within your weapon’s range. Both targets use the same attack and damage roll. Declining spends nothing, and the separate native property activation becomes a reminder while enabled.
 
+#### Scary
+
+After a successful weapon attack resolves, every successfully hit actor automatically marks 1 Stress once for that attack. Final rerolls and miss-to-hit conversions count; multiple tokens of one actor do not duplicate the mark. Normal Stress prevention and capped tracks apply. There is no attacker cost or activation, and this is separate from Beastform Scary.
+
 #### Versatile
 
 After Medkit, right-click the weapon on the character sheet and choose Switch to Alternate Mode or Switch to Primary Mode. Switching is free and changes the weapon’s actual trait, range, and damage statistics. Original statistics and deliberate edits in either mode are retained. Attacks already posted to chat keep the damage statistics of the mode used for that attack, even if you switch before clicking Roll Damage. Disabling the premade hides the toggle without resetting the current mode.
 
 Supports all four Scepter, Whipsword, and Casting Dagger tiers, plus Casting Sword, Spiked Bow, Hand Sling, Gunblade, and War Dart: 17 weapons. Medkit appends the weapon-specific alternate statistics to its description.
 
+#### Volleyed
+
+Medkit adds a second native weapon attack, Volley (1 Hope), while preserving the original Attack and other weapon data. Use Volley to attack the selected group, paying 1 Hope on hit or miss. Successful targets take half final main damage, rounded up before defenses and redirection; resource damage is unchanged. No additional multi-target prompt appears. Re-Medkit after changing weapon statistics to refresh the copied Volley action. Disabling the premade blocks Volley but leaves normal Attack usable.
+
 ## Armor Features
 
-1 premade
+10 premades
 
-Medkit the armor itself and equip it. Native armor statistics, actions, effects, and resources are preserved.
+Medkit the armor itself and equip it. Native armor statistics, actions, effects, and resources are preserved. Only one armor-property premade can currently be applied to an armor item. Where a property now triggers contextually, its old standalone activation becomes a timing reminder rather than a second way to pay or collect the benefit.
+
+#### Absorbing
+
+Once per scene after completed positive magic damage, offer clearing 1 marked Armor Slot. A slot marked against that same damage can be cleared even if Armor prevented all HP loss. Physical, resource-only, immune, zero, or canceled damage does not offer it. Declining preserves the native scene use; accepting clears exactly one slot at no Hope or Stress cost. Native Scene refresh restores the use.
 
 #### Bulky
 
 Supports Banded Armor and its Improved, Advanced, and Legendary versions, or other armor with native Bulky. The system’s existing −1 Evasion remains unchanged. Damage that still makes you mark at least 3 HP after reduction and prevention automatically causes 1 Stress; this is mandatory, not an optional prompt. Severe damage reduced to Major does not trigger, while Massive reduced to Severe does. Normal Stress prevention and full-Stress overflow still apply. Manual HP tracker edits and unrelated HP costs do not trigger it.
+
+#### Hopeful
+
+Supported native ability costs and premade Hope payments offer marking Armor Slots instead of spending Hope, including when you have zero Hope. Each available slot replaces 1 Hope; larger costs can mix the two resources. Displayed Hope stays the actual Hope total, not Hope plus Armor. Cancellation spends neither. Continuous Hope requirements, manual tracker edits, and the separate native Tag Team utility are unchanged. Hope costs that recover Armor, including Frontline Tank, require real Hope and cannot use Armor substitution.
+
+#### Mnemonic
+
+Once per scene, recalling a positive-cost Domain Card from the vault outside a rest offers a free recall using the armor’s native scene counter. Accepting leaves Perfect Recall available; declining continues to its usual discount or native payment. Failed or canceled recalls restore the unused benefit. Full loadouts and invalid cards do not qualify. Native Scene refresh restores the use.
+
+#### Quick-Striding
+
+While equipped and enabled, grants native Restrained immunity and prevents new or updated condition effects from applying Restrained. Other statuses and effect data remain intact. Unequipping or disabling removes only this armor’s immunity. Existing Restrained effects are not automatically deleted. Movement up to Far remains manual.
+
+#### Reinforced
+
+A visible +2 Major and Severe threshold effect is automatically maintained while all current Armor Slots are marked. Clearing any slot, unequipping the armor, or disabling its premade removes the managed bonus. Manual marks, damage, and rests use the same state. The hit marking the final slot uses its original thresholds; the bonus protects against subsequent damage.
+
+#### Resilient
+
+Confirming native damage reduction that would mark your last available Armor Slot automatically rolls a d6. On a 6, that final slot is not marked and still supplies one threshold of reduction. On 1–5, it marks normally. Opening or canceling the dialog, marking earlier slots, and having no available slots do not roll. The ordinary reduction preview remains native. A slot already saved by another defense is not rolled again by Unyielding.
+
+#### Resplendent
+
+Once per scene after a confirmed Hope payment, offer clearing 1 marked Armor Slot. Spending Hope on a roll that also earns Hope still qualifies, even when the displayed total does not decrease. Declining preserves the use; gains, manual tracker edits, and refunded payments invalidated before the offer do not trigger it. Acceptance clears one slot without another resource cost. The native Scene refresh restores the use.
+
+#### Self-Healing
+
+Completing Take Downtime for a short or long rest automatically clears 1 marked Armor Slot, once for that rest rather than once per activity. Partial or canceled downtime and zero marked slots do not heal. Recovery starts when the rest completes and does not wait for the later Choose Loadout decision. There is no cost or optional prompt; a chat notice records the recovery.
+
+#### Shifting
+
+Before an incoming attack rolls, optionally mark 1 Armor Slot to give that shared attack disadvantage. No Stress cost or persistent effect is created. Existing advantage cancels normally; an attack already at disadvantage does not prompt. Once one defender imposes disadvantage, other defenders do not pay for it again on the same shared roll.
 
 ## Shared controls and related automation
 
@@ -992,7 +1122,7 @@ The utility is added to character sheets without Medkit. Before another active P
 
 ### Rest loadouts and vault recall
 
-After a completed short or long rest, Choose Loadout lets a character select up to five Domain Cards, with descriptions on hover. The current loadout is preselected; other cards move to the vault. It has no timer and costs no Recall payment. Outside a rest, trying to move a card out of the vault prompts its native Recall Cost. Perfect Recall can discount that payment.
+After a completed short or long rest, Choose Loadout lets a character select up to five Domain Cards, with descriptions on hover. The current loadout is preselected; other cards move to the vault. It has no timer and costs no Recall payment. Keep Current Loadout closes it without saving changes; explicitly confirming an empty selection moves the cards to the vault. Rest benefits such as Self-Healing do not wait for this picker. Outside a rest, trying to move a card out of the vault prompts its native Recall Cost. Mnemonic can offer free recall; otherwise Perfect Recall can discount that payment.
 
 ### Conditions and advantage
 
