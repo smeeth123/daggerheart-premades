@@ -150,6 +150,7 @@ import {registerWerewolf} from './premades/werewolf.js';
 import {registerRestLoadout} from './rest-loadout.js';
 import {registerEfficientRest} from './efficient-rest.js';
 import {registerVaultRecall} from './vault-recall.js';
+import {registerLevelUpCards} from './level-up-cards.js';
 import { registerOtherworldlyIre } from './premades/otherworldly-ire.js';
 import { registerDeathlessEmbrace } from './premades/deathless-embrace.js';
 import { registerHarrowingInvocation } from './premades/harrowing-invocation.js';
@@ -498,6 +499,7 @@ Hooks.once('ready', async () => {
   registerRestLoadout();
   registerEfficientRest();
   registerVaultRecall();
+  registerLevelUpCards();
   registerFragile();
   registerHobblingStrike();
   registerPackHunting();

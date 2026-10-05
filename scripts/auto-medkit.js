@@ -59,6 +59,7 @@ export function registerAutoMedkit(){
     else if(['class','subclass'].includes(item.type))queue(item.actor);
   });
   Hooks.on('createActor',actor=>queue(actor));
+  Hooks.on(`${ID}.exchangedDomainCard`,item=>queue(item.actor,item));
   Hooks.on('updateItem',(item,change)=>{
     if(applying.has(item.uuid))return;
     if(['class','subclass'].includes(item.type))queue(item.actor);

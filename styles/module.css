@@ -144,3 +144,9 @@
   margin: 0;
   white-space: nowrap;
 }
+
+.daggerheart.compendium-browser .dhp-exchange-select {
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0.25rem;
+}

@@ -2,7 +2,7 @@
 
 How all 219 premades work by compendium
 
-Daggerheart Premades 0.3.0   |   Daggerheart 2.10.8   |   October 4 2026
+Daggerheart Premades 0.3.1   |   Daggerheart 2.10.8 / 2.10.9   |   October 5 2026
 
 This reference explains how each premade works at the table: what you activate, what triggers automatically, which choices and costs appear, and what remains manual. It covers every entry in the nine module compendiums. Upgrades have their own entries even when they only enhance another feature.
 
@@ -1123,6 +1123,14 @@ The utility is added to character sheets without Medkit. Before another active P
 ### Rest loadouts and vault recall
 
 After a completed short or long rest, Choose Loadout lets a character select up to five Domain Cards, with descriptions on hover. The current loadout is preselected; other cards move to the vault. It has no timer and costs no Recall payment. Keep Current Loadout closes it without saving changes; explicitly confirming an empty selection moves the cards to the vault. Rest benefits such as Self-Healing do not wait for this picker. Outside a rest, trying to move a card out of the vault prompts its native Recall Cost. Mnemonic can offer free recall; otherwise Perfect Recall can discount that payment.
+
+### Level-up domain cards
+
+Saving a character’s level-up adds untimed card-management steps automatically; no Medkit is required. Newly acquired domain cards enter the Loadout when there is space, using the world’s loadout limit and the character’s extra slots. If it is full, each new card offers the choice to move one previously acquired active card to the Vault, making room for that new card. Skip keeps the new card in the Vault. Cards gained in this level-up cannot be chosen to make room for another new card.
+
+As the final step, optionally exchange one previously acquired domain card. Choose the outgoing card, then use the native compendium browser to read descriptions and click Exchange on a different eligible card. Replacements must belong to the character’s domains, be the outgoing card’s level or lower, and not duplicate an already owned card. Cards newly acquired in this level-up cannot be exchanged. The replacement stays in the outgoing card’s current Loadout or Vault location, and its rules and effects replace the old card’s while keeping Foundry’s advancement history linked.
+
+Declining or closing an exchange makes no exchange. All of these level-up loadout changes and the exchange are free: no Stress or Recall Cost is paid. An active GM is required for the added choices. Ordinary vault recall outside this level-up workflow still uses the usual payment prompt. Optional Auto-Medkit can handle the replacement just like another newly acquired card.
 
 ### Conditions and advantage
 
