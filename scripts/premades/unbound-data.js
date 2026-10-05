@@ -10,7 +10,7 @@ const data={
   "system": {
     "attribution": {},
     "description": "<p>Once per session when you roll with Fear, you can change it into a roll with Hope instead.</p>",
-    "gmNotes": "Offered in shared roll resolution on Fear, including Reaction rolls. Converts to Hope before consequences and spends the native once-per-session action use.",
+    "gmNotes": "Offered in shared roll resolution on action rolls with Fear; reaction rolls do not qualify. Converts to Hope before consequences and spends the native once-per-session action use.",
     "resource": null,
     "actions": {
       "L03g0jA9msxRiuXL": {

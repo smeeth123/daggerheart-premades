@@ -10,7 +10,7 @@ export function fearlessItem(actor){
   return actor.items.find(item=>{const flags=item.flags?.[ID];return item.type==='feature'&&!flags?.disabled&&!item.system.inactive&&(flags?.applied?.key??flags?.premade?.key)===FEARLESS_KEY;})??null;
 }
 export async function validateFearless(request,user){
-  if(!user?.active||request.deadline<=decisionNow()||request.critical||!request.withFear||![request.hope,request.fear].every(Number.isFinite)||request.fear<=request.hope)return null;
+  if(!user?.active||request.actionType!=='action'||request.deadline<=decisionNow()||request.critical||!request.withFear||![request.hope,request.fear].every(Number.isFinite)||request.fear<=request.hope)return null;
   const actor=await fromUuid(request.sourceUuid),item=fearlessItem(actor);
   if(!actor?.testUserPermission(user,'OWNER')||!item||item.uuid!==request.candidate?.itemUuid)return null;
   return {actor,item};

@@ -9,7 +9,7 @@ export function unboundItem(actor){
   return actor.items.find(item=>{const flags=item.flags?.[ID];const action=item.system.actions?.get?.(UNBOUND_ACTION)??item.system.actions?.[UNBOUND_ACTION];return action?.uses?.recovery==='session'&&Number(action.uses.value??0)===0&& item.type==='feature'&&!flags?.disabled&&!item.system.inactive&&(flags?.applied?.key??flags?.premade?.key)===UNBOUND_KEY;})??null;
 }
 export async function validateUnbound(request,user){
-  if(!user?.active||request.deadline<=decisionNow()||request.critical||!request.withFear||![request.hope,request.fear].every(Number.isFinite)||request.fear<=request.hope)return null;
+  if(!user?.active||request.actionType!=='action'||request.deadline<=decisionNow()||request.critical||!request.withFear||![request.hope,request.fear].every(Number.isFinite)||request.fear<=request.hope)return null;
   const actor=await fromUuid(request.sourceUuid),item=unboundItem(actor);
   if(!actor?.testUserPermission(user,'OWNER')||!item||item.uuid!==request.candidate?.itemUuid)return null;
   return {actor,item};

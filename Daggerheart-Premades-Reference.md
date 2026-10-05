@@ -2,7 +2,7 @@
 
 How all 219 premades work by compendium
 
-Daggerheart Premades 0.3.2   |   Daggerheart 2.10.8 / 2.10.9   |   October 5 2026
+Daggerheart Premades 0.3.4   |   Daggerheart 2.10.8 / 2.10.9   |   October 5 2026
 
 This reference explains how each premade works at the table: what you activate, what triggers automatically, which choices and costs appear, and what remains manual. It covers every entry in the nine module compendiums. Upgrades have their own entries even when they only enhance another feature.
 
@@ -372,7 +372,7 @@ While you are Vulnerable, damage rolls automatically select the native bonus equ
 
 #### Vanishing Act
 
-Use the native Mark Stress action to become Vanishing Act Cloaked and automatically clear Restrained. Incoming attacks have disadvantage and the effect qualifies for Sneak Attack. Making an attack does not remove this particular Cloaked effect. It expires after a final resolved roll with Fear or your next short or long rest; a Fear-to-Hope conversion preserves it.
+Use the native Mark Stress action to become Vanishing Act Cloaked and automatically clear Restrained. Incoming attacks have disadvantage and the effect qualifies for Sneak Attack. Making an attack does not remove this particular Cloaked effect. It expires after a final resolved action roll with Fear or your next short or long rest; a Fear-to-Hope conversion preserves it. Reaction rolls do not expire it.
 
 ### Pact of the Endless
 
@@ -480,7 +480,7 @@ The native conditional effect adds current Proficiency to Evasion while you have
 
 #### Face Your Fear
 
-A successful noncritical attack with Fear automatically selects +1d10 damage in the Effects section. At least one successful target is enough on a multi-target attack. Critical successes count as Hope and do not qualify. The bonus works with automatic and deferred damage; there is no separate activation cost.
+A successful noncritical attack action roll with Fear automatically selects +1d10 damage in the Effects section. At least one successful target is enough on a multi-target attack. Critical successes count as Hope and do not qualify. Reaction attacks do not qualify, including with Fueled by Fear or Have No Fear. The bonus works with automatic and deferred damage; there is no separate activation cost.
 
 #### Fueled by Fear
 
@@ -752,7 +752,7 @@ Apply Flying manually. Once per scene, the native damage-reduction dialog offers
 
 #### Hallowed Aura
 
-Once per long rest, an eligible ally within Close who rolls with Fear can have it changed to Hope through shared Roll Resolution. Dice, total, and success or failure stay unchanged; only Hope or Fear consequences change. It does not target the bearer. The native action use is spent on acceptance, and nearby friendly tokens identify range.
+Once per long rest, an eligible ally within Close who makes an action roll with Fear can have it changed to Hope through shared Roll Resolution. Dice, total, and success or failure stay unchanged; only Hope or Fear consequences change. It does not target the bearer. The native action use is spent on acceptance, and nearby friendly tokens identify range. Reaction rolls do not qualify or consume the use.
 
 ### Dwarf
 
@@ -826,7 +826,7 @@ A failed roll using at least one of your own selected Experiences offers marking
 
 #### Fearless
 
-A roll with Fear offers marking 2 Stress to change it to Hope before consequences. Dice, total, and success or failure remain unchanged. There is one use per managed roll and no rest counter. Already-Hope results and criticals do not offer it; ordinary d20 reactions have no Hope or Fear outcome.
+An action roll with Fear offers marking 2 Stress to change it to Hope before consequences. Dice, total, and success or failure remain unchanged. There is one use per managed roll and no rest counter. Already-Hope results and criticals do not offer it. Reaction rolls have no Hope or Fear outcome and never offer or pay for this conversion.
 
 ### Katari
 
@@ -858,7 +858,7 @@ Use the native action, spending 2 Hope to grant yourself or a Melee ally +1 Evas
 
 #### Unbound
 
-Once per session, Roll Resolution offers changing your Fear result to Hope with no Hope or Stress cost. Dice, total, and success or failure remain unchanged before native consequences. Acceptance spends the session use. Already-Hope results and criticals do not qualify; standard d20 reactions have no Hope or Fear outcome.
+Once per session, Roll Resolution offers changing your action roll with Fear to Hope with no Hope or Stress cost. Dice, total, and success or failure remain unchanged before native consequences. Acceptance spends the session use. Already-Hope results and criticals do not qualify. Reaction rolls have no Hope or Fear outcome and never offer or consume this use.
 
 ### Frostborne
 
@@ -978,7 +978,7 @@ When you mark your last Stress while in Wolf Form, automatically roll tier d20s 
 
 #### Wolf Form
 
-When you mark HP, offer marking 1 Stress to enter a visible Wolf Form with +1d10 to attack and damage rolls. Final rolls with Hope, including critical successes, automatically mark Stress while the form is active. The form lasts until the next rest or Howling Rampage; filling the last Stress triggers that rampage. Activation is contextual, not a separate unprompted transformation.
+When you mark HP, offer marking 1 Stress to enter a visible Wolf Form with +1d10 to attack and damage rolls. Final action rolls with Hope, including critical successes, automatically mark Stress while the form is active. Reaction rolls do not mark Stress for this trigger or start Howling Rampage through it. The form lasts until the next rest or Howling Rampage; filling the last Stress triggers that rampage. Activation is contextual, not a separate unprompted transformation.
 
 ## Weapon Features
 

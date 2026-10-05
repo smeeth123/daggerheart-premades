@@ -155,18 +155,18 @@ export function collectRollChoices(roll,actor,{auraOnly=false,used=new Set(),con
       rows.push({id:`adapt:${item.uuid}`,kind:'adapt',request:{sourceUuid:actor.uuid,candidate:{itemUuid:item.uuid},experiences,difficulty,targets,critical:Boolean(roll.isCritical),...values}});
     }
   }
-  if(!auraOnly&&!used.has('unbound')&&!roll.isCritical&&roll.withFear){
+  if(!auraOnly&&roll.options.actionType==='action'&&!used.has('unbound')&&!roll.isCritical&&roll.withFear){
     const item=unboundItem(actor);
-    if(item)rows.push({id:`unbound:${item.uuid}`,kind:'unbound',request:{sourceUuid:actor.uuid,candidate:{itemUuid:item.uuid},critical:false,withFear:true,...values}});
+    if(item)rows.push({id:`unbound:${item.uuid}`,kind:'unbound',request:{sourceUuid:actor.uuid,candidate:{itemUuid:item.uuid},actionType:'action',critical:false,withFear:true,...values}});
   }
-  if(!auraOnly&&!used.has('fearless')&&!roll.isCritical&&roll.withFear){
+  if(!auraOnly&&roll.options.actionType==='action'&&!used.has('fearless')&&!roll.isCritical&&roll.withFear){
     const item=fearlessItem(actor);
-    if(item)rows.push({id:`fearless:${item.uuid}`,kind:'fearless',request:{sourceUuid:actor.uuid,candidate:{itemUuid:item.uuid},critical:false,withFear:true,...values}});
+    if(item)rows.push({id:`fearless:${item.uuid}`,kind:'fearless',request:{sourceUuid:actor.uuid,candidate:{itemUuid:item.uuid},actionType:'action',critical:false,withFear:true,...values}});
   }
   const origin=sourceToken(actor);
-  if(!used.has('aura')&&origin&&!roll.isCritical&&roll.withFear){
+  if(roll.options.actionType==='action'&&!used.has('aura')&&origin&&!roll.isCritical&&roll.withFear){
     for(const candidate of collectCandidates(origin))rows.push({id:`aura:${candidate.itemUuid}`,kind:'aura',request:{
-      sourceUuid:origin.document.uuid,sourceState:tokenState(origin.document),rangeState:auraRangeState(canvas.scene),candidates:[candidate],critical:false,...values
+      actionType:'action',sourceUuid:origin.document.uuid,sourceState:tokenState(origin.document),rangeState:auraRangeState(canvas.scene),candidates:[candidate],critical:false,...values
     }});
   }
   return rows.filter(row=>!isActionRerollChoice(row.kind)||!criticalRerollResult(values));
@@ -270,18 +270,19 @@ export async function executeRollChoice(choice,roll,config,preview){
     roll.options[ID]={...roll.options[ID],nimbleFingers:{...decision,originalHope}};
     await animateLuckbenderReroll(pair,config,preview);
   }else if(choice.kind==='unbound'){
-    if(roll.isCritical||!roll.withFear)return false;
+    if(roll.options.actionType!=='action'||roll.isCritical||!roll.withFear)return false;
     const decision=gm.isSelf?await resolveUnbound(request,{user:game.user}):await gm.query(`${ID}.unbound`,request,{timeout:decisionBudget(125000)});
     if(!decision)return false;
     roll.options[ID]={...roll.options[ID],unbound:decision};
     if(roll.dFear.options)delete roll.dFear.options.sfx;
   }else if(choice.kind==='fearless'){
-    if(roll.isCritical||!roll.withFear)return false;
+    if(roll.options.actionType!=='action'||roll.isCritical||!roll.withFear)return false;
     const decision=gm.isSelf?await resolveFearless(request,{user:game.user}):await gm.query(`${ID}.fearless`,request,{timeout:decisionBudget(125000)});
     if(!decision)return false;
     roll.options[ID]={...roll.options[ID],fearless:decision};
     if(roll.dFear.options)delete roll.dFear.options.sfx;
   }else if(choice.kind==='aura'){
+    if(roll.options.actionType!=='action')return false;
     const decision=gm.isSelf?await queuedOffer(request,{user:game.user}):await gm.query(`${ID}.hallowedAura`,request,{timeout:decisionBudget(125000)});
     if(!decision?.accepted)return false;
     roll.options[ID]={...roll.options[ID],hallowedAura:decision};

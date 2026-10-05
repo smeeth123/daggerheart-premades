@@ -55,7 +55,7 @@ const data={
       "page": null,
       "artist": ""
     },
-    "gmNotes": "Shared roll resolution: mark 2 Stress to convert Fear to Hope before consequences. Dice and total are preserved. Includes Reaction rolls; once per roll.",
+    "gmNotes": "Shared roll resolution: mark 2 Stress to convert Fear to Hope before consequences. Dice and total are preserved. Action rolls only; reaction rolls have no Hope/Fear outcome. Once per roll.",
     "granter": null,
     "featureForm": "passive"
   },

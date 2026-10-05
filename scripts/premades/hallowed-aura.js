@@ -44,6 +44,7 @@ export function collectCandidates(origin) {
 }
 
 async function offerAura(roll, beforePrompt) {
+  if(roll.options?.actionType!=='action')return null;
   const actor = roll.data?.parent ?? (roll.options.source?.actor ? await fromUuid(roll.options.source.actor) : null);
   const origin = sourceToken(actor);
   if (!origin) {
@@ -60,7 +61,7 @@ async function offerAura(roll, beforePrompt) {
   const request = {
     id: foundry.utils.randomID(), deadline: decisionNow() + decisionBudget(120000),
     sourceUuid: origin.document.uuid, sourceState: tokenState(origin.document),
-    rangeState: auraRangeState(canvas.scene), candidates,
+    rangeState: auraRangeState(canvas.scene), candidates, actionType:'action',
     hope: roll.dHope.total, fear: roll.dFear.total, total: roll.total
   };
   const response = gm.isSelf
@@ -85,7 +86,7 @@ export function queuedOffer(request, { user }) {
 
 export async function validatedCandidate(request, candidate, user) {
   if (!game.user.isActiveGM) throw new Error('The active GM changed during Hallowed Aura resolution.');
-  if (!user.active || request.deadline <= decisionNow()) return null;
+  if (!user.active || request.actionType!=='action' || request.deadline <= decisionNow()) return null;
   const source = await fromUuid(request.sourceUuid);
   const bearer = await fromUuid(candidate.tokenUuid);
   const item = await fromUuid(candidate.itemUuid);
@@ -109,7 +110,7 @@ export async function validatedCandidate(request, candidate, user) {
 }
 
 export async function resolveOffer(request, user) {
-  if (!Number.isFinite(request.hope) || !Number.isFinite(request.fear) || request.fear <= request.hope ||
+  if (request.actionType!=='action' || !Number.isFinite(request.hope) || !Number.isFinite(request.fear) || request.fear <= request.hope ||
       !Array.isArray(request.candidates) || request.candidates.length > 100) return { accepted: false };
   for (const candidate of request.candidates) {
     let valid = await validatedCandidate(request, candidate, user);
@@ -185,7 +186,7 @@ export function installRollInterception(RollClass, offer = offerAura) {
   const building = new WeakSet();
   const skipped = new WeakSet();
   const decide = async (roll, beforePrompt) => {
-    if (roll.options?.[ID]?.resolutionComplete || skipped.has(roll) || roll.isCritical || !roll.withFear) return;
+    if (roll.options?.actionType!=='action' || roll.options?.[ID]?.resolutionComplete || skipped.has(roll) || roll.isCritical || !roll.withFear) return;
     const answer = await offer(roll, beforePrompt);
     if (answer?.accepted) {
       roll.options[ID] = { ...roll.options[ID], hallowedAura: answer };
@@ -221,7 +222,7 @@ export function installRollInterception(RollClass, offer = offerAura) {
   const hope = Object.getOwnPropertyDescriptor(RollClass.prototype, 'withHope');
   const fear = Object.getOwnPropertyDescriptor(RollClass.prototype, 'withFear');
   if (!originalEvaluate || !hope?.get || !fear?.get) throw new Error('Unsupported Daggerheart DualityRoll API.');
-  const converted = roll => Boolean(roll._evaluated && !roll.isCritical && (roll.options?.[ID]?.hallowedAura || roll.options?.[ID]?.fearless || roll.options?.[ID]?.unbound));
+  const converted = roll => Boolean(roll.options?.actionType==='action' && roll._evaluated && !roll.isCritical && (roll.options?.[ID]?.hallowedAura || roll.options?.[ID]?.fearless || roll.options?.[ID]?.unbound));
   Object.defineProperty(RollClass.prototype, 'withHope', { ...hope, get() { return converted(this) || hope.get.call(this); } });
   Object.defineProperty(RollClass.prototype, 'withFear', { ...fear, get() { return !converted(this) && fear.get.call(this); } });
   RollClass.prototype._evaluate = async function(options = {}) {
