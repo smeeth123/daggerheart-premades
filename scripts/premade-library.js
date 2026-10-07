@@ -186,6 +186,22 @@ import {ensurePatronsBoon} from "./premades/patrons-boon-data.js";
 import {ensureChannelRawPower} from "./premades/channel-raw-power-data.js";
 import {ensureVolatileMagic} from "./premades/volatile-magic-data.js";
 import {ensurePrayerDice} from "./premades/prayer-dice-data.js";
+import {ensureCounterspell} from './premades/counterspell-data.js';
+import {ensureFlight} from './premades/flight-data.js';
+import {ensureScramble} from './premades/scramble-data.js';
+import {ensureVersatileFighter} from './premades/versatile-fighter-data.js';
+import {ensureTactician} from './premades/tactician-data.js';
+import {ensureBookOfKorvax} from './premades/book-of-korvax-data.js';
+import {ensureBookOfNorai} from './premades/book-of-norai-data.js';
+import {ensureSharedTrauma} from './premades/shared-trauma-data.js';
+import {ensureTerrify} from './premades/terrify-data.js';
+import {ensureInvisibility} from './premades/invisibility-data.js';
+import {ensureChokehold} from './premades/chokehold-data.js';
+import {ensureVeilOfNight} from './premades/veil-of-night-data.js';
+import {ensureCorrosiveProjectile} from './premades/corrosive-projectile-data.js';
+import {ensureSecondWind} from './premades/second-wind-data.js';
+import {ensureVoiceOfReason} from './premades/voice-of-reason-data.js';
+import {ensureCriticalInspiration} from './premades/critical-inspiration-data.js';
 import {ensureSneakAttack} from "./premades/sneak-attack-data.js";
 import {ensureRoguesDodge} from "./premades/rogues-dodge-data.js";
 import {ensureRangersFocus} from "./premades/rangers-focus-data.js";
@@ -407,6 +423,22 @@ export const PREMADE_SEEDS=[
   ensureNaturalFamiliar,
   ensureBodyBasher,
   ensureBoldPresence,
+  ensureCounterspell,
+  ensureFlight,
+  ensureScramble,
+  ensureVersatileFighter,
+  ensureTactician,
+  ensureBookOfKorvax,
+  ensureBookOfNorai,
+  ensureSharedTrauma,
+  ensureTerrify,
+  ensureInvisibility,
+  ensureChokehold,
+  ensureVeilOfNight,
+  ensureCorrosiveProjectile,
+  ensureSecondWind,
+  ensureVoiceOfReason,
+  ensureCriticalInspiration,
   ensureWeaponQuick,
   ensureWeaponVersatile,
   ensureWeaponPiercing,

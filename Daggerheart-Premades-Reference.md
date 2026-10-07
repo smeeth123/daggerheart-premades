@@ -1,8 +1,8 @@
 # Daggerheart Premade Reference
 
-How all 219 premades work by compendium
+How all 235 premades work by compendium
 
-Daggerheart Premades 0.3.5   |   Daggerheart 2.10.8 / 2.10.9   |   October 5 2026
+Daggerheart Premades 0.4.0   |   Daggerheart 2.10.8 / 2.10.9   |   October 7 2026
 
 This reference explains how each premade works at the table: what you activate, what triggers automatically, which choices and costs appear, and what remains manual. It covers every entry in the nine module compendiums. Upgrades have their own entries even when they only enhance another feature.
 
@@ -16,7 +16,7 @@ Weapon and Armor Features are an exception: apply Medkit to the actual equipment
 
 - [Subclass Features   102 premades](#subclass-features)
 
-- [Domain Cards   28 premades](#domain-cards)
+- [Domain Cards   44 premades](#domain-cards)
 
 - [Ancestry Features   19 premades](#ancestry-features)
 
@@ -76,7 +76,7 @@ Activate the native 3 Hope action for its normal Evasion bonus. The applied effe
 
 #### Sneak Attack
 
-Successful attacks preselect the native tier-scaled damage bonus when you began the attack Hidden or Cloaked, or a qualifying ally is within Melee of the target. Concealment is captured before attack-based removal. On a shared damage roll, every hit target must qualify for automatic selection. The Effects choice remains editable; no extra payment prompt is added.
+Successful attacks preselect the native tier-scaled damage bonus when you began the attack Hidden or Cloaked, a qualifying ally is within Melee of the target, or your Veil of Night separates you from that target. Concealment is captured before attack-based removal. On a shared damage roll, every hit target must qualify for automatic selection, though they may qualify by different routes. The Effects choice remains editable; no extra payment prompt is added.
 
 ### Seraph
 
@@ -606,15 +606,23 @@ Target one ally and use Grant Extra Downtime Move, spending the once-per-session
 
 ## Domain Cards
 
-28 premades
+44 premades
 
-The current Domain Cards premades cover level 1 and selected level 2 cards. Native spell, grimoire, and ability mechanics are preserved unless an entry describes a specific change. Other cards in the system’s domain browser are not part of this premade catalog.
+The current Domain Cards premades cover selected level 1, 2, and 3 cards. Native spell, grimoire, and ability mechanics are preserved unless an entry describes a specific change. Other cards in the system’s domain browser are not part of this premade catalog.
 
 ### Arcana
 
 #### Cinder Grasp
 
 The native cast, 1d20+3 magic damage, and temporary On Fire effect remain. After a burning creature completes an action, it automatically takes 2d6 magic damage if the captured effect is still active. Direct action trait and Spellcast rolls also qualify; reactions, canceled rolls, and separate damage rolls do not. Removing or disabling On Fire stops the damage. Use On Fire: Damage only as a manual fallback for narrative actions outside Foundry, not again after an automated trigger.
+
+#### Counterspell
+
+The GM marks individual adversary actions as Counterable magical effect in action settings → Base, or the NPC’s main attack in NPC settings → Attack. Before a marked action begins—including before its attack roll—eligible characters can Interrupt or Pass through Pending Decisions. Interrupt uses a native Spellcast reaction roll against the caster’s Difficulty. A success, including a critical, vaults Counterspell without a Stress cost and stops the entire original action; failure or passing lets it proceed. Other eligible holders may try after a failure. Manual activation defaults to the Difficulty of one targeted adversary, or asks the GM when unknown; narrative interruption remains GM adjudication. Reactions grant no Hope/Fear outcome benefits.
+
+#### Flight
+
+A successful native Cast sets tokens to current Agility, minimum 1, and applies Flying automatically. Each completed action roll spends one token after its full workflow, keeping Flying through the final action; zero removes this card’s Flying effect. Reactions, separate damage rolls, no-roll actions, and canceled rolls do not spend tokens. Spend Token remains available for manual bookkeeping. Successful recasts replace the flight and pool; a failed recast consumes an existing token, while cancellation preserves it. Movement and descent remain manual.
 
 #### Rune Ward
 
@@ -629,6 +637,14 @@ After damage dice display, a free optional picker offers every damage die showin
 #### Reckless
 
 Activate Mark a Stress manually to pay 1 Stress and apply the visible Reckless effect to yourself. It automatically gives advantage on your next completed attack roll, then expires whether the attack hits or misses. Canceling preserves it. Normal advantage cancellation applies; unrelated trait, reaction, and damage rolls do not consume it.
+
+#### Scramble
+
+Before any damage reduction, incoming damage from a creature within Melee offers Avoid or Decline. Accepting consumes the native once-per-rest use and prevents the whole damage packet before resistance, Armor, or other reductions. Move out of Melee manually. Declining leaves normal damage handling unchanged. Canceled damage, unknown sources, and creatures outside Melee do not trigger it; ordinary rests refresh the use.
+
+#### Versatile Fighter
+
+While this card is in the Loadout, bringing it into the Loadout or equipping a new weapon opens an untimed choice of attack trait for the relevant equipped weapons. Choose any trait or keep the native trait; vaulting the card, disabling it, or unequipping the weapon restores native behavior without rewriting its base statistics. Before attack damage rolls, optionally mark 1 Stress to set one selected damage die to its maximum. Bonus dice and Powerful/Massive dice are included; only one die is maximized, and native keep/drop rules still apply. Cancellation pays nothing.
 
 #### Whirlwind
 
@@ -652,6 +668,10 @@ Before an incoming attack rolls, after its roll dialog is confirmed, offer marki
 
 A long rest replaces the card’s tokens with your current Knowledge, minimum 1. Under this game’s interpretation, a configured attack against an adversary within Close offers spending one token before rolling for advantage, +1d8 damage, or clearing 1 Stress on an eligible friendly ally within Melee of that adversary. The advantage applies to this attack; the damage bonus stays attached to its card for automatic or later Roll Damage. Declining spends nothing. The automation checks current range, not movement history or whether this is the first approach.
 
+#### Tactician
+
+When an ally claims your prepared ordinary Help an Ally, you may spend 1 Hope and select one of your Experiences to add its modifier separately from the Help advantage die. Whether the Experience applies is adjudicated normally; declining leaves ordinary Help unchanged. When you use the native Tag Team Roll dialog, your own eligible action roll uses a d20 Hope Die. This does not change ordinary rolls, reactions, damage, or your teammate’s Hope Die.
+
 ### Codex
 
 #### Book of Ava
@@ -661,6 +681,14 @@ Keeps all four native grimoire actions. Tava’s Armor retains Hope payment, tar
 #### Book of Illiat
 
 Keeps all three native grimoire actions. Slumber expires only when applied damage actually makes the recipient mark HP, or damage Stress for a companion. Fully prevented, canceled, or redirected damage leaves sleep intact. Telepathy and other effects are untouched. The GM’s Fear-spend option to end Slumber remains native or manual.
+
+#### Book of Korvax
+
+Rune Circle spends the native 1 Stress and automatically places a fixed, circular Melee-sized Region centered on the caster. Adversaries initially inside take 2d12+4 magic damage; entering later triggers a fresh roll with normal defenses. Moving within the circle does not repeat damage, but exiting and re-entering does. The Region persists through rests, scene refresh, and later casts; the GM deletes it to end the circle. Multiple circles can coexist. Levitation and Recant remain native, and knockback remains manual.
+
+#### Book of Norai
+
+A successful Fireball — Cast automatically starts the native Explosion against all living creatures within Very Close of the original target, including allies and the caster. The explosion requires no second attack roll or placed template. Native multitarget reaction handling controls Reaction Difficulty 13 and half damage on a successful reaction; Proficiency d20+5 magic damage and reductions remain native. The separate Explosion sheet action is a reminder. Mystic Tether is unchanged.
 
 #### Book of Sitil
 
@@ -676,15 +704,33 @@ Use the single native Spellcast attack: Proficiency d6+1 damage with Hope, inclu
 
 After a friendly ally within Close actually takes sourced damage from a visible creature, offer a native reaction roll using your Spellcast trait against that source. The attacker has no additional Close-range restriction. A success marks 1 Stress before dealing Proficiency d6 magic damage; failure, cancellation, and decline cost nothing. Native roll configuration, rerolls, and damage remain available. The retained Reaction Roll action handles narrative or otherwise unattributed damage manually.
 
+#### Shared Trauma
+
+Target two creatures within Melee and use Transfer Suffering. One dialog chooses the donor, recipient, and a bounded number of HP; other creatures’ owners consent when needed. The donor marks HP before the recipient clears the same number, consuming the native limited use. This is a fixed HP cost, not a typed damage roll: Armor, resistance, and damage-prevention features cannot reduce it. Supported nonpreventing damage-taken reactions still fire. If healing fails after the cost is paid, the module asks for manual completion rather than undoing or repeating the transfer.
+
 #### Siphon Essence
 
 Use the native Spellcast Roll attack and its once-per-long-rest successful use. A success with Fear automatically adds +1 Proficiency to that attack’s damage; criticals count as Hope. After applying the attack’s damage and reductions, automatically clear HP on the caster equal to the HP the successful target actually marked, capped by both tracks. Later chat-card Apply Damage is supported. Manual HP edits and redirected damage suffered by someone other than the successful target do not heal the caster.
+
+#### Terrify
+
+The native attack, Stress damage, and flee option remain. The temporary Vulnerable effect applies only when the attack succeeds with Fear; a Hope success or critical does not apply it. Final converted hits are recognized. Moving a fleeing target remains manual.
 
 #### Umbral Veil
 
 Use Mark Stress once per rest to add tokens equal to current GM Fear without another healing roll. After an incoming attack rolls, Roll Resolution offers a bounded token count; each spent token reduces its result against you by 1 before damage. Other targets and permanent Evasion are unchanged. Known misses and critical hits do not prompt. Scene refresh clears unspent tokens.
 
+### Grace
+
+#### Invisibility
+
+A successful native cast makes yourself, or one selected ally within Melee, invisible using Foundry’s native Invisible status. Tokens equal the caster’s current Spellcast trait. Attacks against the holder gain disadvantage. Each completed action—including a no-roll action—or direct action roll spends one token after resolution; reactions, separate damage rolls, and cancellations do not. Zero tokens removes this spell’s effect. Recasting replaces its pool and effect, and token bookkeeping continues if the source card is later vaulted.
+
 ### Midnight
+
+#### Chokehold
+
+Use the native Pull into Chokehold action and its Stress cost to apply temporary Vulnerable. Any creature attacking that held target automatically gains 2d6 damage while the marked hold is active; ordinary Vulnerable alone does not qualify. On mixed-target damage, only held recipients receive the bonus. Native criticals, rerolls, and deferred damage remain available. Getting behind an appropriately sized creature and ending the hold remain manual.
 
 #### Midnight Spirit
 
@@ -698,11 +744,19 @@ Keeps the native cast, Hope cost, area, targeting, and Proficiency d8+2 damage. 
 
 Use Don Facade with its native Stress payment to set tokens equal to current Spellcast and create one visible Disguised effect with native contextual Presence advantage. Each completed action or direct action trait or Spellcast roll spends one token after resolution. Reactions, separate damage rolls, and canceled actions do not. Spend Token handles narrative actions. Zero tokens removes the effect; recasting replaces the disguise and pool.
 
+#### Veil of Night
+
+After a successful cast, choose two endpoints within Far to place a thin Region representing the veil. It does not block actual vision, lighting, or movement. The caster gains attack advantage against targets across it, and adversaries across it gain attack disadvantage against that caster. Its directional concealment also qualifies the caster’s Sneak Attack against the appropriate targets. Token movement and Region edits update eligibility. The veil survives rests and scene refresh; the GM can delete it, or the caster’s next completed spell ends it, even on failure. Canceled spells and weapon attacks preserve it.
+
 ### Sage
 
 #### Conjure Swarm
 
 Armored Beetles retains its self-targeted Stress cost and native physical and magic severity reduction. After completed incoming damage, including Minor reduced to None, offer spending 1 Hope to keep the captured beetles; otherwise they expire. Canceled, immune, redirected, resource-only, or zero incoming damage preserves them. Recasting replaces older beetles without stacking. The native reduction preview stays accurate. Fire Flies is unchanged, and no summon token or region is added.
+
+#### Corrosive Projectile
+
+The native single-target Cast and damage remain. After a successful hit against an adversary, optionally choose an affordable even Stress cost—2, 4, 6, and so on—to Corrode that exact target. Each 2 Stress adds one permanent stack reducing Difficulty by 1. Reapplications accumulate correctly, including separate casters. There is no extra target picker, separate damage roll, or invented expiration; declining leaves the native attack unchanged.
 
 #### Natural Familiar
 
@@ -722,6 +776,14 @@ Keeps both native actions, damage, and temporary Restrained templates. After a s
 
 After another active Party character’s action roll, offer a reroll through Roll Resolution. The ally must consent. Acceptance spends the once-per-rest use and rerolls all action dice, preserving flat modifiers. There is no extra Hope, Stress, or range requirement. Ordinary successes remain eligible; an already-critical friendly result does not. Reactions do not qualify. The sheet button is a timing reminder.
 
+#### Second Wind
+
+After a successful attack against an adversary, optionally use the once-per-rest benefit to clear 3 Stress or 1 HP. On a Hope success, including a critical, the same dialog can also give one other friendly creature within Close its own choice of those recoveries. Self and ally benefits are independent, so an unwounded caster can still help an eligible ally. Recovery is capped by marked resources; declining or choosing no recovery consumes nothing. Ordinary rests refresh the native use.
+
+#### Voice of Reason
+
+The native situational advantage remains available for de-escalation and leadership. While the card is eligible and all Stress slots are marked, Emboldened automatically grants +1 Proficiency and shows a token icon. Clearing Stress suppresses the bonus and icon; filling the track reactivates them. No manual effect toggle or additional cost is needed.
+
 ### Valor
 
 #### Body Basher
@@ -731,6 +793,10 @@ The native Strength damage bonus applies automatically only to successful weapon
 #### Bold Presence
 
 After confirming a Presence-roll dialog, optionally spend 1 Hope to add current Strength to that roll before evaluation. When you would gain a supported new condition, a second contextual prompt lets you avoid one condition using the native once-per-rest counter. Describe how your presence helps manually; the automation tracks the use and prevents the chosen condition. Declining leaves the incoming condition unchanged. Sheet buttons are reminders, not additional payments.
+
+#### Critical Inspiration
+
+Once per rest, after an actual critical attack, optionally let every other eligible friendly creature within Very Close clear 1 Stress or gain 1 Hope. Each owner receives one grouped choice window for their eligible creatures and may decline individually. The caster does not receive an extra benefit; normal critical Hope remains unchanged. No eligible recovery, or everyone declining, consumes nothing. Ordinary or converted-only successes, nonattack criticals, and reactions do not qualify. Both short and long rests refresh the native use.
 
 #### Forceful Push
 
@@ -1118,7 +1184,7 @@ The hourglass button in token controls opens Pending Decisions at any time. You 
 
 ### Help an Ally
 
-The utility is added to character sheets without Medkit. Before another active Party member starts an action roll, spend 1 Hope and roll d6 to prepare help. Only the highest eligible helper or own advantage die contributes. Canceling roll configuration leaves help pending; evaluation consumes it. Enchanted Aid and Beastform Companion modify this established help workflow.
+The utility is added to character sheets without Medkit. Before another active Party member starts an action roll, spend 1 Hope and roll d6 to prepare help. Only the highest eligible helper or own advantage die contributes. Canceling roll configuration leaves help pending; evaluation consumes it. Enchanted Aid and Beastform Companion modify this established help workflow. Tactician can add a chosen helper Experience for an additional Hope payment; its modifier is separate from advantage.
 
 ### Rest loadouts and vault recall
 

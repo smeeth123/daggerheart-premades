@@ -73,6 +73,7 @@ function packetCopy(packet){
   const raw=packet.main??packet.damage??(Number.isFinite(packet.total)?packet:null);
   return {main:raw?.toJSON?.()??raw??null,resources:Object.fromEntries(Object.entries(packet.resources??{}).map(([key,roll])=>[key,roll?.toJSON?.()??roll]))};
 }
+export async function reactFerocityHP(actor,target,hp){return game.user.isActiveGM&&target?.type==='adversary'&&ferocityItem(actor)?offer(actor,target,hp,promptFerocity):false;}
 export async function resolveFerocityDamage(request,{user}){
   if(!game.user.isActiveGM||!user?.active||typeof request?.id!=='string'||!/^[a-zA-Z0-9]{16}$/.test(request.id)||typeof request.isDirect!=='boolean')return null;
   const target=await fromUuid(request.targetUuid),source=ferocityPacketSource(request.packet),actor=source?.actorUuid?await fromUuid(source.actorUuid):null;

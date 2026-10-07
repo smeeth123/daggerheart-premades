@@ -150,3 +150,41 @@
   width: auto;
   margin: 0.25rem;
 }
+
+/* Separate from native multi-column form rows in both NPC/action settings. */
+.daggerheart .dhp-counterable {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.daggerheart .dhp-counterable .dhp-counterable-toggle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  cursor: pointer;
+}
+.daggerheart .dhp-counterable .dhp-counterable-toggle input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+}
+.daggerheart .dhp-counterable .hint {
+  margin: 0;
+}
+
+/* Native formulas are nowrap/fit-content; labeled bonuses can exceed a card. */
+:is(.daggerheart, .vtt.stream.system-daggerheart) .chat-message .message-content :is(.roll-formula, .dice-formula),
+#chat-notifications .chat-message .message-content :is(.roll-formula, .dice-formula) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  height: auto;
+  text-align: center;
+}

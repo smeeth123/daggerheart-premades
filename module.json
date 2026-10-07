@@ -3,27 +3,158 @@
   "type": "module",
   "title": "Daggerheart Premades",
   "description": "Premade feature compendiums and a Medkit workflow for Daggerheart actors and items.",
-  "authors": [{ "name": "Smeeth" }],
-  "version": "0.3.5",
+  "authors": [
+    {
+      "name": "Smeeth"
+    }
+  ],
+  "version": "0.4.0",
   "url": "https://github.com/smeeth123/daggerheart-premades",
   "manifest": "https://github.com/smeeth123/daggerheart-premades/releases/latest/download/module.json",
-  "download": "https://github.com/smeeth123/daggerheart-premades/releases/download/v0.3.5/daggerheart-premades.zip",
+  "download": "https://github.com/smeeth123/daggerheart-premades/releases/download/v0.4.0/daggerheart-premades.zip",
   "license": "LICENSE",
-  "compatibility": { "minimum": "14", "verified": "14.368", "maximum": "14" },
-  "relationships": { "systems": [{ "id": "daggerheart", "type": "system", "compatibility": { "minimum": "2", "verified": "2.10.8", "maximum": "2.999.999" } }] },
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14.368",
+    "maximum": "14"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "daggerheart",
+        "type": "system",
+        "compatibility": {
+          "minimum": "2",
+          "verified": "2.10.8",
+          "maximum": "2.999.999"
+        }
+      }
+    ]
+  },
   "readme": "README.md",
-  "esmodules": ["scripts/main.js"],
-  "styles": ["styles/module.css"],
-  "packs": [
-    { "name": "class-features", "label": "Class Features", "path": "packs/class-features", "type": "Item", "system": "daggerheart", "ownership": { "PLAYER": "OBSERVER", "ASSISTANT": "OWNER" } },
-    { "name": "subclass-features", "label": "Subclass Features", "path": "packs/subclass-features", "type": "Item", "system": "daggerheart", "ownership": { "PLAYER": "OBSERVER", "ASSISTANT": "OWNER" } },
-    { "name": "domain-cards", "label": "Domain Cards", "path": "packs/domain-cards", "type": "Item", "system": "daggerheart", "ownership": { "PLAYER": "OBSERVER", "ASSISTANT": "OWNER" } },
-    { "name": "ancestry-features", "label": "Ancestry Features", "path": "packs/ancestry-features", "type": "Item", "system": "daggerheart", "ownership": { "PLAYER": "OBSERVER", "ASSISTANT": "OWNER" } },
-    { "name": "community-features", "label": "Community Features", "path": "packs/community-features", "type": "Item", "system": "daggerheart", "ownership": { "PLAYER": "OBSERVER", "ASSISTANT": "OWNER" } },
-    { "name": "beastform-features", "label": "Beastform Features", "path": "packs/beastform-features", "type": "Item", "system": "daggerheart", "ownership": { "PLAYER": "OBSERVER", "ASSISTANT": "OWNER" } },
-    { "name": "transformation-features", "label": "Transformation Features", "path": "packs/transformation-features", "type": "Item", "system": "daggerheart", "ownership": { "PLAYER": "OBSERVER", "ASSISTANT": "OWNER" } },
-    { "name": "weapon-features", "label": "Weapon Features", "path": "packs/weapon-features", "type": "Item", "system": "daggerheart", "ownership": { "PLAYER": "OBSERVER", "ASSISTANT": "OWNER" } },
-    { "name": "armor-features", "label": "Armor Features", "path": "packs/armor-features", "type": "Item", "system": "daggerheart", "ownership": { "PLAYER": "OBSERVER", "ASSISTANT": "OWNER" } }
+  "esmodules": [
+    "scripts/main.js"
   ],
-  "packFolders": [{ "name": "Daggerheart Premades", "color": "#316b68", "sorting": "m", "packs": ["class-features", "subclass-features", "domain-cards", "ancestry-features", "community-features", "beastform-features", "transformation-features", "weapon-features", "armor-features"] }]
+  "styles": [
+    "styles/module.css"
+  ],
+  "packs": [
+    {
+      "name": "class-features",
+      "label": "Class Features",
+      "path": "packs/class-features",
+      "type": "Item",
+      "system": "daggerheart",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "subclass-features",
+      "label": "Subclass Features",
+      "path": "packs/subclass-features",
+      "type": "Item",
+      "system": "daggerheart",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "domain-cards",
+      "label": "Domain Cards",
+      "path": "packs/domain-cards",
+      "type": "Item",
+      "system": "daggerheart",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "ancestry-features",
+      "label": "Ancestry Features",
+      "path": "packs/ancestry-features",
+      "type": "Item",
+      "system": "daggerheart",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "community-features",
+      "label": "Community Features",
+      "path": "packs/community-features",
+      "type": "Item",
+      "system": "daggerheart",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "beastform-features",
+      "label": "Beastform Features",
+      "path": "packs/beastform-features",
+      "type": "Item",
+      "system": "daggerheart",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "transformation-features",
+      "label": "Transformation Features",
+      "path": "packs/transformation-features",
+      "type": "Item",
+      "system": "daggerheart",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "weapon-features",
+      "label": "Weapon Features",
+      "path": "packs/weapon-features",
+      "type": "Item",
+      "system": "daggerheart",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    },
+    {
+      "name": "armor-features",
+      "label": "Armor Features",
+      "path": "packs/armor-features",
+      "type": "Item",
+      "system": "daggerheart",
+      "ownership": {
+        "PLAYER": "OBSERVER",
+        "ASSISTANT": "OWNER"
+      }
+    }
+  ],
+  "packFolders": [
+    {
+      "name": "Daggerheart Premades",
+      "color": "#316b68",
+      "sorting": "m",
+      "packs": [
+        "class-features",
+        "subclass-features",
+        "domain-cards",
+        "ancestry-features",
+        "community-features",
+        "beastform-features",
+        "transformation-features",
+        "weapon-features",
+        "armor-features"
+      ]
+    }
+  ]
 }

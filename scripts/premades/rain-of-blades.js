@@ -64,7 +64,7 @@ export function rainOfBladesPacket(packet,actor,{recordKey='rainOfBlades',applie
     subtract=record.bonus;
     if(record.nativeScaling){
       const configured=Number(actor.system?.rules?.attack?.damage?.hpDamageTakenMultiplier??1),multiplier=Number.isFinite(configured)?configured:1;
-      subtract=Math.ceil(record.referenceTotal*multiplier)-Math.ceil(Math.max(0,record.referenceTotal-record.bonus)*multiplier);
+      subtract=(Math.ceil(record.referenceTotal*multiplier)-Math.ceil(Math.max(0,record.referenceTotal-record.bonus)*multiplier))*(record.recipientModifiers?.[actor.uuid]??1);
     }
   }
   const updated={...meta,[recordKey]:record,[appliedKey]:true};

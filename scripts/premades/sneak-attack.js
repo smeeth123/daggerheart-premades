@@ -3,6 +3,7 @@ import { SNEAK_KEY,SNEAK_EFFECT } from './sneak-attack-data.js';
 import { sourceToken } from './hallowed-aura.js';
 import { meleeLimit } from './tusks.js';
 import { prioritizeFaerieWings } from './faerie-wings.js';
+import {veilConcealedFrom} from './veil-of-night.js';
 const WRAPPED=Symbol.for(`${ID}.sneakAttack`);
 export function sneakItem(actor){return actor?.items?.find(item=>{const f=item.flags?.[ID];return !f?.disabled&&!item.system.inactive&&(f?.applied?.key??f?.premade?.key)===SNEAK_KEY;})??null;}
 export function sneakConcealed(actor){
@@ -32,7 +33,7 @@ export function installSneakTargets(Target){
     if(result===false||this.type!=='attack'||!sneakItem(this.actor)||!config.message)return result;
     const hits=(config.targets??[]).filter(t=>t.hitResult?.success);
     const concealed=Boolean(config[ID]?.sneakConcealed);
-    const eligible=hits.length>0&&hits.every(target=>concealed||sneakAllyNear(this.actor,target));
+    const eligible=hits.length>0&&hits.every(target=>concealed||veilConcealedFrom(this.actor,target)||sneakAllyNear(this.actor,target));
     await config.message.update({[`flags.${ID}.sneakAttack`]:{eligible,concealed,targetIds:hits.map(t=>t.id)}});
     return result;
   };

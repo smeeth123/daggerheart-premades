@@ -138,6 +138,7 @@ export async function resolveRetributionDamage(request,{user}){
   if(prior)return prior.signature===signature?prior.operation:null;
   const operation=victim.takeDamage(packet,request.isDirect);receipts.set(key,{signature,operation});if(receipts.size>512)receipts.delete(receipts.keys().next().value);return operation;
 }
+export async function reactToCommittedDamage(victim,source){if(!game.user.isActiveGM||!source)return false;return offerRetribution(victim,source,retributionCandidates(victim,source));}
 export function installRetribution(Actor,Damage,dispatch,ask=promptRetribution,run=runRetribution,pay=request=>payRetribution(request,{user:game.user})){
   if(!Object.hasOwn(Damage,TAG)){
     const evaluate=Damage.buildEvaluate,post=Damage.buildPost;

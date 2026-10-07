@@ -34,7 +34,7 @@ async function broadcast(){
       if(!s.audience.has(user.id)&&!user.isGM)continue;
       const disclosed=canSeeRoll(s.message,user);
       visible.push({id:s.id,round:s.round,phase:s.phase,deadline:s.deadline,
-        title:disclosed?s.title:'Private roll',result:disclosed?s.result:'Roll details are private',
+        title:disclosed?s.title:s.effectPending?'Counterspell':'Private roll',result:disclosed?s.result:s.effectPending?'A magical effect is pending':'Roll details are private',
         rows:[...s.rows.values()].filter(row=>disclosed||user.isGM||row.ownerId===user.id).map(row=>({
           id:row.id,label:row.label,description:row.description,cost:row.cost,useLabel:row.useLabel,declineLabel:row.declineLabel,passLabel:row.passLabel,owner:game.users.get(row.ownerId)?.name??'GM',ownerId:row.ownerId,status:row.status
         }))});
@@ -63,8 +63,8 @@ export async function handleResolution(data,{user}){
     }
     const message=data.messageUuid?await fromUuid(data.messageUuid):null;
     if(message?.speaker?.actor&&message.speaker.actor!==actor.id)throw new Error('Roll card belongs to another actor.');
-    s.message=message;s.title=`${actor.name} — ${data.roll.damage?'Damage resolution':data.roll.attack?'Attack resolution':'Roll resolution'}`;
-    s.result=data.roll.damage?`${data.roll.total} damage`:data.roll.attack?`${data.roll.total} attack${data.roll.critical?' · Critical hit':''}`:`${data.roll.total} with ${data.roll.withFear?'Fear':'Hope'} — Hope: ${data.roll.hope}, Fear: ${data.roll.fear}`;
+    s.message=message;s.effectPending=Boolean(data.roll.effect);s.title=`${actor.name} — ${data.roll.effect?'Counterspell':data.roll.damage?'Damage resolution':data.roll.attack?'Attack resolution':'Roll resolution'}`;
+    s.result=data.roll.effect?`${String(data.roll.effect).slice(0,200)} — magical effect pending`:data.roll.damage?`${data.roll.total} damage`:data.roll.attack?`${data.roll.total} attack${data.roll.critical?' · Critical hit':''}`:`${data.roll.total} with ${data.roll.withFear?'Fear':'Hope'} — Hope: ${data.roll.hope}, Fear: ${data.roll.fear}`;
     const rows=[];
     for(const entry of data.rows){
       const validate=providers.get(entry.kind);if(!validate||s.usedKinds?.has(entry.usageKey??entry.kind))continue;

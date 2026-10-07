@@ -6,6 +6,7 @@ import {decisionBudget} from './settings.js';
 import {decisionNow} from './decision-clock.js';
 import {withHopeLock} from './premades/hope-lock.js';
 import {BEASTFORM_COMPANION_KEY} from './premades/companion-data.js';
+import {tacticianItem,addTacticianExperience} from './premades/tactician.js';
 const OFFER=`${ID}.helpAlly`,CLAIM=`${ID}.claimHelpAlly`,requests=new Map(),claims=new Map();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function readyHelp(actor){
@@ -54,7 +55,7 @@ export async function resolveHelp(request,{user},rollDie=async faces=>new Roll(`
    created=await ally.createEmbeddedDocuments('ActiveEffect',[{
     name:`Help an Ally — ${helper.name} (${roll.total})`,img:helpAllyData().img,origin:helpFeature(helper).uuid,disabled:false,
     description:`${esc(helper.name)} helps with the upcoming action roll (d${faces}: ${roll.total}).`,
-    flags:{[ID]:{helpAlly:{helperUuid:helper.uuid,helperName:helper.name,value:roll.total}}},
+    flags:{[ID]:{helpAlly:{helperUuid:helper.uuid,helperName:helper.name,value:roll.total,...(tacticianItem(helper)?{tactician:tacticianItem(helper).uuid}:{})}}},
     system:{changes:[],duration:{type:''}}
    }]);
    if(created?.length!==1)throw Error('Could not prepare the help on the ally.');
@@ -87,7 +88,8 @@ export async function claimHelp(request,{user}){
     throw error;
    }
   }
-  claims.set(key,{actorUuid:actor.uuid,rows,sources,expires:decisionNow()+decisionBudget(600000)});return rows;
+  claims.set(key,{actorUuid:actor.uuid,rows,sources,expires:decisionNow()+decisionBudget(600000)});
+  await addTacticianExperience(actor,rows,{user});return rows;
  });
 }
 export function claimedHelp(user,id,actorUuid){const receipt=claims.get(`${user?.id}:${id}`);return receipt?.actorUuid===actorUuid?receipt.rows:[];}
@@ -125,6 +127,7 @@ export function addHelpTerms(roll){
  roll.terms.push(new terms.OperatorTerm({operator:'+'}),new terms.NumericTerm({
   number:value,options:{flavor:'Help an Ally',[ID]:{helpBonus:true}}
  }));
+ for(const row of rows)if(row.tacticianExperience)roll.terms.push(new terms.OperatorTerm({operator:'+'}),new terms.NumericTerm({number:row.tacticianExperience.value,options:{flavor:`Tactician — ${row.tacticianExperience.name}`}}));
  roll.resetFormula();
 }
 export function updateHelpAdjustment(roll){
@@ -195,7 +198,7 @@ export function registerHelpAlly(){
   if(!message.isContentVisible)return;
   const roll=message.system?.roll,rows=roll&&selectedHelp(roll.options??{});if(!rows?.length)return;
   const value=Math.max(...rows.map(row=>row.value),Number(roll.dAdvantage?.total)||0);
-  const note=html.ownerDocument.createElement('p');note.className='dhp-help-result';note.textContent=`Help an Ally — ${rows.map(row=>`${row.helperName}: ${row.value}`).join('; ')}. Advantage bonus: ${value}.`;
+  const note=html.ownerDocument.createElement('p');note.className='dhp-help-result';note.textContent=`Help an Ally — ${rows.map(row=>`${row.helperName}: ${row.value}${row.tacticianExperience?` + ${row.tacticianExperience.value} ${row.tacticianExperience.name} (Tactician)`:''}`).join('; ')}. Advantage bonus: ${value}.`;
   html.querySelector('.dhp-help-result')?.remove();(html.querySelector('.roll-container')??html.querySelector('.message-content')??html).append(note);
  });
 }
