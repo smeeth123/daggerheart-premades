@@ -24,7 +24,11 @@ import { diminishItem,diminishTargets,validateDiminish,resolveDiminish } from '.
 import {convertedAttackSuccess} from './attack-outcome.js';
 import {courageItem,courageOutcome,validateCourage,resolveCourage} from './premades/courage.js';
 import {reassuranceCandidates,validateReassurance,resolveReassurance,rerollReassurance} from './premades/reassurance.js';
+import {validateStealth,resolveStealth} from './premades/stealth-expertise.js';
+import {supportCandidates,validateSupport,resolveSupport,rerollSupportDie} from './premades/support-tank.js';
 export function registerRollProviders(){
+ registerResolutionProvider('support',async(request,user)=>{const v=await validateSupport({...request,deadline:decisionNow()+decisionBudget(120000)},user);return v?{owner:ownerFor(v.bearer,[...game.users],game.user),name:'Support Tank',bearerName:v.bearer.name,cost:'2 Hope · ally chooses die',description:v.item.system.description??'',useLabel:v.outcome==='unknown'?'Failed — offer reroll':'Offer reroll',declineLabel:v.outcome==='unknown'?'Succeeded':'Decline',passLabel:v.outcome==='unknown'?'Decline':undefined}:null;});
+ registerResolutionProvider('stealth',async(request,user)=>{const v=await validateStealth({...request,deadline:decisionNow()+decisionBudget(120000)},user);return v?{owner:ownerFor(v.bearer,[...game.users],game.user),name:'Stealth Expertise',bearerName:v.bearer.name,cost:'1 Stress',description:v.item.system.description??'',useLabel:'Change Fear to Hope'}:null;});
  registerResolutionProvider('reassurance',async(request,user)=>{const valid=await validateReassurance({...request,deadline:decisionNow()+decisionBudget(120000)},user);return valid?{owner:ownerFor(valid.bearer,[...game.users],game.user),name:'Reassurance',bearerName:valid.bearer.name,cost:'1/rest · ally consent',description:valid.item.system.description??'',useLabel:'Offer reroll'}:null;});
  registerResolutionProvider('courage',async(request,user)=>{const valid=await validateCourage({...request,deadline:decisionNow()+decisionBudget(120000)},user);return valid?{owner:ownerFor(valid.actor,[...game.users],game.user),name:'Courage',bearerName:valid.actor.name,cost:'Gain 1 Hope',description:valid.item.system.description??'',useLabel:'Failed — gain Hope',declineLabel:'Succeeded'}:null;});
  registerResolutionProvider('diminish',async(request,user)=>{const valid=await validateDiminish({...request,deadline:decisionNow()+decisionBudget(120000)},user);return valid?{owner:valid.owner,name:'Diminish My Foes',bearerName:valid.actor.name,cost:`Choose Favor · ${valid.target.name}`,description:valid.item.system.description??'',useLabel:'Choose Favor'}:null;});
@@ -88,6 +92,8 @@ export function registerRollProviders(){
 }
 export function collectRollChoices(roll,actor,{auraOnly=false,used=new Set(),config={}}={}){
   const rows=[],values={hope:roll.dHope.total,fear:roll.dFear.total,total:roll.total,critical:Boolean(roll.isCritical)};
+  if(!auraOnly&&['action','reaction'].includes(roll.options.actionType)&&!criticalRerollResult(values)&&!charmed(roll)){const difficulty=config.roll?.difficulty??roll.options.roll?.difficulty,targets=(config.targets??roll.options.targets??[]).map(t=>({difficulty:t.difficulty,evasion:t.evasion}));if(adaptabilityOutcome(values.total,values.critical,difficulty,targets)!=='success')for(const candidate of supportCandidates(actor)){const usageKey='support:'+candidate.itemUuid;if(!used.has(usageKey))rows.push({id:usageKey,kind:'support',usageKey,request:{sourceUuid:actor.uuid,candidate,actionType:roll.options.actionType,difficulty,targets,convertedSuccess:false,...values}});}}
+  if(!auraOnly&&!used.has('stealth')&&roll.options.actionType==='action'&&!roll.isCritical&&roll.withFear)for(const candidate of config[ID]?.stealthClaims??[])rows.push({id:`stealth:${candidate.itemUuid}`,kind:'stealth',request:{sourceUuid:actor.uuid,candidate,actionType:'action',withFear:true,...values}});
   if(!auraOnly&&roll.options.actionType==='action')for(const candidate of reassuranceCandidates(actor)){
     const usageKey=`reassurance:${candidate.itemUuid}`;
     if(!used.has(usageKey))rows.push({id:usageKey,usageKey,kind:'reassurance',request:{sourceUuid:actor.uuid,candidate,actionType:'action',...values}});
@@ -209,22 +215,31 @@ export async function executeRollChoice(choice,roll,config,preview){
     const decision=gm.isSelf?await resolveBoon(request,{user:game.user}):await gm.query(`${ID}.patronsBoon`,request,{timeout:decisionBudget(125000)});
     if(!decision)return false;
     const replacement=await rerollBoon(roll,config);
-    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
+    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].stealthExpertise;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
     roll.options[ID]={...roll.options[ID],patronsBoon:decision};
     await animateLuckbenderReroll(replacement,config,preview);
   }else if(choice.kind==='focus'){
     const decision=gm.isSelf?await resolveFocusReroll(request,{user:game.user}):await gm.query(`${ID}.focusReroll`,request,{timeout:decisionBudget(125000)});
     if(!decision)return false;
     const pair=await rerollDualityDice(roll);
-    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
+    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].stealthExpertise;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
     roll.options[ID]={...roll.options[ID],rangersFocus:decision};
     await animateLuckbenderReroll(pair,config,preview);
+  }else if(choice.kind==='support'){
+    if(charmed(roll)||adaptabilityOutcome(roll.total,roll.isCritical,request.difficulty,request.targets)==='success')return false;
+    if(!Array.isArray(roll.terms)||!roll.terms.includes(roll.dHope)||!roll.terms.includes(roll.dFear))throw Error('Support Tank could not find the Duality dice; no Hope was spent.');
+    const decision=gm.isSelf?await resolveSupport(request,{user:game.user}):await gm.query(`${ID}.supportTank`,request,{timeout:decisionBudget(125000)});
+    if(!decision)return false;
+    const original={hope:roll.dHope.total,fear:roll.dFear.total,total:roll.total},replacement=await rerollSupportDie(roll,decision.die);
+    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].stealthExpertise;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
+    roll.options[ID]={...roll.options[ID],supportTank:[...(roll.options[ID]?.supportTank??[]),{...decision,original}]};
+    await animateLuckbenderReroll(replacement,config,preview);
   }else if(choice.kind==='reassurance'){
     const decision=gm.isSelf?await resolveReassurance(request,{user:game.user}):await gm.query(`${ID}.reassurance`,request,{timeout:decisionBudget(125000)});
     if(!decision)return false;
     const original={hope:roll.dHope.total,fear:roll.dFear.total,total:roll.total};
     const replacement=await rerollReassurance(roll);
-    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
+    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].stealthExpertise;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
     roll.options[ID]={...roll.options[ID],reassurance:[...(roll.options[ID]?.reassurance??[]),{...decision,original}]};
     await animateLuckbenderReroll(replacement,config,preview);
   }else if(choice.kind==='luck'){
@@ -234,7 +249,7 @@ export async function executeRollChoice(choice,roll,config,preview){
     const pair=await rerollDualityDice(roll);
     // A new pair replaces any previous outcome conversion. The spent use remains
     // spent; the manager rechecks other features against these new dice.
-    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
+    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].stealthExpertise;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
     roll.options[ID]={...roll.options[ID],luckbender:{...decision,original}};
     await animateLuckbenderReroll(pair,config,preview);
   }else if(choice.kind==='adapt'){
@@ -242,7 +257,7 @@ export async function executeRollChoice(choice,roll,config,preview){
     const decision=gm.isSelf?await resolveAdaptability(request,{user:game.user}):await gm.query(`${ID}.adaptability`,request,{timeout:decisionBudget(125000)});
     if(!decision)return false;
     const replacement=await rerollAdaptability(roll);
-    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
+    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].stealthExpertise;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
     roll.options[ID]={...roll.options[ID],adaptability:decision};
     await animateLuckbenderReroll(replacement,config,preview);
   }else if(choice.kind==='compass'){
@@ -250,7 +265,7 @@ export async function executeRollChoice(choice,roll,config,preview){
     const decision=gm.isSelf?await resolveCompass(request,{user:game.user}):await gm.query(`${ID}.internalCompass`,request,{timeout:decisionBudget(125000)});
     if(!decision)return false;
     const pair=await rerollHopeDie(roll);
-    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
+    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].stealthExpertise;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
     roll.options[ID]={...roll.options[ID],internalCompass:{...decision,originalHope:1}};
     await animateLuckbenderReroll(pair,config,preview);
   }else if(choice.kind==='feline'){
@@ -258,7 +273,7 @@ export async function executeRollChoice(choice,roll,config,preview){
     if(!decision)return false;
     const originalHope=roll.dHope.total;
     const pair=await rerollHopeDie(roll);
-    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
+    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].stealthExpertise;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
     roll.options[ID]={...roll.options[ID],felineInstincts:{...decision,originalHope}};
     await animateLuckbenderReroll(pair,config,preview);
   }else if(choice.kind==='nimble'){
@@ -266,7 +281,7 @@ export async function executeRollChoice(choice,roll,config,preview){
     if(!decision)return false;
     const originalHope=roll.dHope.total;
     const pair=await rerollHopeDie(roll);
-    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
+    if(roll.options[ID]){delete roll.options[ID].hallowedAura;delete roll.options[ID].fearless;delete roll.options[ID].unbound;delete roll.options[ID].stealthExpertise;delete roll.options[ID].witchsCharm;delete roll.options[ID].trueStrike;if(config[ID]){delete config[ID].witchsCharm;delete config[ID].trueStrike;}}
     roll.options[ID]={...roll.options[ID],nimbleFingers:{...decision,originalHope}};
     await animateLuckbenderReroll(pair,config,preview);
   }else if(choice.kind==='unbound'){
@@ -274,6 +289,12 @@ export async function executeRollChoice(choice,roll,config,preview){
     const decision=gm.isSelf?await resolveUnbound(request,{user:game.user}):await gm.query(`${ID}.unbound`,request,{timeout:decisionBudget(125000)});
     if(!decision)return false;
     roll.options[ID]={...roll.options[ID],unbound:decision};
+    if(roll.dFear.options)delete roll.dFear.options.sfx;
+  }else if(choice.kind==='stealth'){
+    if(roll.options.actionType!=='action'||roll.isCritical||!roll.withFear)return false;
+    const decision=gm.isSelf?await resolveStealth(request,{user:game.user}):await gm.query(`${ID}.stealthExpertise`,request,{timeout:decisionBudget(125000)});
+    if(!decision)return false;
+    roll.options[ID]={...roll.options[ID],stealthExpertise:decision};
     if(roll.dFear.options)delete roll.dFear.options.sfx;
   }else if(choice.kind==='fearless'){
     if(roll.options.actionType!=='action'||roll.isCritical||!roll.withFear)return false;

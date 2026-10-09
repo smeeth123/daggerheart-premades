@@ -222,16 +222,17 @@ export function installRollInterception(RollClass, offer = offerAura) {
   const hope = Object.getOwnPropertyDescriptor(RollClass.prototype, 'withHope');
   const fear = Object.getOwnPropertyDescriptor(RollClass.prototype, 'withFear');
   if (!originalEvaluate || !hope?.get || !fear?.get) throw new Error('Unsupported Daggerheart DualityRoll API.');
-  const converted = roll => Boolean(roll.options?.actionType==='action' && roll._evaluated && !roll.isCritical && (roll.options?.[ID]?.hallowedAura || roll.options?.[ID]?.fearless || roll.options?.[ID]?.unbound));
+  const converted = roll => Boolean(roll.options?.actionType==='action' && roll._evaluated && !roll.isCritical && (roll.options?.[ID]?.hallowedAura || roll.options?.[ID]?.fearless || roll.options?.[ID]?.unbound || roll.options?.[ID]?.stealthExpertise));
   Object.defineProperty(RollClass.prototype, 'withHope', { ...hope, get() { return converted(this) || hope.get.call(this); } });
   Object.defineProperty(RollClass.prototype, 'withFear', { ...fear, get() { return !converted(this) && fear.get.call(this); } });
   RollClass.prototype._evaluate = async function(options = {}) {
     // A reroll inherits Roll.options; each new evaluation must earn a new conversion.
-    if (this.options?.[ID]?.hallowedAura || this.options?.[ID]?.fearless || this.options?.[ID]?.unbound) {
+    if (this.options?.[ID]?.hallowedAura || this.options?.[ID]?.fearless || this.options?.[ID]?.unbound || this.options?.[ID]?.stealthExpertise) {
       this.options = { ...this.options, [ID]: { ...this.options[ID] } };
       delete this.options[ID].hallowedAura;
       delete this.options[ID].fearless;
       delete this.options[ID].unbound;
+      delete this.options[ID].stealthExpertise;
     }
     if(this.options?.[ID]?.resolutionComplete)delete this.options[ID].resolutionComplete;
     const result = await originalEvaluate.call(this, options);

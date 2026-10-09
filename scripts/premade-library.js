@@ -202,6 +202,21 @@ import {ensureCorrosiveProjectile} from './premades/corrosive-projectile-data.js
 import {ensureSecondWind} from './premades/second-wind-data.js';
 import {ensureVoiceOfReason} from './premades/voice-of-reason-data.js';
 import {ensureCriticalInspiration} from './premades/critical-inspiration-data.js';
+import {ensureChainLightning} from './premades/chain-lightning-data.js';
+import {ensureDeadlyFocus} from './premades/deadly-focus-data.js';
+import {ensureFortifiedArmor} from './premades/fortified-armor-data.js';
+import {ensureBoost} from './premades/boost-data.js';
+import {ensureRedirect} from './premades/redirect-data.js';
+import {ensureExota} from './premades/book-of-exota-data.js';
+import {ensureGrynn} from './premades/book-of-grynn-data.js';
+import {ensureLifeWard} from './premades/life-ward-data.js';
+import {ensureChains} from './premades/chains-of-affliction-data.js';
+import {ensureHorror} from './premades/summon-horror-data.js';
+import {ensureDeathGrip} from './premades/death-grip-data.js';
+import {ensureSpeech} from './premades/soothing-speech-data.js';
+import {ensureStealth} from './premades/stealth-expertise-data.js';
+import {ensureGoad} from './premades/goad-them-on-data.js';
+import {ensureSupport} from './premades/support-tank-data.js';
 import {ensureSneakAttack} from "./premades/sneak-attack-data.js";
 import {ensureRoguesDodge} from "./premades/rogues-dodge-data.js";
 import {ensureRangersFocus} from "./premades/rangers-focus-data.js";
@@ -439,6 +454,21 @@ export const PREMADE_SEEDS=[
   ensureSecondWind,
   ensureVoiceOfReason,
   ensureCriticalInspiration,
+  ensureChainLightning,
+  ensureDeadlyFocus,
+  ensureFortifiedArmor,
+  ensureBoost,
+  ensureRedirect,
+  ensureExota,
+  ensureGrynn,
+  ensureLifeWard,
+  ensureChains,
+  ensureHorror,
+  ensureDeathGrip,
+  ensureSpeech,
+  ensureStealth,
+  ensureGoad,
+  ensureSupport,
   ensureWeaponQuick,
   ensureWeaponVersatile,
   ensureWeaponPiercing,

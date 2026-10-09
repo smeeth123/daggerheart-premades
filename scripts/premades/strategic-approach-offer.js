@@ -46,7 +46,7 @@ function current(request){
 }
 export async function promptStrategicApproach(request,{user}){
   const state=current(request);if(!user?.isGM||!state||!state.actor.testUserPermission(game.user,'OWNER'))return null;
-  const options=state.pairs.map(({target,ally})=>`<option value="${esc(target.id)}:${esc(ally.id)}">${esc(ally.name)} (near ${esc(target.name)})</option>`).join('');
+  const options=state.pairs.map(({target,ally})=>`<option data-dhp-token="${esc(ally.document.uuid)}" value="${esc(target.id)}:${esc(ally.id)}">${esc(ally.name)} (near ${esc(target.name)})</option>`).join('');
   return timedDialog(`Strategic Approach — ${state.actor.name}`,`<p>An attack target is within <strong>Close</strong>. Spend <strong>1 token</strong> (${tokens(state.item)} available) for one benefit?</p>${options?`<label>Ally within Melee of the target <select name="strategicAlly" style="width:100%">${options}</select></label>`:''}`, [
     {action:'advantage',label:'Attack with Advantage',callback:()=>({mode:'advantage'})},
     {action:'damage',label:'Add d8 Damage',callback:()=>({mode:'damage'})},

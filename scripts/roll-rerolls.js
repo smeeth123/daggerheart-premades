@@ -4,5 +4,5 @@
 export function criticalRerollResult({critical,isCritical,hope,fear}={}){
   return Boolean(critical||isCritical||Number.isFinite(hope)&&Number.isFinite(fear)&&hope===fear);
 }
-const rerollKinds=new Set(['luck','reassurance','feline','nimble','compass','adapt','boon','focus']);
+const rerollKinds=new Set(['luck','reassurance','support','feline','nimble','compass','adapt','boon','focus']);
 export function isActionRerollChoice(kind){return rerollKinds.has(kind);}

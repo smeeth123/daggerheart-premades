@@ -8,7 +8,15 @@ export async function rerollDamageDice(roll,selected,options={}){
  const eligible=new Set(selectableDamageDice(roll,options).map(die=>die.id));
  if(!selected.length||!selected.every(id=>eligible.has(id)))throw Error('Selected damage dice are no longer available.');
  const fresh=[],touched=new Set(),ordered=selected.map(id=>id.split(':').map(Number)).sort((a,b)=>b[0]-a[0]||b[1]-a[1]);
- for(const[d,r]of ordered){const die=roll.dice[d],prior=die.results[r];prior.dhpDamageRerollReplaced=true;const result=await die.rerollResult(r);result.rerolled=true;result.hidden=false;fresh.push(result);touched.add(die);}
+ for(const[d,r]of ordered){const die=roll.dice[d],prior=die.results[r],before=die.results.map(result=>({...result}));
+  // Evaluated manual dice retain their old resolver, whose window is now closed.
+  // Fulfill replacements through a fresh native Roll instead of reopening it.
+  const stale=die.resolver&&!die.resolver.element&&typeof die._roll==='function',descriptor=Object.getOwnPropertyDescriptor(die,'_roll');
+  if(stale)Object.defineProperty(die,'_roll',{configurable:true,writable:true,value:async()=>{const replacement=await new Roll(`1${die.denomination??`d${die.faces}`}`,roll.data??{},{flavor:die.options?.flavor}).evaluate();if(!Number.isFinite(replacement.total)||replacement.total<1||replacement.total>Number(die.faces))throw Error('Damage reroll was not completed.');return replacement.total;}});
+  try{prior.dhpDamageRerollReplaced=true;const result=await die.rerollResult(r);result.rerolled=true;result.hidden=false;fresh.push(result);touched.add(die);}
+  catch(error){die.results.splice(0,die.results.length,...before);throw error;}
+  finally{if(stale){if(descriptor)Object.defineProperty(die,'_roll',descriptor);else delete die._roll;}}
+ }
  for(const die of touched){
   const selection=die.modifiers?.filter(modifier=>/^(?:k|kh|kl|d|dh|dl)\d*$/i.test(modifier))??[];
   if(!selection.length)continue;

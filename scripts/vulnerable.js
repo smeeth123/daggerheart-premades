@@ -13,9 +13,11 @@ import { beastformAttackAdvantage } from './beastform-advantage.js';
 import { aimedDisadvantage } from './premades/weapon-aimed.js';
 import {omnipresentDisadvantage} from './premades/weapon-omnipresent.js';
 import { recklessAdvantage } from './premades/reckless.js';
+import { boostAdvantage } from './premades/boost.js';
 import { strategicAdvantage } from './premades/strategic-approach.js';
 import {invisibleTargets} from './premades/invisibility.js';
 import {veilRollSources} from './premades/veil-of-night.js';
+import {goadedDisadvantage} from './premades/goad-them-on.js';
 const WRAPPED=Symbol.for(`${ID}.vulnerableAdvantage`);
 const sources=new WeakMap();
 const configuredSources=new WeakMap();
@@ -92,9 +94,11 @@ export function installVulnerableAdvantage(D20Roll){
     const selected=Number(config.roll.advantage?.type??config.roll.advantage??0);
     // Reckless must record its use even when another source already grants advantage.
     const reckless=recklessAdvantage(config);
+    const boost=boostAdvantage(config);
     const veil=veilRollSources(config);
-    const advantage=veil.advantage||reckless||strategicAdvantage(config)||beastformAttackAdvantage(config)||elementalAir(config)||isolatingAdvantage(config)||etherealAdvantage(config)||vexingAdvantage(config)||(game.settings.get(ID,'vulnerableAdvantage')&&vulnerableTargets(config));
-    const disadvantage=veil.disadvantage||invisibleTargets(config)||omnipresentDisadvantage(config)||aimedDisadvantage(config)||defensiveTargets(config).length>0||corpseDisadvantage(config)||midnightDisadvantage(config)||retractDisadvantage(config)||sturdyTargets(config)||hiddenTargets(config);
+    const goaded=goadedDisadvantage(config);
+    const advantage=veil.advantage||reckless||boost||strategicAdvantage(config)||beastformAttackAdvantage(config)||elementalAir(config)||isolatingAdvantage(config)||etherealAdvantage(config)||vexingAdvantage(config)||(game.settings.get(ID,'vulnerableAdvantage')&&vulnerableTargets(config));
+    const disadvantage=goaded||veil.disadvantage||invisibleTargets(config)||omnipresentDisadvantage(config)||aimedDisadvantage(config)||defensiveTargets(config).length>0||corpseDisadvantage(config)||midnightDisadvantage(config)||retractDisadvantage(config)||sturdyTargets(config)||hiddenTargets(config);
     if(advantage)config.advantage=true;
     if(disadvantage)config.disadvantage=true;
     try{

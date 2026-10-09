@@ -26,6 +26,23 @@ import {registerVeilOfNight} from './premades/veil-of-night.js';
 import {registerCorrosiveProjectile} from './premades/corrosive-projectile.js';
 import {registerSecondWind} from './premades/second-wind.js';
 import {registerCriticalInspiration} from './premades/critical-inspiration.js';
+import {registerChainLightning} from './premades/chain-lightning.js';
+import {registerDeadlyFocus} from './premades/deadly-focus.js';
+import {registerFortifiedArmor} from './premades/fortified-armor.js';
+import {registerBoost} from './premades/boost.js';
+import {registerRedirect} from './premades/redirect.js';
+import {registerExota} from './premades/book-of-exota.js';
+import {unlockPremadeRegions} from './premade-regions.js';
+import {registerArcaneDeflection} from './premades/arcane-deflection.js';
+import {registerWallOfFlame} from './premades/wall-of-flame.js';
+import {registerLifeWard} from './premades/life-ward.js';
+import {registerChainsCast,registerChainsDamage} from './premades/chains-of-affliction.js';
+import {registerHorror} from './premades/summon-horror.js';
+import {registerDeathGrip} from './premades/death-grip.js';
+import {registerSpeech} from './premades/soothing-speech.js';
+import {registerStealth} from './premades/stealth-expertise.js';
+import {registerGoad} from './premades/goad-them-on.js';
+import {registerSupportTank} from './premades/support-tank.js';
 import {registerNotGoodEnough} from './premades/not-good-enough.js';
 import {registerWhirlwind} from './premades/whirlwind.js';
 import {registerDeftManeuvers} from './premades/deft-maneuvers.js';
@@ -356,6 +373,7 @@ Hooks.once('ready', async () => {
   registerWeaponQuick();
   registerWeaponVersatile();
   registerWeaponPiercing();
+  registerChainsDamage();
   registerWeaponDeadly();
   registerWeaponNonlethal();
   registerWeaponScary();
@@ -582,6 +600,8 @@ Hooks.once('ready', async () => {
   registerFlight();
   // Avoid incoming attacks before recipient reductions or redirection are offered.
   registerScramble();
+  registerArcaneDeflection();
+  registerWallOfFlame();
   registerVersatileFighter();
   registerTactician();
   registerBookOfKorvax();
@@ -594,11 +614,30 @@ Hooks.once('ready', async () => {
   registerCorrosiveProjectile();
   registerSecondWind();
   registerCriticalInspiration();
+  registerChainLightning();
+  registerDeadlyFocus();
+  registerFortifiedArmor();
+  registerBoost();
+  registerRedirect();
+  registerExota();
+  registerHorror();
+  registerDeathGrip();
+  registerSpeech();
+  registerStealth();
+  registerGoad();
+  registerSupportTank();
   // Observe final HP receipts after every recipient defense/prevention wrapper.
   registerArmorBulky();
   // Observe committed damage after redirection, prevention, and Bulky consequences.
   registerHideousRetribution();
+  registerLifeWard();
+  registerChainsCast();
   if (game.user.isActiveGM) {
+    try { await unlockPremadeRegions(); }
+    catch (error) {
+      console.error(`${ID} | Region unlock failed`, error);
+      ui.notifications.warn('Some premade spell regions could not be unlocked. The GM can unlock them manually.');
+    }
     try {
       const count = await setupPremadeLibrary();
       if (count) ui.notifications.info(`Daggerheart Premades: created ${count} compendium folders.`);
