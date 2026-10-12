@@ -1,5 +1,5 @@
 import {ID} from './core.js';
-const keys=['circleOfPower','moonbeam','runeCircle','veilOfNight','wallOfFlame'];
+const keys=['circleOfPower','moonbeam','runeCircle','veilOfNight','wallOfFlame','manifestWall','hush','phantomRetreat','wildFortress'];
 export function isPremadeRegion(region){const flags=region?.flags?.[ID];return keys.some(key=>flags?.[key]&&typeof flags[key]==='object'&&typeof flags[key].itemUuid==='string'&&flags[key].itemUuid.length>0);}
 // Existing scene documents are changed only through native APIs on the active
 // GM. Do not touch unrelated Regions, lights, shapes or linked feature state.

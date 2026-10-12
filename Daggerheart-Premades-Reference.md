@@ -1,8 +1,8 @@
 # Daggerheart Premade Reference
 
-How all 250 premades work by compendium
+How all 264 premades work by compendium
 
-Daggerheart Premades 0.4.23   |   Daggerheart 2.10.11   |   October 9 2026
+Daggerheart Premades 0.4.41   |   Daggerheart 2.10.11   |   October 12 2026
 
 This reference explains how each premade works at the table: what you activate, what triggers automatically, which choices and costs appear, and what remains manual. It covers every entry in the nine module compendiums. Upgrades have their own entries even when they only enhance another feature.
 
@@ -16,7 +16,7 @@ Weapon and Armor Features are an exception: apply Medkit to the actual equipment
 
 - [Subclass Features   102 premades](#subclass-features)
 
-- [Domain Cards   59 premades](#domain-cards)
+- [Domain Cards   73 premades](#domain-cards)
 
 - [Ancestry Features   19 premades](#ancestry-features)
 
@@ -606,9 +606,9 @@ Target one ally and use Grant Extra Downtime Move, spending the once-per-session
 
 ## Domain Cards
 
-59 premades
+73 premades
 
-The current Domain Cards premades cover selected level 1, 2, 3, and 4 cards. Native spell, grimoire, and ability mechanics are preserved unless an entry describes a specific change. Other cards in the system’s domain browser are not part of this premade catalog.
+The current Domain Cards premades cover selected level 1–5 cards. Native spell, grimoire, and ability mechanics are preserved unless an entry describes a specific change. Other cards in the system’s domain browser are not part of this premade catalog.
 
 ### Arcana
 
@@ -633,6 +633,10 @@ A successful native Cast sets tokens to current Agility, minimum 1, and applies 
 Use Infuse Ward on one active Party character, or with no target to ward yourself. The holder receives a visible charged effect. Before native damage reduction, the holder may spend 1 Hope and roll d8 to subtract from incoming damage. An 8 still reduces this damage, then replaces Charged with Drained. The source character’s next completed short or long rest recharges the current holder’s ward for free.
 
 ### Blade
+
+#### Champion's Edge
+
+After an actual critical attack, one dialog offers up to three different benefits at 1 Hope each: clear 1 HP, clear 1 Armor Slot, or have one surviving hit target mark 1 additional HP. The extra HP is applied immediately when selected, before normal attack damage; it is not added to the later damage roll. Armor recovery requires actual Hope, rather than a Hopeful Armor substitution. Only useful recoveries and living hit targets appear. Declining costs nothing; this has no added rest limit. Ordinary successes and reactions do not qualify.
 
 #### Deadly Focus
 
@@ -684,6 +688,10 @@ Before an incoming attack rolls, after its roll dialog is confirmed, offer marki
 
 After a completed incoming attack misses you from beyond Melee, automatically roll Proficiency d6. On any 6, optionally mark 1 Stress and choose a living adversary within Very Close of you. The picker highlights exact tokens. A separate native damage card redirects the original attack’s damage without turning its miss against you into a hit. Existing rolled damage is reused; otherwise use the native damage roll and Deal Damage controls. Armor, resistance and damage reactions remain native. No new attack roll or attack costs. Requires an unambiguous attacker token on the current scene. Mark Stress on the sheet is a reminder, not a second payment.
 
+#### Signature Move
+
+Use Prepare Signature Move manually before attempting the named move; it does not prompt on every roll or spend the use immediately. Your next completed action Duality roll uses a d20 Hope Die and consumes the native once-per-rest use. On success, also clear 1 Stress; on a critical, this is additional to native critical recovery. A roll with unknown Difficulty asks you to confirm success only when Stress recovery matters. Reactions, canceled or preview rolls, and chat rerolls preserve preparation. Describe and adjudicate the signature move normally. Native rest recovery clears unused preparation.
+
 #### Strategic Approach
 
 A long rest replaces the card’s tokens with your current Knowledge, minimum 1. Under this game’s interpretation, a configured attack against an adversary within Close offers spending one token before rolling for advantage, +1d8 damage, or clearing 1 Stress on an eligible friendly ally within Melee of that adversary. The advantage applies to this attack; the damage bonus stays attached to its card for automatic or later Roll Damage. Declining spends nothing. The automation checks current range, not movement history or whether this is the first approach.
@@ -722,6 +730,14 @@ A successful Fireball — Cast automatically starts the native Explosion against
 
 Parallela keeps its native cast and 2 Hope cost. After your next completed attack’s final roll decisions and dice display, choose one extra creature within that attack’s range that the final result would hit. It joins the same native attack, damage, and effects without another attack roll. The held spell expires after that attack even if you decline or no extra target qualifies; canceling the attack preserves it. Recasting replaces the caster’s previous held spell. Other grimoire spells remain native.
 
+#### Manifest Wall
+
+Make the native Spellcast Roll (15), retaining the once-per-rest use and success-only 1 Hope cost. On success, choose two endpoints within Far to place a thin, unlocked Region and a visible caster reminder. The Region represents the wall but does not block vision or movement; height, shunting, and obstruction remain manual. Your next completed rest removes it. A completed recast ends the previous wall even if the new cast fails; canceled casts preserve it. Deleting the Region or reminder also cleans up its counterpart. Scene refresh does not expire the wall.
+
+#### Teleport
+
+Before the native Spellcast Roll (16), pick your destination familiarity: know very well (+3), visited frequently (+1), infrequently (+0), or only once (−2). The chosen modifier appears in the native roll dialog and formula, without changing permanent traits. Canceling the picker does not start the cast or spend its once-per-long-rest use. Travel, destination selection, and off-course consequences remain narrative and manual; this card does not move tokens automatically.
+
 ### Dread
 
 #### Blighting Strike
@@ -731,6 +747,10 @@ Use the single native Spellcast attack: Proficiency d6+1 damage with Hope, inclu
 #### Chains of Affliction
 
 Use Mark Stress to select one creature within Close and pay the native 2 Stress cost. A visible Chained effect reduces HP severity by 1 for attacks originating from that creature, before native Armor/reduction choices, down to zero. It does not reduce damage amount, separately supplied HP resource damage, Stress damage, or non-attack/environmental damage. All attack targets and redirected recipients qualify. Recasting creates the new chain before replacing this caster’s previous chain. Chains from different casters do not stack the HP reduction. No duration is invented: remove the temporary effect manually when it ends. Source card removal/vaulting and rest/scene refresh do not end a paid chain.
+
+#### Dire Strike
+
+After your attack damage actually makes a target mark HP, optionally spend 1 Hope to remove 1 GM Fear. The prompt uses final committed damage after prevention and reductions; lethal hits qualify, but zero-HP damage and manual tracker edits do not. Separate damaged targets can each offer the benefit, with no added rest limit. Native earned Hope and Fear are settled before spending on automatically applied damage. The sheet action is a timing reminder, not a second payment.
 
 #### Hideous Retribution
 
@@ -747,6 +767,10 @@ Use the native Spellcast Roll attack and its once-per-long-rest successful use. 
 #### Summon Horror
 
 Use the native Spellcast attack: Far range, 1 Stress, once per scene, Proficiency d8+1 magic damage (not Spellcast-modifier dice). No summon token. The native early Agility save is removed. After actual HP damage survives recipient defenses, the recipient’s online owner (GM fallback) makes a native Reaction Roll at Difficulty 12. Characters choose a trait; adversaries use their ordinary d20 reaction. Failure applies Stress equal to committed attack HP, capped to HP actually marked; native Stress prevention/overflow remain available. No HP marked means no reaction. Each attack/actual recipient resolves once; redirected recipients qualify. Separate HP resource damage/Stress overflow do not increase the count. Failed/canceled follow-up requires manual review, not replaying damage.
+
+#### Spectral Mist
+
+Target chosen friendly allies within Close and activate the native 2 Hope action; the caster is included automatically and duplicate targets count once. Native Spectral effects grant physical-damage immunity and show a token reminder. Each recipient's effect expires after their next completed action roll, whether it succeeds or fails, or on End Scene refresh. Reactions, separate damage/healing rolls, no-roll actions, previews, and canceled rolls preserve it. Passing through solid objects remains manual: doing so is another reason to remove that creature's effect.
 
 #### Terrify
 
@@ -766,15 +790,27 @@ A successful native cast makes yourself, or one selected ally within Melee, invi
 
 During a short rest, choose Tend to Wounds and another character on the native downtime chat card. Confirm that you comfort them to add 1 HP to the native healing roll and clear 2 HP on yourself. Self-targeted moves, long rests and un-Medkitted/vaulted/disabled cards stay native. Each selected downtime move can grant this benefit once. Recovery uses native takeHealing and respects HP caps/prevention; canceled or uncertain workflows need manual review, not replay. No independent Heal Another/Heal Self buttons or extra downtime activity.
 
+#### Words of Discord
+
+Use the native Spellcast Roll (13) against one adversary within Melee. The cast, success-only Stress cost, and compelled-attack reminder remain native; choosing and making the compelled attack is manual. After that adversary next completes an attack while holding this caster's reminder, later Words of Discord casts by the same caster against that adversary automatically receive a labeled −5 modifier. Other casters and targets are tracked separately. The penalty does not stack further or reset on a rest or scene refresh.
+
 ### Midnight
 
 #### Chokehold
 
 Use the native Pull into Chokehold action and its Stress cost to apply temporary Vulnerable. Any creature attacking that held target automatically gains 2d6 damage while the marked hold is active; ordinary Vulnerable alone does not qualify. On mixed-target damage, only held recipients receive the bonus. Native criticals, rerolls, and deferred damage remain available. Getting behind an appropriately sized creature and ending the hold remain manual.
 
+#### Hush
+
+Target one creature within Close and make the native Spellcast attack against its Difficulty, retaining the success-only 1 Hope cost. A successful cast automatically places an unlocked circular Very Close Region centered on the target. Creatures inside receive this spell's visible Silenced effect; entering, leaving, moving the original target, or editing the Region updates silence. Known spell actions and Spellcast rolls are blocked while Silenced; weapons and mundane traits remain usable. Noise and unrecognized NPC magic remain GM-adjudicated. Major-or-worse HP damage to the caster ends the aura after defenses resolve, and the GM can use its chat button to spend 1 Fear to end it. A completed recast ends the previous circle even on a miss; canceled casts preserve it. Deleting the Region or losing its anchor also removes its silence. Rest and scene refresh do not expire it. The GM must view the scene for aura updates.
+
 #### Midnight Spirit
 
 Summon Spirit spends 1 Hope and creates a friendly, controllable humanoid-sized spirit token beside the caster. Use Attack Adversary on the caster’s card: it retains the native Spellcast attack, Very Far range, and Spellcast-trait d6 magic damage, without another Hope cost. The spirit and its temporary NPC disappear after that completed attack, hit or miss, the caster’s next completed rest, or a successful replacement summon. Canceled attacks and summons preserve it. Movement and carrying remain manual.
+
+#### Phantom Retreat
+
+Activate for the native 1 Hope cost to record the selected caster token's return point, shown by a small unlocked Region and token reminder. Retreat costs another 1 Hope and automatically teleports that token back, preserving the saved standing center, elevation, and scene level. Linked characters can return across scenes; unsupported or ambiguous returns are rejected before payment. Only the invoking client's view changes for cross-scene travel. The next completed rest clears an unused return point; scene refresh does not. Successful reactivation replaces the old point, and deleting its marker or Region cancels it.
 
 #### Rain of Blades
 
@@ -814,9 +850,17 @@ Summon Familiar costs 1 Hope; Summon Flying Familiar costs 2 Hope total. Both cr
 
 Native actions, Hope cost, targeting, and contextual +2 Spellcast effect stay unchanged. A placed bonus expires after its recipient’s next completed native roll, including action, reaction, damage, or healing. Canceling or leaving a roll unevaluated preserves it. A bonus activated during an already-pending roll is not consumed by that older roll.
 
+#### Thorn Skin
+
+Use native Gain Tokens once per rest: spend 1 Hope and gain tokens equal to your Spellcast trait. Before incoming damage reduction, optionally spend a bounded number of tokens and roll that many d6s to reduce damage by their sum, down to zero. If the identifiable attacker is within Melee, the full rolled amount is returned after your damage resolves, matching the incoming damage type and using the attacker's normal resistance, Armor, and damage reactions. An unknown or distant attacker still allows reduction without automatic retaliation. Declining spends nothing. Native rest recovery clears unused tokens and resets the activation; Use Tokens is a reminder.
+
 #### Vicious Entangle
 
 Keeps both native actions, damage, and temporary Restrained templates. After a successful Cast, spend 1 Hope and choose one other living, visible, unrestrained adversary within Very Close of a successful original target. Only Restrained is applied to that extra adversary: it receives no damage and is not added to the damage targets. Range is measured from the original target, not the caster.
+
+#### Wild Fortress
+
+Make the native Spellcast Roll (13), with its success-only 2 Hope cost. On success, choose up to one ally to shelter with you. The module places a damageable dome token and an unlocked, editable circular shelter Region; no fixed Daggerheart range category is invented for its footprint. Only the two chosen token instances gain shelter while inside: they cannot attack or be targeted by attacks. Leaving removes shelter and re-entering restores it. Attacks against the dome automatically hit; damage rolls, rerolls, and Deal Damage remain native. The dome has Major 15, Severe 30, and 3 HP, tracked on its actor and the latest dome's card tokens. Creature-protection abilities such as I Am Your Shield cannot protect the dome. At 3 HP, or when the dome or its Region is deleted, its shelter and associated documents are removed. Rests, scene refresh, and subsequent casts do not dismiss older domes.
 
 ### Splendor
 
@@ -832,11 +876,19 @@ After another active Party character’s action roll, offer a reroll through Rol
 
 After a successful attack against an adversary, optionally use the once-per-rest benefit to clear 3 Stress or 1 HP. On a Hope success, including a critical, the same dialog can also give one other friendly creature within Close its own choice of those recoveries. Self and ally benefits are independent, so an unwounded caster can still help an eligible ally. Recovery is capped by marked resources; declining or choosing no recovery consumes nothing. Ordinary rests refresh the native use.
 
+#### Smite
+
+Use native Charge Smite to spend 3 Hope once per rest and gain a visible charge. Your next successful weapon attack consumes it, forces magic damage, and doubles the final main damage-roll result after reroll choices, including flat bonuses and native critical damage. Misses, canceled rolls, and nonweapon attacks preserve the charge. Brawler's Strike qualifies as a weapon; ordinary unarmed and Beastform attacks do not. The benefit stays on that successful attack's chat card for later Roll Damage after the charge expires. Resource damage is not doubled, and an unknown Difficulty can ask you to confirm success.
+
 #### Voice of Reason
 
 The native situational advantage remains available for de-escalation and leadership. While the card is eligible and all Stress slots are marked, Emboldened automatically grants +1 Proficiency and shows a token icon. Clearing Stress suppresses the bonus and icon; filling the track reactivates them. No manual effect toggle or additional cost is needed.
 
 ### Valor
+
+#### Armorer
+
+The native +1 Armor Score effect applies only while an actual armor item is equipped. When you choose Repair Armor through Take Downtime, each other living active-party character automatically clears 1 marked Armor Slot per selected Repair Armor activity. Your own native repair roll and recovery remain unchanged. This occurs when the choice is submitted, not when the full rest finishes, and requires no target picker or extra cost. The sheet Repair Armor action is a timing reminder, preventing duplicate ally recovery.
 
 #### Body Basher
 
@@ -861,6 +913,10 @@ Native Goad handles the Presence roll and success-only Stress/effect application
 #### I Am Your Shield
 
 Before an ally within Very Close takes attack damage, offer marking 1 Stress to take it instead. You apply your own thresholds, resistance, and defenses. For this attack only, your native reduction dialog can use any available Armor Slots without an additional Stress cost for exceeding the usual limit. Move manually. Recursion is blocked, and plain tracker edits or nonattack damage do not qualify.
+
+#### Rousing Strike
+
+Once per rest, a completed critical attack offers Rousing Strike after native critical recovery. Select active-party allies who can see or hear you; this qualification is player-confirmed, without an invented range or automatic vision restriction. You are included automatically when recovery is useful. Each owner chooses to clear 1 HP, roll a separate d4 to clear that much Stress, or decline for each eligible character. Recovery is capped by marked resources. Activation decline, everyone declining, or no useful benefit spends no use. Ordinary/converted-only successes, reactions, and canceled or preview rolls do not trigger it. The native action use resets on rest; the sheet action is a reminder.
 
 #### Support Tank
 

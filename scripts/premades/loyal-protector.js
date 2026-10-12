@@ -6,10 +6,11 @@ import {sourceToken} from './hallowed-aura.js';
 import {allied,closeDistance,ownerFor} from './aura-rules.js';
 import {markReactiveStress} from './stress-payment.js';
 import {timedDialog} from '../dialog.js';
+import {damageProtectionExempt} from './damage-protection.js';
 const QUERY=`${ID}.loyalProtector`,PROMPT=`${ID}.loyalProtectorPrompt`,seen=new Map();
 const esc=s=>foundry.utils.escapeHTML(String(s??''));
 export function loyalItem(actor){const stress=actor?.system?.resources?.stress;if(!(Number(stress?.value)<Number(stress?.max))||actor.statuses?.has('dead'))return null;return actor.items?.find(i=>{const f=i.flags?.[ID];return featureActive(i)&&!f?.disabled&&(f?.applied?.key??f?.premade?.key)===LOYAL_KEY;})??null;}
-export function loyalVictim(actor){const hp=actor?.system?.resources?.hitPoints,remaining=Number(hp?.max)-Number(hp?.value);return remaining>0&&remaining<=2&&!actor.statuses?.has('dead');}
+export function loyalVictim(actor){const hp=actor?.system?.resources?.hitPoints,remaining=Number(hp?.max)-Number(hp?.value);return !damageProtectionExempt(actor)&&remaining>0&&remaining<=2&&!actor.statuses?.has('dead');}
 export function loyalCandidates(target){
  if(!loyalVictim(target))return [];const victim=sourceToken(target);if(!victim)return [];
  const rules=game.settings.get(CONFIG.DH.id,CONFIG.DH.SETTINGS.gameSettings.variantRules).rangeMeasurement,limit=closeDistance(canvas.scene,rules,CONFIG.DH.GENERAL.sceneRangeMeasurementSetting.custom.id),result=new Map();

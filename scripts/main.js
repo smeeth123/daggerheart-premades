@@ -43,6 +43,20 @@ import {registerSpeech} from './premades/soothing-speech.js';
 import {registerStealth} from './premades/stealth-expertise.js';
 import {registerGoad} from './premades/goad-them-on.js';
 import {registerSupportTank} from './premades/support-tank.js';
+import {registerChampion} from './premades/champions-edge.js';
+import {registerSignature} from './premades/signature-move.js';
+import {registerTeleport} from './premades/teleport.js';
+import {registerManifestWall} from './premades/manifest-wall.js';
+import {registerDireStrike} from './premades/dire-strike.js';
+import {registerSpectralMist} from './premades/spectral-mist.js';
+import {registerWordsDiscord} from './premades/words-of-discord.js';
+import {registerHush} from './premades/hush.js';
+import {registerPhantom} from './premades/phantom-retreat.js';
+import {registerThorn} from './premades/thorn-skin.js';
+import {registerSmite} from './premades/smite.js';
+import {registerArmorer} from './premades/armorer.js';
+import {registerRousing} from './premades/rousing-strike.js';
+import {registerFortress} from './premades/wild-fortress.js';
 import {registerNotGoodEnough} from './premades/not-good-enough.js';
 import {registerWhirlwind} from './premades/whirlwind.js';
 import {registerDeftManeuvers} from './premades/deft-maneuvers.js';
@@ -555,6 +569,7 @@ Hooks.once('ready', async () => {
   registerRuneWard();
   // Inside damage redirection/packet adjustments and later post-damage retaliation.
   registerConjureSwarm();
+  registerThorn();
   // Outer to recipient defenses, inner to Whirlwind/Rain's per-target packet adjustments.
   registerIAmYourShield();
   registerWhirlwind();
@@ -626,12 +641,26 @@ Hooks.once('ready', async () => {
   registerStealth();
   registerGoad();
   registerSupportTank();
+  registerChampion();
+  registerSignature();
+  registerTeleport();
+  registerManifestWall();
   // Observe final HP receipts after every recipient defense/prevention wrapper.
   registerArmorBulky();
+  // Expire silence after final damage, before optional post-damage offers.
+  registerHush();
+  registerDireStrike();
+  registerSpectralMist();
+  registerWordsDiscord();
+  registerPhantom();
   // Observe committed damage after redirection, prevention, and Bulky consequences.
   registerHideousRetribution();
   registerLifeWard();
   registerChainsCast();
+  registerFortress();
+  registerSmite();
+  registerArmorer();
+  registerRousing();
   if (game.user.isActiveGM) {
     try { await unlockPremadeRegions(); }
     catch (error) {

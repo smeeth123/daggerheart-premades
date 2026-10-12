@@ -9,6 +9,7 @@ import {bulkyDamagePacket} from './armor-bulky.js';
 import {withHopeLock} from './hope-lock.js';
 import {hopeCapacity,chooseHopePayment,spendHope,isHopePaymentCancellation} from './hope-payment.js';
 import {GRYNN_KEY,DEFLECTION} from './book-of-grynn-data.js';
+import {damageProtectionExempt} from './damage-protection.js';
 const QUERY=ID+'.arcaneDeflection',PROMPT=QUERY+'Prompt',WRAP=Symbol.for(QUERY),receipts=new Map();
 const action=item=>item?.system.actions?.get?.(DEFLECTION)??item?.system.actions?.[DEFLECTION];
 export function deflectionPacket(packet){const copy=bulkyDamagePacket(packet);return typeof copy?.main.options?.[ID]?.friendAttack==='string'?copy:null;}
@@ -16,7 +17,7 @@ const alive=a=>a&&!unavailableActor(a)&&!(Number(a.system?.resources?.hitPoints?
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function grynnItem(actor){return actor?.type==='character'&&alive(actor)?actor.items?.find(i=>{const f=i.flags?.[ID];return i.type==='domainCard'&&featureActive(i)&&!f?.disabled&&(!i.system.inVault||i.system.vaultActive)&&!i.system.isDomainTouchedSuppressed&&(f?.applied?.key??f?.premade?.key)===GRYNN_KEY;})??null:null;}
 export function deflectionItem(actor){const item=grynnItem(actor),uses=action(item)?.uses;return hopeCapacity(actor)>=1&&uses?.recovery==='longRest'&&Number(uses.max)===1&&Number(uses.value??0)===0?item:null;}
-export function deflectionCandidates(target){if(!canvas.ready||!alive(target))return [];const victim=sourceToken(target),limit=canvas.scene?.rangeSettings?Number(canvas.scene.rangeSettings.veryClose):whirlwindRange();if(!victim||victim.document.hidden||!Number.isFinite(limit)||limit<0)return [];const found=new Map();
+export function deflectionCandidates(target){if(damageProtectionExempt(target)||!canvas.ready||!alive(target))return [];const victim=sourceToken(target),limit=canvas.scene?.rangeSettings?Number(canvas.scene.rangeSettings.veryClose):whirlwindRange();if(!victim||victim.document.hidden||!Number.isFinite(limit)||limit<0)return [];const found=new Map();
  for(const token of canvas.tokens.placeables){const actor=token.actor,item=deflectionItem(actor);if(!item||token.document.hidden||sourceToken(actor)?.document.uuid!==token.document.uuid)continue;const self=actor.uuid===target.uuid;if(!self&&!allied(token.document,victim.document))continue;const distance=self?0:token.distanceTo(victim);if(!Number.isFinite(distance)||distance<0||distance>limit)continue;found.set(actor.uuid,{actor,item,tokenUuid:token.document.uuid,victimUuid:victim.document.uuid});}return [...found.values()];}
 export async function promptDeflection(data,{user}){const actor=await fromUuid(data.actorUuid);if(!user?.isGM||!actor?.testUserPermission(game.user,'OWNER')||deflectionItem(actor)?.uuid!==data.itemUuid)return false;
  return Boolean(await timedDialog('Arcane Deflection — '+actor.name,`<p>Negate the incoming attack damage to <strong>${esc(data.targetName)}</strong> before damage reduction?</p><p>Costs <strong>1 Hope</strong>. Once per long rest.</p>`,[{action:'use',label:'Spend Hope & Deflect',callback:()=>true},{action:'decline',label:'Decline',default:true,callback:()=>false}]));}

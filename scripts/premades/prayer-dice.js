@@ -7,6 +7,7 @@ import { PRAYER_KEY,PRAYER_HOPE_ACTION } from './prayer-dice-data.js';
 import { ownerFor } from './aura-rules.js';
 import { sourceToken } from './hallowed-aura.js';
 import { timedDialog } from '../dialog.js';
+import {damageProtectionExempt} from './damage-protection.js';
 const QUERY=`${ID}.spendPrayer`,REFRESH=`${ID}.refreshPrayer`,WRAPPED=Symbol.for(`${ID}.prayerDice`),locks=new Map();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function prayerItem(actor){return actor?.items?.find(item=>{const f=item.flags?.[ID];return !f?.disabled&&!item.system.inactive&&(f?.applied?.key??f?.premade?.key)===PRAYER_KEY;})??null;}
@@ -36,7 +37,7 @@ export function prayerOptions(message,bearer){
   }
   if(!data?.hasHealing&&Number(data?.damage?.main?.total)>0)for(const target of (data.roll?attackHitTargets(message):resolvedAttackTargets(message))){
     const recipient=foundry.utils.fromUuidSync(target.actorId);
-    if(recipient&&prayerRange(bearer,recipient)&&!applied(message,target))options.push({mode:'damage',actorUuid:recipient.uuid,targetId:target.id,label:`Reduce damage to ${recipient.name}`});
+    if(recipient&&!damageProtectionExempt(recipient)&&prayerRange(bearer,recipient)&&!applied(message,target))options.push({mode:'damage',actorUuid:recipient.uuid,targetId:target.id,label:`Reduce damage to ${recipient.name}`});
   }
   return options;
 }
@@ -143,7 +144,7 @@ export function installPrayerDamage(Actor){
   const native=Actor.prototype.takeDamage;
   Actor.prototype.takeDamage=async function(args,...rest){
     const reduction=Number(args?.main?.options?.[ID]?.prayerReductions?.[this.uuid]??0);
-    if(reduction>0){
+    if(reduction>0&&!damageProtectionExempt(this)){
       // ChatDamageData.clone() rebuilds from its stored source, discarding
       // per-target adjustments already made by native damage application.
       // Pass current values directly to the native damage parser instead.

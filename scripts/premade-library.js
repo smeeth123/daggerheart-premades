@@ -217,6 +217,20 @@ import {ensureSpeech} from './premades/soothing-speech-data.js';
 import {ensureStealth} from './premades/stealth-expertise-data.js';
 import {ensureGoad} from './premades/goad-them-on-data.js';
 import {ensureSupport} from './premades/support-tank-data.js';
+import {ensureChampion} from './premades/champions-edge-data.js';
+import {ensureSignature} from './premades/signature-move-data.js';
+import {ensureTeleport} from './premades/teleport-data.js';
+import {ensureManifestWall} from './premades/manifest-wall-data.js';
+import {ensureDireStrike} from './premades/dire-strike-data.js';
+import {ensureSpectralMist} from './premades/spectral-mist-data.js';
+import {ensureWordsDiscord} from './premades/words-of-discord-data.js';
+import {ensureHush} from './premades/hush-data.js';
+import {ensurePhantom} from './premades/phantom-retreat-data.js';
+import {ensureThorn} from './premades/thorn-skin-data.js';
+import {ensureSmite} from './premades/smite-data.js';
+import {ensureArmorer} from './premades/armorer-data.js';
+import {ensureRousing} from './premades/rousing-strike-data.js';
+import {ensureFortress} from './premades/wild-fortress-data.js';
 import {ensureSneakAttack} from "./premades/sneak-attack-data.js";
 import {ensureRoguesDodge} from "./premades/rogues-dodge-data.js";
 import {ensureRangersFocus} from "./premades/rangers-focus-data.js";
@@ -469,6 +483,20 @@ export const PREMADE_SEEDS=[
   ensureStealth,
   ensureGoad,
   ensureSupport,
+  ensureChampion,
+  ensureSignature,
+  ensureTeleport,
+  ensureManifestWall,
+  ensureDireStrike,
+  ensureSpectralMist,
+  ensureWordsDiscord,
+  ensureHush,
+  ensurePhantom,
+  ensureThorn,
+  ensureSmite,
+  ensureArmorer,
+  ensureRousing,
+  ensureFortress,
   ensureWeaponQuick,
   ensureWeaponVersatile,
   ensureWeaponPiercing,

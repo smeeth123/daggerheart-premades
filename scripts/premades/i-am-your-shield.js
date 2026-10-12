@@ -9,6 +9,7 @@ import {loyalPacket,redirectedLoyalPacket} from './loyal-protector.js';
 import {markReactiveStress} from './stress-payment.js';
 import {withHopeLock} from './hope-lock.js';
 import {SHIELD_KEY} from './i-am-your-shield-data.js';
+import {damageProtectionExempt} from './damage-protection.js';
 
 const QUERY=`${ID}.iAmYourShield`,PROMPT=`${QUERY}Prompt`,ARMOR=`${QUERY}Armor`,WRAPPED=Symbol.for(QUERY);
 const receipts=new Map(),armorContexts=new Map(),actorContexts=new Map();
@@ -31,7 +32,7 @@ export function shieldPacket(args){
   return typeof source==='string'&&source?packet:null;
 }
 export function shieldCandidates(target){
-  if(!alive(target))return [];
+  if(damageProtectionExempt(target)||!alive(target))return [];
   const victim=sourceToken(target),limit=veryCloseLimit();
   if(!victim||victim.document.hidden||!Number.isFinite(limit)||limit<0)return [];
   const candidates=new Map();
@@ -62,7 +63,7 @@ export async function resolveShield(request,{user},ask=promptShield){
     const target=await fromUuid(request.targetUuid),packet=shieldPacket(request.packet);
     const source=packet?await fromUuid(packet.main.options[ID].friendAttack):null;
     const authorized=()=>Boolean(user.active&&game.user.isActiveGM&&(user.isGM||target?.testUserPermission(user,'OWNER')||source?.testUserPermission(user,'OWNER')));
-    if(!target||!packet||!source||!authorized()||!(target.calculateDamage(packet.main.total,packet.main.options.damageTypes??[])>0))return false;
+    if(!target||damageProtectionExempt(target)||!packet||!source||!authorized()||!(target.calculateDamage(packet.main.total,packet.main.options.damageTypes??[])>0))return false;
     for(const candidate of shieldCandidates(target)){
       const valid=()=>{
         if(!authorized()||request.deadline<=decisionNow()||!(target.calculateDamage(packet.main.total,packet.main.options.damageTypes??[])>0))return null;

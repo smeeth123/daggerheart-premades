@@ -1,0 +1,19 @@
+import {ID} from '../core.js';
+import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
+export const SPECTRAL_KEY='dread-spectral-mist',SPECTRAL_ACTION='Fw0PoX73vPZiDTqT',SPECTRAL_EFFECT='OeVWOdO55y8XpVVy';
+const icon='icons/magic/air/fog-gas-smoke-purple-blue.webp';
+const effectDescription='<p>While a creature is incorporeal, they can move through solid objects and are immune to physical damage. They become corporeal again after they pass through a solid object or make an action roll. Otherwise, this effect lasts until the end of the scene.</p>';
+export function spectralMistData(folder){return {
+ name:'Spectral Mist',type:'domainCard',folder,img:'systems/daggerheart/assets/icons/domains/domain-card/dread.png',
+ system:{description:'<p><strong>Spend 2 Hope</strong> to conjure an eerie mist that turns you and allies of your choice within Close range momentarily incorporeal. While a creature is incorporeal, they can move through solid objects and are immune to physical damage. They become corporeal again after they pass through a solid object or make an action roll. Otherwise, this effect lasts until the end of the scene.</p>',domain:'dread',level:5,recallCost:0,type:'spell',attribution:{source:'Daggerheart SRD',page:null},resource:null,inVault:false,vaultActive:false,loadoutIgnore:false,domainTouched:null,
+  gmNotes:'Target the chosen allies within Close, then use Spend Hope. The caster is always included. Native cost is 2 Hope and the Spectral effect grants physical immunity. Each placed effect expires after its recipient’s next completed action roll, including a failed roll; reaction, damage and healing rolls do not expire it. Remaining effects expire on scene refresh. Movement through solid objects is manual: remove Spectral after passing through one. No region or wall/movement bypass is created.',
+  actions:{[SPECTRAL_ACTION]:{type:'effect',_id:SPECTRAL_ACTION,systemPath:'actions',baseAction:false,description:'',chatDisplay:true,originItem:{type:'itemCollection'},actionType:'action',triggers:[],areas:[],cost:[{scalable:false,key:'hope',value:2,itemId:null,step:null,consumeOnSuccess:false}],uses:{value:null,max:'',recovery:null,consumeOnSuccess:false},effects:[{_id:SPECTRAL_EFFECT,onSave:false}],target:{type:'friendly',amount:null},name:'Spend Hope',range:'close',img:icon}}},
+ effects:[{name:'Spectral',disabled:false,img:icon,description:effectDescription,transfer:false,statuses:[],system:{changes:[{key:'system.resistance.physical.immunity',type:'override',value:1,priority:null,phase:'initial'}],duration:{description:'',type:'scene'},rangeDependence:null,stacking:null,targetDispositions:[],conditionals:[]},_id:SPECTRAL_EFFECT,type:'base',start:{time:0,combat:null,combatant:null,initiative:null,round:null,turn:null},duration:{value:null,units:'seconds',expiry:null,expired:false},tint:'#ffffff',showIcon:2,folder:null,sort:0,flags:{[ID]:{spectralMist:true}}}],
+ flags:{[ID]:{premade:{key:SPECTRAL_KEY,version:'1.0.0',category:'domain-cards',aliases:[],sourceUuids:['Compendium.daggerheart.domains.Item.h2AmRjGVtVGOMsB4']}}}
+};}
+export async function ensureSpectralMist(){
+ const pack=game.packs.get(ID+'.domain-cards');if(!pack)throw Error('The Domain Cards compendium is missing.');
+ const old=(await premadeDocuments(pack)).find(i=>i.getFlag(ID,'premade')?.key===SPECTRAL_KEY);if(old?.getFlag(ID,'premade')?.version==='1.0.0')return old;
+ const folder=pack.folders.find(f=>!f.folder&&f.name==='Dread');if(!folder)throw Error('The Dread compendium folder is missing.');
+ const locked=pack.locked;try{if(locked)await configurePremadePack(pack,{locked:false});const data=spectralMistData(folder.id),item=old?await old.update(data,{diff:false,recursive:false}):await Item.create(data,{pack:pack.collection});if(!item)throw Error('Spectral Mist creation was cancelled.');return item;}finally{if(locked)await configurePremadePack(pack,{locked:true});}
+}

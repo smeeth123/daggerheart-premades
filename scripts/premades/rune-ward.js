@@ -6,12 +6,13 @@ import {decisionNow} from '../decision-clock.js';
 import {ownerFor} from './aura-rules.js';
 import {withHopeLock} from './hope-lock.js';
 import {RUNE_WARD_KEY,RUNE_WARD_ACTION,RUNE_WARD_CHARGED,RUNE_WARD_DRAINED} from './rune-ward-data.js';
+import {damageProtectionExempt} from './damage-protection.js';
 
 const QUERY=`${ID}.runeWard`,PROMPT=`${QUERY}Prompt`,ACTION_WRAP=Symbol.for(`${ID}.runeWardAction`),DAMAGE_WRAP=Symbol.for(`${ID}.runeWardDamage`),REST_WRAP=Symbol.for(`${ID}.runeWardRest`),receipts=new Map();
 const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 export function runeWardItem(actor){return actor?.type==='character'?actor.items?.find(item=>{const flags=item.flags?.[ID];return item.type==='domainCard'&&!item.system?.inVault&&featureActive(item)&&!flags?.disabled&&(flags?.applied?.key??flags?.premade?.key)===RUNE_WARD_KEY;})??null:null;}
-export function runeWardEffects(actor,state=null){return[...(actor?.effects??[])].filter(effect=>!effect.disabled&&!effect.isSuppressed&&effect.flags?.[ID]?.runeWard?.itemUuid&&(!state||effect.flags[ID].runeWard.state===state));}
+export function runeWardEffects(actor,state=null){return damageProtectionExempt(actor)?[]:[...(actor?.effects??[])].filter(effect=>!effect.disabled&&!effect.isSuppressed&&effect.flags?.[ID]?.runeWard?.itemUuid&&(!state||effect.flags[ID].runeWard.state===state));}
 export function runeWardHolders(source){const party=game.actors.party?.system?.partyMembers??[];return[...new Map([source,...party].filter(actor=>actor?.type==='character'&&actor.uuid).map(actor=>[actor.uuid,actor])).values()];}
 function sourceEffect(item,state){const id=state==='charged'?RUNE_WARD_CHARGED:RUNE_WARD_DRAINED;return item.effects?.get?.(id)??item.effects?.find?.(effect=>(effect.id??effect._id)===id);}
 function wardEffectData(item,state){const template=sourceEffect(item,state),data=template?.toObject?template.toObject():structuredClone(template);if(!data)throw Error('Rune Ward effects are missing. Reapply Medkit.');delete data._id;delete data.id;data.disabled=false;data.transfer=false;data.origin=template.uuid??`${item.uuid}.ActiveEffect.${state==='charged'?RUNE_WARD_CHARGED:RUNE_WARD_DRAINED}`;data.flags={...data.flags,[ID]:{...data.flags?.[ID],runeWard:{itemUuid:item.uuid,sourceActorUuid:item.actor.uuid,state}}};return data;}

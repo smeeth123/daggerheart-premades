@@ -5,6 +5,7 @@ import {sourceToken} from './hallowed-aura.js';
 import {allied,ownerFor} from './aura-rules.js';
 import {withHopeLock} from './hope-lock.js';
 import {timedDialog} from '../dialog.js';
+import {damageProtectionExempt} from './damage-protection.js';
 const QUERY=`${ID}.partnerInArms`,PROMPT=`${ID}.partnerInArmsPrompt`;
 const esc=s=>foundry.utils.escapeHTML(String(s??''));
 export function partnerArmor(actor){
@@ -14,6 +15,7 @@ export function partnerArmor(actor){
 }
 export function partnerItem(actor){if(partnerArmor(actor).available<1)return null;return actor?.items?.find(i=>{const f=i.flags?.[ID];return featureActive(i)&&!f?.disabled&&(f?.applied?.key??f?.premade?.key)===PARTNER_KEY;})??null;}
 export function partnerCandidates(target){
+ if(damageProtectionExempt(target))return [];
  const victim=sourceToken(target);if(!victim)return [];
  const rules=game.settings.get(CONFIG.DH.id,CONFIG.DH.SETTINGS.gameSettings.variantRules).rangeMeasurement,local=canvas.scene.flags?.daggerheart?.rangeMeasurement;
  const limit=Number(rules.enabled&&local?.setting===CONFIG.DH.GENERAL.sceneRangeMeasurementSetting.custom.id?local.veryClose:rules.veryClose),result=new Map();

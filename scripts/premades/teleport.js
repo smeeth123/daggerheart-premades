@@ -1,0 +1,13 @@
+import {ID,featureActive} from '../core.js';
+import {timedDialog} from '../dialog.js';
+import {TELEPORT_KEY,TELEPORT_ACTION} from './teleport-data.js';
+const WRAP=Symbol.for(ID+'.teleport'),contexts=new WeakMap(),pending=new Set();
+export const TELEPORT_CHOICES=Object.freeze({well:{label:'Know the place very well',bonus:3},frequent:{label:'Visited frequently',bonus:1},infrequent:{label:'Visited infrequently',bonus:0},once:{label:'Visited only once',bonus:-2}});
+export function teleportAction(action){const item=action?.item,s=item?.system,f=item?.flags?.[ID];return Boolean(action?.id===TELEPORT_ACTION&&action.actor?.type==='character'&&item?.type==='domainCard'&&featureActive(item)&&!f?.disabled&&(!s.inVault||s.vaultActive)&&!s.isDomainTouchedSuppressed&&(f?.applied?.key??f?.premade?.key)===TELEPORT_KEY);}
+export async function promptTeleport(){return timedDialog('Teleport — Destination Familiarity','<p>How well do you know your destination?</p><div class="form-group"><label>Familiarity</label><select name="teleportFamiliarity">'+Object.entries(TELEPORT_CHOICES).map(([key,c])=>`<option value="${key}">${c.label} (${c.bonus>0?'+':''}${c.bonus})</option>`).join('')+'</select></div>',[{action:'cast',label:'Continue to Spellcast Roll',callback:(_e,_b,dialog)=>dialog.element.querySelector('[name="teleportFamiliarity"]')?.value},{action:'cancel',label:'Cancel',default:true,callback:()=>null}]);}
+export function installTeleport(Action,ask=promptTeleport){if(!Action||Object.hasOwn(Action,WRAP))return;const use=Action.prototype.use,prepare=Action.prototype.prepareConfig;
+ Action.prototype.prepareConfig=function(...args){const config=prepare.apply(this,args),choice=contexts.get(this);if(config?.hasRoll&&config.roll&&choice){config.roll.baseModifiers=[...(config.roll.baseModifiers??[]),{label:'Teleport — '+choice.label,value:choice.bonus}];config[ID]={...config[ID],teleport:{label:choice.label,bonus:choice.bonus}};}return config;};
+ Action.prototype.use=async function(...args){if(!teleportAction(this)||!this.actor.testUserPermission(game.user,'OWNER')||Number(this.remainingUses)<=0)return use.apply(this,args);const key=this.item.uuid;if(pending.has(key))return false;pending.add(key);try{const key=await ask(this.actor),choice=Object.hasOwn(TELEPORT_CHOICES,key??'')?TELEPORT_CHOICES[key]:null;if(!choice||!teleportAction(this)||!this.actor.testUserPermission(game.user,'OWNER')||Number(this.remainingUses)<=0)return false;contexts.set(this,choice);return await use.apply(this,args);}finally{contexts.delete(this);pending.delete(key);}};
+ Object.defineProperty(Action,WRAP,{value:true});
+}
+export function registerTeleport(){installTeleport(game.system.api.data.actions.actionsTypes.base);}
