@@ -1,8 +1,8 @@
 # Daggerheart Premade Reference
 
-How all 264 premades work by compendium
+How all 267 premades work by compendium
 
-Daggerheart Premades 0.4.41   |   Daggerheart 2.10.11   |   October 12 2026
+Daggerheart Premades 0.4.42   |   Daggerheart 2.10.13   |   October 22 2026
 
 This reference explains how each premade works at the table: what you activate, what triggers automatically, which choices and costs appear, and what remains manual. It covers every entry in the nine module compendiums. Upgrades have their own entries even when they only enhance another feature.
 
@@ -12,7 +12,7 @@ Weapon and Armor Features are an exception: apply Medkit to the actual equipment
 
 ## Compendium contents
 
-- [Class Features   16 premades](#class-features)
+- [Class Features   19 premades](#class-features)
 
 - [Subclass Features   102 premades](#subclass-features)
 
@@ -44,13 +44,19 @@ Successful-attack benefits use the final resolved outcome, including a miss chan
 
 ## Class Features
 
-16 premades
+19 premades
 
 ### Assassin
 
 #### Marked for Death
 
 After a successful weapon attack with exactly one hit adversary, the prompt offers marking 1 Stress to apply your mark before damage. A new mark replaces your previous one, not another Assassin’s. Damage against your marked target preselects the tier d4 bonus in Effects. Temporary-condition removal and any narrative benefits remain under normal table control.
+
+### Bard
+
+#### Rally
+
+Activate Rally to give yourself and every character in the active Party a Rally Die. The bard’s level determines everyone's die: d6, or d8 from level 5. Native roll choices handle using it on action rolls; the premade also consumes a die selected for damage and adds a temporary Clear Stress action. Spending the die removes its effect and temporary action. Unspent dice expire on session refresh; the native once-per-session use remains in place.
 
 ### Brawler
 
@@ -62,7 +68,17 @@ After successful Melee weapon damage against exactly one hit target, the prompt 
 
 Keeps the native Brawler’s Strike setup. Its +1 Evasion applies only when no weapon is equipped; equipping either a primary or secondary weapon suppresses that Evasion bonus automatically. An unequipped weapon in inventory does not suppress it. While no other weapon is equipped, Brawler’s Strike counts as your primary weapon for Forceful Push, Menacing Reach, and applicable weapon-attack features. Normal unarmed and Beastform attacks do not qualify. Each feature’s own range requirements still apply, and equipping a secondary weapon does not allow Brawler’s Strike to trigger Follow-Up.
 
+### Guardian
+
+#### Unstoppable
+
+Activate Become Unstoppable using its native once-per-long-rest action. The visible effect provides physical damage-severity reduction, immunity to Restrained and Vulnerable, and a damage bonus equal to the die’s current value. The die starts at 1, uses d4 (d6 from level 5), and advances once per damage roll that actually marks HP on a target. Reaching beyond the die’s maximum ends the effect and resets the counter. Scene refresh also ends it.
+
 ### Ranger
+
+#### Hold Them Off
+
+After a successful weapon attack, choose one or two additional adversaries within that weapon’s range and optionally spend 3 Hope. The original roll is compared against each new target; no second attack roll is made. Accepted targets join the same native damage workflow before automatic damage, or remain available for the chat card’s later Roll Damage and Deal Damage buttons. The picker highlights tokens to distinguish matching names. The GM must display the attack scene for range checks; decline spends nothing.
 
 #### Ranger's Focus
 

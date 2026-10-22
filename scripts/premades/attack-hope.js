@@ -5,9 +5,10 @@ import { VOLATILE_KEY } from './volatile-magic-data.js';
 import { WHIRLWIND_KEY } from './whirlwind-data.js';
 import { BLIGHTING_KEY } from './blighting-strike-data.js';
 import { DIRE_KEY } from './dire-strike-data.js';
+import { HOLD_KEY } from './hold-them-off-data.js';
 import { withHopeLock } from './hope-lock.js';
 import { attackBeneficiary } from '../companion-context.js';
-export function needsAttackHope(actor){return Boolean(crushingItem(actor))||actor?.items?.some(item=>{const f=item.flags?.[ID];return featureActive(item)&&!f?.disabled&&[TUSKS_KEY,VOLATILE_KEY,WHIRLWIND_KEY,BLIGHTING_KEY,DIRE_KEY].includes(f?.applied?.key??f?.premade?.key);});}
+export function needsAttackHope(actor){return Boolean(crushingItem(actor))||actor?.items?.some(item=>{const f=item.flags?.[ID];return featureActive(item)&&!f?.disabled&&[TUSKS_KEY,VOLATILE_KEY,WHIRLWIND_KEY,BLIGHTING_KEY,DIRE_KEY,HOLD_KEY].includes(f?.applied?.key??f?.premade?.key);});}
 export async function settleAttackHope(config){
  const actor=config.message?.system?.action?.actor??config.data?.parent;
  if(config.message?.system?.action?.type!=='attack'||!needsAttackHope(actor))return false;

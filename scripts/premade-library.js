@@ -263,7 +263,13 @@ import {ensureLuckbender} from "./premades/luckbender-data.js";
 import {ensureKick} from "./premades/kick-data.js";
 import {ensureUnshakeable} from "./premades/unshakeable-data.js";
 
+import {ensureRally} from './premades/rally-data.js';
+import {ensureUnstoppable} from './premades/unstoppable-data.js';
+import {ensureHoldThemOff} from './premades/hold-them-off-data.js';
 export const PREMADE_SEEDS=[
+  ensureRally,
+  ensureUnstoppable,
+  ensureHoldThemOff,
   ensureHallowedAura,
   ensureCelestialWings,
   ensureIncreasedFortitude,

@@ -1,4 +1,7 @@
 import {setupPremadeLibrary} from './premade-library.js';
+import {registerRally} from './premades/rally.js';
+import {registerUnstoppable} from './premades/unstoppable.js';
+import {registerHoldThemOff} from './premades/hold-them-off.js';
 import {ensureFolders} from './folders.js';
 import {registerRuthlessPredator} from './premades/ruthless-predator.js';
 import {registerElusivePredator} from './premades/elusive-predator.js';
@@ -661,6 +664,9 @@ Hooks.once('ready', async () => {
   registerSmite();
   registerArmorer();
   registerRousing();
+  registerRally();
+  registerUnstoppable();
+  registerHoldThemOff();
   if (game.user.isActiveGM) {
     try { await unlockPremadeRegions(); }
     catch (error) {

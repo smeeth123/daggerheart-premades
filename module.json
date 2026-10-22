@@ -8,10 +8,10 @@
       "name": "Smeeth"
     }
   ],
-  "version": "0.4.41",
+  "version": "0.4.42",
   "url": "https://github.com/smeeth123/daggerheart-premades",
   "manifest": "https://github.com/smeeth123/daggerheart-premades/releases/latest/download/module.json",
-  "download": "https://github.com/smeeth123/daggerheart-premades/releases/download/v0.4.41/daggerheart-premades.zip",
+  "download": "https://github.com/smeeth123/daggerheart-premades/releases/download/v0.4.42/daggerheart-premades.zip",
   "license": "LICENSE",
   "compatibility": {
     "minimum": "14",
