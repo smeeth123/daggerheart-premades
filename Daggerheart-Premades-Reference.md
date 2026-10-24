@@ -1,8 +1,8 @@
 # Daggerheart Premade Reference
 
-How all 267 premades work by compendium
+How all 266 premades work by compendium
 
-Daggerheart Premades 0.4.42   |   Daggerheart 2.10.13   |   October 22 2026
+Daggerheart Premades 0.4.44   |   Daggerheart 2.11.0   |   October 23 2026
 
 This reference explains how each premade works at the table: what you activate, what triggers automatically, which choices and costs appear, and what remains manual. It covers every entry in the nine module compendiums. Upgrades have their own entries even when they only enhance another feature.
 
@@ -26,7 +26,7 @@ Weapon and Armor Features are an exception: apply Medkit to the actual equipment
 
 - [Transformation Features   5 premades](#transformation-features)
 
-- [Weapon Features   19 premades](#weapon-features)
+- [Weapon Features   18 premades](#weapon-features)
 
 - [Armor Features   10 premades](#armor-features)
 
@@ -1180,7 +1180,9 @@ When you mark HP, offer marking 1 Stress to enter a visible Wolf Form with +1d10
 
 ## Weapon Features
 
-19 premades
+18 premades
+
+Versatile is handled natively in Daggerheart 2.11 and no longer needs Medkit. Existing module-managed weapons are handed over automatically when the GM loads the world, retaining their current mode and saved statistics. Use the native weapon toggle. Custom alternate formulas that native Versatile cannot represent are preserved and reported for manual review.
 
 Medkit the supported weapon and equip it for attack automation. Native-property entries also support custom weapons carrying that native property; Versatile, Piercing, and Otherworldly instead match their specifically supported weapons. These are equipment integrations, not replacements for similarly named class or subclass abilities. Only one weapon-property premade can currently be applied to a weapon.
 
@@ -1251,12 +1253,6 @@ Supports the Enchanted Chakram series and weapons with native Ricochet. After co
 #### Scary
 
 After a successful weapon attack resolves, every successfully hit actor automatically marks 1 Stress once for that attack. Final rerolls and miss-to-hit conversions count; multiple tokens of one actor do not duplicate the mark. Normal Stress prevention and capped tracks apply. There is no attacker cost or activation, and this is separate from Beastform Scary.
-
-#### Versatile
-
-After Medkit, right-click the weapon on the character sheet and choose Switch to Alternate Mode or Switch to Primary Mode. Switching is free and changes the weapon’s actual trait, range, and damage statistics. Original statistics and deliberate edits in either mode are retained. Attacks already posted to chat keep the damage statistics of the mode used for that attack, even if you switch before clicking Roll Damage. Disabling the premade hides the toggle without resetting the current mode.
-
-Supports all four Scepter, Whipsword, and Casting Dagger tiers, plus Casting Sword, Spiked Bow, Hand Sling, Gunblade, and War Dart: 17 weapons. Medkit appends the weapon-specific alternate statistics to its description.
 
 #### Volleyed
 

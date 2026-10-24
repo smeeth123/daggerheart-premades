@@ -1,3 +1,4 @@
+import {damageOptions,damageCallOptions} from '../damage-options.js';
 import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import {ID,featureActive} from '../core.js';
 import {timedDialog} from '../dialog.js';
@@ -70,7 +71,7 @@ export async function resolveBeetlesDamage(request,{user}){
   const actor=await fromUuid(request.actorUuid),sourceUuid=retributionSource(request.packet),source=sourceUuid?await fromUuid(sourceUuid):null;
   if(actor?.type!=='character'||(!user.isGM&&!actor.testUserPermission(user,'OWNER')&&!source?.testUserPermission(user,'OWNER'))||!bulkyDamagePacket(request.packet))return null;
   const key=`${user.id}:${request.id}`,signature=JSON.stringify(request),prior=requests.get(key);if(prior)return prior.signature===signature?prior.operation:null;
-  const operation=actor.takeDamage(request.packet,request.isDirect);requests.set(key,{signature,operation});if(requests.size>512)requests.delete(requests.keys().next().value);return operation;
+  const operation=actor.takeDamage(request.packet,damageCallOptions(request));requests.set(key,{signature,operation});if(requests.size>512)requests.delete(requests.keys().next().value);return operation;
 }
 export async function replaceBeetles(effect){
   const actor=effect.parent;
@@ -91,7 +92,7 @@ export function installBeetlesDamage(Actor,dispatch,ask=promptBeetles){
     if(!bulkyDamagePacket(packet)||!beetlesEffects(this).length)return native.call(this,packet,...args);
     const ids=[];for(const effect of beetlesEffects(this))if(await validBeetles(effect))ids.push(effect.id);
     if(!ids.length)return native.call(this,packet,...args);
-    if(!game.user.isActiveGM)return dispatch({id:foundry.utils.randomID(),actorUuid:this.uuid,packet:bulkyDamagePacket(packet),isDirect:Boolean(args[0])});
+    if(!game.user.isActiveGM)return dispatch({id:foundry.utils.randomID(),actorUuid:this.uuid,packet:bulkyDamagePacket(packet),...damageOptions(args[0])});
     return withHopeLock(`beetles-damage:${this.uuid}`,async()=>{
       const current=(await capturedEffects(this,beetlesEffects(this).map(effect=>effect.id))).map(effect=>effect.id);
       if(!current.length)return native.call(this,packet,...args);

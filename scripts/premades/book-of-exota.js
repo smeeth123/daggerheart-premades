@@ -1,3 +1,4 @@
+import {damageOptions,damageCallOptions} from '../damage-options.js';
 import {ID,featureActive} from '../core.js';
 import {sourceToken} from './hallowed-aura.js';
 import {withHopeLock} from './hope-lock.js';
@@ -46,7 +47,7 @@ export async function resolveConstruct(request,{user}){
  if(!game.user.isActiveGM||!user?.active||typeof request?.casterUuid!=='string')return false;const caster=await fromUuid(request.casterUuid);if(!caster)return false;
  if(request.op==='damage'){const actor=await fromUuid(request.actorUuid),f=info(actor),sourceUuid=retributionSource(request.packet),source=sourceUuid&&await fromUuid(sourceUuid);
   if(f?.casterUuid!==caster.uuid||!generation(request.id)||typeof request.isDirect!=='boolean'||!bulkyDamagePacket(request.packet)||!user.isGM&&!actor?.testUserPermission(user,'OWNER')&&!source?.testUserPermission(user,'OWNER'))return null;
-  const k=user.id+':'+request.id,sig=JSON.stringify(request),old=requests.get(k);if(old)return old.sig===sig?old.promise:null;const promise=actor.takeDamage(request.packet,request.isDirect);requests.set(k,{sig,promise});if(requests.size>512)requests.delete(requests.keys().next().value);return promise;
+  const k=user.id+':'+request.id,sig=JSON.stringify(request),old=requests.get(k);if(old)return old.sig===sig?old.promise:null;const promise=actor.takeDamage(request.packet,damageCallOptions(request));requests.set(k,{sig,promise});if(requests.size>512)requests.delete(requests.keys().next().value);return promise;
  }
  if(!caster.testUserPermission(user,'OWNER'))return false;if(request.op==='clear')return clearConstructs(caster.uuid,request.generations);
  const item=exotaItem(caster);if(request.op!=='summon'||!generation(request.id)||item?.uuid!==request.itemUuid||typeof request.originUuid!=='string'||typeof request.sceneId!=='string')return false;
@@ -68,7 +69,7 @@ export function installConstructDamage(Actor,send){if(!Actor||Object.hasOwn(Acto
  Hooks.on('daggerheart.preTakeDamage',(actor,parsed)=>{const c=captures.get(actor);if(c&&!c.parsed)c.parsed=parsed;});
  Hooks.on('daggerheart.postCalculateDamage',(actor,parsed)=>{const c=captures.get(actor);if(c?.parsed===parsed)c.positive=Number(parsed.main?.value)>0;});
  Actor.prototype.takeDamage=async function(packet,...args){const f=info(this);if(!generation(f?.generation)||!bulkyDamagePacket(packet))return native.call(this,packet,...args);
-  if(!game.user.isActiveGM)return send({op:'damage',id:foundry.utils.randomID(),casterUuid:f.casterUuid,actorUuid:this.uuid,packet:bulkyDamagePacket(packet),isDirect:Boolean(args[0])});
+  if(!game.user.isActiveGM)return send({op:'damage',id:foundry.utils.randomID(),casterUuid:f.casterUuid,actorUuid:this.uuid,packet:bulkyDamagePacket(packet),...damageOptions(args[0])});
   return withHopeLock('exota-damage:'+this.uuid,async()=>{const captured={parsed:null,positive:false},old=captures.get(this);captures.set(this,captured);let result;try{result=await absorbingWrites(this,()=>native.call(this,packet,...args));}finally{if(old)captures.set(this,old);else captures.delete(this);}
    if(captured.positive&&Array.isArray(result)&&result.some(r=>r.key==='hitPoints'&&!r.clear&&!r.itemId&&Number.isFinite(r.value)&&r.value>=0))try{await clearConstructs(f.casterUuid,[f.generation]);}catch(error){ui.notifications.error('Construct damage was preserved; remove the summon manually: '+error.message);}return result;});
  };Object.defineProperty(Actor,DAMAGE,{value:true});}

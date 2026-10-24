@@ -1,3 +1,4 @@
+import {damageOptions,damageCallOptions} from '../damage-options.js';
 import {ID,featureActive} from '../core.js';
 import {FRIEND_KEY,FRIEND_ACTION} from './loyal-friend-data.js';
 import {companionPartner,linkedCompanion} from '../companion-context.js';
@@ -44,7 +45,7 @@ export async function resolveFriend(request,{user},ask=promptFriend){
  });if(!spent)return false;
  const redirected=redirectedLoyalPacket(packet,target,pair.recipient);
  // Redirect marker also prevents other redirection abilities from bouncing the attack back.
- await pair.recipient.takeDamage(redirected,Boolean(request.isDirect));
+ await pair.recipient.takeDamage(redirected,damageCallOptions(request));
  await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:pair.ranger}),content:`<p><strong>Loyal Friend</strong>: ${esc(pair.recipient.name)} takes the attack’s damage instead of ${esc(target.name)}. Move the protecting token to their side.</p>`});
  return true;
 }
@@ -55,7 +56,7 @@ export function installLoyalFriend(Actor,offer){
   if(!packet?.main.options?.[ID]?.friendAttack)return damage.call(this,args,...rest);
   const ranger=companionPartner(this)??this;if(!friendItem(ranger))return damage.call(this,args,...rest);
   const run=async()=>{
-   const request={targetUuid:this.uuid,packet,isDirect:Boolean(rest[0])};
+   const request={targetUuid:this.uuid,packet,...damageOptions(rest[0])};
    if(this.type==='companion'){
     if(friendPair(this,1)&&await offer({...request,count:1}))return [];
     return damage.call(this,args,...rest);

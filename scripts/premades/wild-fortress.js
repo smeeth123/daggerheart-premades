@@ -1,3 +1,4 @@
+import {damageOptions,damageCallOptions} from '../damage-options.js';
 import {ID,featureActive} from '../core.js';
 import {timedDialog} from '../dialog.js';
 import {sourceToken} from './hallowed-aura.js';
@@ -65,7 +66,7 @@ export async function resolveFortress(request,{user},ask=pickFortressAlly){
  if(request?.op==='damage'){
   if(!/^\w{16}$/.test(request.id??'')||typeof request.isDirect!=='boolean')return null;const actor=await fromUuid(request.actorUuid),packet=bulkyDamagePacket(request.packet),sourceUuid=retributionSource(packet),source=sourceUuid?await fromUuid(sourceUuid):null;
   if(!fortressDome(actor)||!packet||!user.isGM&&!actor.testUserPermission(user,'OWNER')&&!source?.testUserPermission(user,'OWNER'))return null;
-  const key=user.id+':'+request.id,sig=JSON.stringify(request),old=requests.get(key);if(old)return old.sig===sig?old.promise:null;const promise=actor.takeDamage(packet,request.isDirect);requests.set(key,{sig,promise});if(requests.size>512)requests.delete(requests.keys().next().value);return promise;
+  const key=user.id+':'+request.id,sig=JSON.stringify(request),old=requests.get(key);if(old)return old.sig===sig?old.promise:null;const promise=actor.takeDamage(packet,damageCallOptions(request));requests.set(key,{sig,promise});if(requests.size>512)requests.delete(requests.keys().next().value);return promise;
  }
  if(request?.op!=='cast'||typeof request.messageUuid!=='string')return false;
  const message=await fromUuid(request.messageUuid),source=message?.system?.source,caster=source?.actor?await fromUuid(source.actor):null,item=caster?.items?.get?.(source?.item),proof=message?.flags?.[ID]?.wildFortressOrigin;
@@ -104,7 +105,7 @@ export function installFortressDamage(ActorClass,send=dispatch){if(Object.hasOwn
  const modify=ActorClass.prototype.modifyResource;if(typeof modify==='function')ActorClass.prototype.modifyResource=function(rows,...args){const f=fortressInfo(this);if(f?.actorUuid===this.uuid&&f.stage==='ready'&&Array.isArray(rows))for(let i=rows.length-1;i>=0;i--)if(rows[i].key==='stress'&&!rows[i].itemId)rows.splice(i,1);return modify.call(this,rows,...args);};
  // A barricade has no Stress. Native zero-Stress adversaries otherwise turn
  // any Stress row into extra HP through convertStressDamageToHP.
- ActorClass.prototype.takeDamage=async function(packet,...args){if(!fortressDome(this)||!bulkyDamagePacket(packet))return take.call(this,packet,...args);if(!game.user.isActiveGM){const result=await send({op:'damage',id:foundry.utils.randomID(),actorUuid:this.uuid,packet:bulkyDamagePacket(packet),isDirect:Boolean(args[0])});if(result===null)throw Error('Dome damage coordination was rejected.');return result;}
+ ActorClass.prototype.takeDamage=async function(packet,...args){if(!fortressDome(this)||!bulkyDamagePacket(packet))return take.call(this,packet,...args);if(!game.user.isActiveGM){const result=await send({op:'damage',id:foundry.utils.randomID(),actorUuid:this.uuid,packet:bulkyDamagePacket(packet),...damageOptions(args[0])});if(result===null)throw Error('Dome damage coordination was rejected.');return result;}
   const result=await withHopeLock('fortress-damage:'+this.uuid,()=>absorbingWrites(this,()=>take.call(this,packet,...args)));try{await syncFortressHP(this);}catch(e){warn(e);}return result;
  };Object.defineProperty(ActorClass,DAMAGE,{value:true});}
 export function registerFortress(){CONFIG.queries[QUERY]=resolveFortress;CONFIG.queries[PICK]=pickFortressAlly;CONFIG.queries[FORTRESS_PAYMENT]=resolveFortressPayment;installFortressCast(game.system.api.data.actions.actionsTypes.base);installFortressDamage(CONFIG.Actor.documentClass);installFortressAttacks(game.system.api.data.actions.actionsTypes.base,CONFIG.Actor.documentClass,game.system.api.fields.ActionFields,CONFIG.ChatMessage.documentClass??ChatMessage);for(const Model of new Set([CONFIG.ChatMessage.dataModels.damageRoll,CONFIG.ChatMessage.dataModels.dualityRoll,CONFIG.ChatMessage.dataModels.adversaryRoll]))installFortressChatTargets(Model);

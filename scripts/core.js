@@ -26,16 +26,22 @@ export const metadata = item => item.flags?.[ID]?.premade;
 export const supported = item => ['feature', 'domainCard', 'weapon', 'armor'].includes(item.type);
 export const weaponPremade = item => metadata(item)?.category === 'weapon-features';
 export const armorPremade = item => metadata(item)?.category === 'armor-features';
+// Prepared v2 data retains deprecated array getters; toObject()/compendium
+// sources in 2.11 contain only the canonical configurable feature dictionary.
+export function equipmentFeatures(item,legacyKey){
+ const system=item?.system;
+ return system?.[legacyKey]??Object.values(system?.itemFeatures??{});
+}
 export function armorMatches(target,source){
   const meta=metadata(source);
-  return target.type==='armor'&&armorPremade(source)&&target.system?.armorFeatures?.some(feature=>feature.value===meta.armorFeature);
+  return target.type==='armor'&&armorPremade(source)&&equipmentFeatures(target,'armorFeatures').some(feature=>feature.value===meta.armorFeature);
 }
 export function weaponMatches(target, source) {
   const meta = metadata(source);
   const profiles=meta?.weaponProfiles??meta?.weaponItems;
   return target.type === 'weapon' && weaponPremade(source) &&
     (profiles ? Boolean(weaponModeProfile(target,profiles)) :
-      target.system?.weaponFeatures?.some(feature => feature.value === meta.weaponFeature));
+      equipmentFeatures(target,'weaponFeatures').some(feature => feature.value === meta.weaponFeature));
 }
 export function featureActive(item) {
   if (item.system?.inactive) return false;

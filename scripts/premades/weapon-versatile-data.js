@@ -1,4 +1,5 @@
 import {ID,clone} from '../core.js';
+import {nativeVersatile,retireNativeVersatile} from '../native-versatile.js';
 import {VERSATILE_PROFILES} from '../weapon-modes.js';
 import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 export const WEAPON_VERSATILE_KEY='weapon-versatile';
@@ -12,6 +13,7 @@ export function weaponVersatileData(){
     flags:{[ID]:{premade:{key:WEAPON_VERSATILE_KEY,version:'1.0.1',category:'weapon-features',weaponProfiles:clone(VERSATILE_PROFILES),aliases:[],sourceUuids:[]}}}};
 }
 export async function ensureWeaponVersatile(){
+  if(nativeVersatile())return retireNativeVersatile();
   const pack=game.packs.get(`${ID}.weapon-features`);
   if(!pack)throw Error('The Weapon Features compendium is missing. Restart Foundry after installation.');
   const existing=(await premadeDocuments(pack)).find(item=>item.getFlag(ID,'premade')?.key===WEAPON_VERSATILE_KEY);

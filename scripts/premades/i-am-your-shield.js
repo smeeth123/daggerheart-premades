@@ -1,3 +1,4 @@
+import {damageOptions,damageCallOptions} from '../damage-options.js';
 import {ID,featureActive} from '../core.js';
 import {decisionNow} from '../decision-clock.js';
 import {decisionBudget} from '../settings.js';
@@ -84,7 +85,7 @@ export async function resolveShield(request,{user},ask=promptShield){
         const redirected=redirectedLoyalPacket(packet,target,fresh.actor);
         redirected.main.options[ID].shieldDamageContext=id;
         try{
-          await fresh.actor.takeDamage(redirected,Boolean(request.isDirect));
+          await fresh.actor.takeDamage(redirected,damageCallOptions(request));
         }catch(error){
           ui.notifications.error('I Am Your Shield failed after Stress was paid. Check the protector’s damage and resources before retrying.');throw error;
         }finally{armorContexts.delete(id);}
@@ -136,7 +137,7 @@ export function installShield(Actor,dispatch){
   Actor.prototype.takeDamage=async function(args,...rest){
     const packet=shieldPacket(args);
     if(packet&&shieldCandidates(this).length&&this.calculateDamage(packet.main.total,packet.main.options.damageTypes??[])>0){
-      const result=await dispatch({id:foundry.utils.randomID(),targetUuid:this.uuid,packet,isDirect:Boolean(rest[0]),deadline:decisionNow()+decisionBudget(300000)});
+      const result=await dispatch({id:foundry.utils.randomID(),targetUuid:this.uuid,packet,...damageOptions(rest[0]),deadline:decisionNow()+decisionBudget(300000)});
       if(result?.redirected)return [];
     }
     const raw=args?.main??args?.damage??args,id=raw?.options?.[ID]?.shieldDamageContext;

@@ -1,3 +1,4 @@
+import {damageOptions,damageCallOptions} from '../damage-options.js';
 import {ID,featureActive} from '../core.js';
 import {timedDialog} from '../dialog.js';
 import {decisionNow} from '../decision-clock.js';
@@ -64,14 +65,14 @@ export async function resolveThornDamage(request,{user}){
  const key=user.id+':'+request.id,sig=JSON.stringify(request),old=requests.get(key);if(old)return old.sig===sig?old.promise:null;
  const promise=(async()=>{const actor=await fromUuid(request.actorUuid),packet=bulkyDamagePacket(request.packet),sourceUuid=retributionSource(packet),source=sourceUuid?await fromUuid(sourceUuid):null;
   if(!actor||!packet||!thornItem(actor)||!user.isGM&&!actor.testUserPermission(user,'OWNER')&&!source?.testUserPermission(user,'OWNER'))return null;
-  return actor.takeDamage(packet,request.isDirect);
+  return actor.takeDamage(packet,damageCallOptions(request));
  })();requests.set(key,{sig,promise});if(requests.size>512)requests.delete(requests.keys().next().value);return promise;
 }
 export function installThorn(Actor,send,ask=promptThorn,rollDice){
  if(Object.hasOwn(Actor,WRAP))return;const native=Actor.prototype.takeDamage;
  Actor.prototype.takeDamage=async function(packet,...args){
   const normalized=bulkyDamagePacket(packet);if(!normalized||!thornTokens(thornItem(this)))return native.call(this,packet,...args);
-  if(!game.user.isActiveGM){const result=await send({id:foundry.utils.randomID(),actorUuid:this.uuid,packet:normalized,isDirect:Boolean(args[0])});if(result===null)throw Error('Thorn Skin damage coordination failed. Review the pending damage.');return result;}
+  if(!game.user.isActiveGM){const result=await send({id:foundry.utils.randomID(),actorUuid:this.uuid,packet:normalized,...damageOptions(args[0])});if(result===null)throw Error('Thorn Skin damage coordination failed. Review the pending damage.');return result;}
   let paid;
   const result=await withHopeLock('thorn-damage:'+this.uuid,async()=>{
    paid=await offerThorn(this,normalized,ask,rollDice);if(!paid)return native.call(this,packet,...args);

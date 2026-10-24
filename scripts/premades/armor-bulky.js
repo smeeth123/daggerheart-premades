@@ -1,3 +1,4 @@
+import {damageOptions,damageCallOptions} from '../damage-options.js';
 import {ID,featureActive} from '../core.js';
 import {withHopeLock} from './hope-lock.js';
 import {decisionBudget} from '../settings.js';
@@ -32,7 +33,7 @@ export async function resolveBulkyDamage(request,{user}){
   if(!user.isGM&&!actor.testUserPermission(user,'OWNER')&&!source?.testUserPermission(user,'OWNER'))return null;
   const key=`${actor.uuid}:${user.id}:${request.id}`;
   if(receipts.has(key))return receipts.get(key);
-  const operation=actor.takeDamage(packet,request.isDirect);
+  const operation=actor.takeDamage(packet,damageCallOptions(request));
   receipts.set(key,operation);if(receipts.size>1000)receipts.delete(receipts.keys().next().value);
   return operation;
 }
@@ -63,7 +64,7 @@ export function installArmorBulky(Actor,dispatch){
   Actor.prototype.takeDamage=async function(packet,...args){
     const armor=bulkyArmor(this),damage=armor&&bulkyDamagePacket(packet);
     if(!damage)return native.call(this,packet,...args);
-    if(!game.user.isGM)return dispatch({actorUuid:this.uuid,packet:damage,isDirect:Boolean(args[0]),id:foundry.utils.randomID()});
+    if(!game.user.isGM)return dispatch({actorUuid:this.uuid,packet:damage,...damageOptions(args[0]),id:foundry.utils.randomID()});
     return withHopeLock(`bulkyDamage:${this.uuid}`,async()=>{
       const context=[];contexts.set(this,context);
       try{

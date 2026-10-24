@@ -1,4 +1,5 @@
 import {setupPremadeLibrary} from './premade-library.js';
+import {installDamageOptions} from './damage-options.js';
 import {registerRally} from './premades/rally.js';
 import {registerUnstoppable} from './premades/unstoppable.js';
 import {registerHoldThemOff} from './premades/hold-them-off.js';
@@ -387,8 +388,9 @@ Hooks.on('getHeaderControlsApplicationV2', (app, controls) => {
 Hooks.once('ready', async () => {
   if (game.system.id !== 'daggerheart') return;
   registerRollResolverCompat();
+  installDamageOptions(CONFIG.Actor.documentClass);
   registerWeaponQuick();
-  registerWeaponVersatile();
+  await registerWeaponVersatile();
   registerWeaponPiercing();
   registerChainsDamage();
   registerWeaponDeadly();

@@ -109,6 +109,7 @@ export function createWingsDialog(Base) {
       dhpNewMoon: function() { return this.toggleNewMoon(); }
     } };
     constructor(...args) {
+      if(Base.length>=6&&args.length===5)args.splice(3,0,null);
       super(...args);
       this.newMoonBaseDamageInfo = this.getDamageInfo.bind(this);
       this.getDamageInfo = () => {
@@ -255,8 +256,10 @@ export function registerCelestialWings() {
     if (!actor?.isOwner) return originalQuery.call(this, data, ...args);
     const shield = await shieldArmorFor(data);
     if (!(shield || eligibleWings(actor) || eligibleStable(actor) || eligibleNewMoon(actor) || unyieldingItem(actor) || resilientArmor(actor))) return originalQuery.call(this, data, ...args);
+    const action=data.actionUuid?await fromUuid(data.actionUuid):null;
+    const modern=typeof actor.getActionClone==='function';
     return new Promise((resolve, reject) => {
-      const dialog = new WingsDialog(resolve, reject, actor, data.damage, data.type);
+      const dialog = modern?new WingsDialog(resolve,reject,actor,action,data.damage,data.type):new WingsDialog(resolve,reject,actor,data.damage,data.type);
       if (shield) configureShieldArmor(dialog, shield);
       dialog.render({ force: true });
     });

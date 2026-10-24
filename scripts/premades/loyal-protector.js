@@ -1,3 +1,4 @@
+import {damageOptions,damageCallOptions} from '../damage-options.js';
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import {ID,featureActive} from '../core.js';
@@ -51,7 +52,7 @@ export async function resolveLoyal(request,{user},ask=promptLoyal){
    const accepted=owner.isSelf?await ask(data,{user:game.user}):await owner.query(PROMPT,data,{timeout:decisionBudget(65000)});
    if(!accepted||!await markReactiveStress(bearer.uuid,a=>loyalItem(a)&&loyalCandidates(target).some(b=>b.uuid===a.uuid)))continue;
    await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:bearer}),content:`<p><strong>Loyal Protector</strong>: ${esc(bearer.name)} marks 1 Stress and takes ${esc(target.name)}’s damage. Move ${esc(bearer.name)} to their side.</p>`});
-   const updates=await bearer.takeDamage(redirectedLoyalPacket(packet,target,bearer),Boolean(request.isDirect));
+   const updates=await bearer.takeDamage(redirectedLoyalPacket(packet,target,bearer),damageCallOptions(request));
    const hpMarked=updates?.filter(u=>u.key==='hitPoints'&&!u.clear&&!u.itemId).reduce((sum,u)=>sum+Number(u.value??0),0)??0;
    await ChatMessage.create({speaker:ChatMessage.getSpeaker({actor:bearer}),content:`<p><strong>Loyal Protector</strong>: ${esc(bearer.name)} marks ${hpMarked} HP after damage reduction; ${esc(target.name)} takes none of this damage.</p>`});
    return true;
@@ -60,7 +61,7 @@ export async function resolveLoyal(request,{user},ask=promptLoyal){
 }
 export function installLoyalProtector(Actor,offer){const native=Actor.prototype.takeDamage;Actor.prototype.takeDamage=async function(args,...rest){
  const packet=loyalPacket(args);
- if(packet&&loyalCandidates(this).length&&this.calculateDamage(Number(packet.main.total),packet.main.options?.damageTypes??[])>0&&await offer({id:foundry.utils.randomID(),targetUuid:this.uuid,packet,isDirect:Boolean(rest[0])}))return [];
+ if(packet&&loyalCandidates(this).length&&this.calculateDamage(Number(packet.main.total),packet.main.options?.damageTypes??[])>0&&await offer({id:foundry.utils.randomID(),targetUuid:this.uuid,packet,...damageOptions(rest[0])}))return [];
  return native.call(this,args,...rest);
 };}
 export function registerLoyalProtector(){

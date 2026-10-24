@@ -1,3 +1,4 @@
+import {damageOptions,damageCallOptions} from '../damage-options.js';
 import {ID,featureActive} from '../core.js';
 import {attackTargetOutcome,resolvedAttackTargets} from '../attack-outcome.js';
 import {companionPartner} from '../companion-context.js';
@@ -136,7 +137,7 @@ export async function resolveRetributionDamage(request,{user}){
   if(!victim||!packet||!source||!user.isGM&&!victim.testUserPermission(user,'OWNER')&&!source.testUserPermission(user,'OWNER')&&!companionPartner(victim)?.testUserPermission(user,'OWNER'))return null;
   const key=`${user.id}:${request.id}:${victim.uuid}`,signature=JSON.stringify(request),prior=receipts.get(key);
   if(prior)return prior.signature===signature?prior.operation:null;
-  const operation=victim.takeDamage(packet,request.isDirect);receipts.set(key,{signature,operation});if(receipts.size>512)receipts.delete(receipts.keys().next().value);return operation;
+  const operation=victim.takeDamage(packet,damageCallOptions(request));receipts.set(key,{signature,operation});if(receipts.size>512)receipts.delete(receipts.keys().next().value);return operation;
 }
 export async function reactToCommittedDamage(victim,source){if(!game.user.isActiveGM||!source)return false;return offerRetribution(victim,source,retributionCandidates(victim,source));}
 export function installRetribution(Actor,Damage,dispatch,ask=promptRetribution,run=runRetribution,pay=request=>payRetribution(request,{user:game.user})){
@@ -163,7 +164,7 @@ export function installRetribution(Actor,Damage,dispatch,ask=promptRetribution,r
     const sourceUuid=retributionSource(packet),source=sourceUuid?await fromUuid(sourceUuid):null;
     const captured=source&&bulkyDamagePacket(packet)?retributionCandidates(this,source):[];
     if(!captured.length)return native.call(this,packet,...args);
-    if(!game.user.isActiveGM)return dispatch({id:foundry.utils.randomID(),victimUuid:this.uuid,packet:bulkyDamagePacket(packet),isDirect:Boolean(args[0])});
+    if(!game.user.isActiveGM)return dispatch({id:foundry.utils.randomID(),victimUuid:this.uuid,packet:bulkyDamagePacket(packet),...damageOptions(args[0])});
     const result=await withHopeLock(`retribution-damage:${this.uuid}`,async()=>{
       const key=this.type==='companion'?'stress':'hitPoints',before=Number(this.system?.resources?.[key]?.value);
       const prior=Object.getOwnPropertyDescriptor(this,'update'),update=this.update,pending=[];

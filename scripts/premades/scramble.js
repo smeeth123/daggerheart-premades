@@ -1,3 +1,4 @@
+import {damageOptions,damageCallOptions} from '../damage-options.js';
 import {ID,featureActive} from '../core.js';
 import {timedDialog} from '../dialog.js';
 import {decisionNow} from '../decision-clock.js';
@@ -59,14 +60,14 @@ export async function resolveScrambleDamage(request,{user}){
  const key=`${user.id}:${request.id}`,signature=JSON.stringify(request),prior=receipts.get(key);if(prior)return prior.signature===signature?prior.promise:null;
  const promise=(async()=>{const actor=await fromUuid(request.actorUuid),packet=bulkyDamagePacket(request.packet),sourceUuid=retributionSource(packet),source=typeof sourceUuid==='string'?await fromUuid(sourceUuid):null;
   if(!game.user.isActiveGM||!user.active||!scrambleItem(actor)||!packet||(!user.isGM&&!actor.testUserPermission(user,'OWNER')&&!source?.testUserPermission(user,'OWNER')))return null;
-  return actor.takeDamage(packet,request.isDirect);
+  return actor.takeDamage(packet,damageCallOptions(request));
  })();receipts.set(key,{signature,promise});if(receipts.size>512)receipts.delete(receipts.keys().next().value);return promise;
 }
 export function installScramble(Actor,dispatch,ask=promptScramble){
  if(Object.hasOwn(Actor,WRAPPED))return;const native=Actor.prototype.takeDamage;
  Actor.prototype.takeDamage=async function(packet,...args){
   if(!scrambleAvailable(this)||!bulkyDamagePacket(packet)||!retributionSource(packet))return native.call(this,packet,...args);
-  if(!game.user.isActiveGM){const result=await dispatch({id:foundry.utils.randomID(),actorUuid:this.uuid,packet:bulkyDamagePacket(packet),isDirect:Boolean(args[0])});if(result===null)throw Error('Scramble damage coordination failed. Check the pending damage before continuing.');return result;}
+  if(!game.user.isActiveGM){const result=await dispatch({id:foundry.utils.randomID(),actorUuid:this.uuid,packet:bulkyDamagePacket(packet),...damageOptions(args[0])});if(result===null)throw Error('Scramble damage coordination failed. Check the pending damage before continuing.');return result;}
   return withHopeLock(`scramble-damage:${this.uuid}`,async()=>await offerScramble(this,packet,ask)?[]:native.call(this,packet,...args));
  };Object.defineProperty(Actor,WRAPPED,{value:true});
 }

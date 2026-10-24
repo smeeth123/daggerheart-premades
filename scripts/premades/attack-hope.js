@@ -20,8 +20,11 @@ export async function settleAttackHope(config){
   const resource=target.system.resources?.hope;
   if(!resource||!Number.isFinite(Number(resource.value))||!Number.isFinite(Number(resource.max)))return false;
   const next=Math.min(Number(resource.max),Number(resource.value)+hope.value);
-  const updated=await target.update({'system.resources.hope.value':next});
-  if(!updated)throw new Error('Could not apply the completed attack’s Hope reward.');
+  // A capped reward is resolved without a write: Foundry may return no document for a no-op update.
+  if(next!==Number(resource.value)){
+   const updated=await target.update({'system.resources.hope.value':next});
+   if(!updated)throw new Error('Could not apply the completed attack’s Hope reward.');
+  }
   // The action later commits the remaining resources; never award this Hope twice.
   updates.delete('hope');return true;
  });

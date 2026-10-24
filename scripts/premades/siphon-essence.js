@@ -1,3 +1,4 @@
+import {damageOptions,damageCallOptions} from '../damage-options.js';
 import {ID,featureActive} from '../core.js';
 import {attackHitTargets} from '../attack-outcome.js';
 import {faceYourFearAttack} from './face-your-fear.js';
@@ -98,7 +99,7 @@ export async function resolveSiphonDamage(request,{user}){
   if(!context||!user.isGM&&!context.actor.testUserPermission(user,'OWNER')&&!target.testUserPermission(user,'OWNER'))return null;
   const key=`${user.id}:${request.id}:${target.uuid}`,signature=JSON.stringify(request),prior=requests.get(key);
   if(prior)return prior.signature===signature?prior.operation:null;
-  const operation=target.takeDamage(packet,request.isDirect);requests.set(key,{signature,operation});if(requests.size>512)requests.delete(requests.keys().next().value);return operation;
+  const operation=target.takeDamage(packet,damageCallOptions(request));requests.set(key,{signature,operation});if(requests.size>512)requests.delete(requests.keys().next().value);return operation;
 }
 export function installSiphonEssence(Damage,Actor,dispatch){
   if(!Object.hasOwn(Damage,DAMAGE)){
@@ -113,7 +114,7 @@ export function installSiphonEssence(Damage,Actor,dispatch){
   Actor.prototype.takeDamage=async function(packet,...args){
     if(!siphonPacketSource(packet)||!bulkyDamagePacket(packet))return native.call(this,packet,...args);
     const context=await packetContext(packet,this);if(!context)return native.call(this,packet,...args);
-    if(!game.user.isActiveGM)return dispatch({id:foundry.utils.randomID(),targetUuid:this.uuid,packet:bulkyDamagePacket(packet),isDirect:Boolean(args[0])});
+    if(!game.user.isActiveGM)return dispatch({id:foundry.utils.randomID(),targetUuid:this.uuid,packet:bulkyDamagePacket(packet),...damageOptions(args[0])});
     const completed=await withHopeLock(`siphon-damage:${this.uuid}`,async()=>{
       const before=Number(this.system.resources?.hitPoints?.value),result=await settledWrites(this,()=>native.call(this,packet,...args));
       return {result,hp:siphonHpMarked(this,result,before)};

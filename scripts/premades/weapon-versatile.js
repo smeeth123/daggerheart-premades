@@ -1,4 +1,5 @@
 import {ID,clone,equal,featureActive} from '../core.js';
+import {nativeVersatile,migrateNativeVersatile} from '../native-versatile.js';
 import {weaponModeProfile} from '../weapon-modes.js';
 import {WEAPON_VERSATILE_KEY} from './weapon-versatile-data.js';
 
@@ -108,7 +109,13 @@ export function addWeaponModeContextOptions(app,options){
     });
   }
 }
-export function registerWeaponVersatile(){
+export async function registerWeaponVersatile(){
+  if(nativeVersatile()){
+    await migrateNativeVersatile();
+    Hooks.on('createItem',item=>migrateNativeVersatile([item]));
+    Hooks.on('createActor',actor=>migrateNativeVersatile([...(actor.items??[])]));
+    installWeaponModeDamage(game.system.api.fields.ActionFields.DamageField,CONFIG.ChatMessage.documentClass);return;
+  }
   CONFIG.queries[QUERY]=resolveWeaponMode;
   Hooks.on('getCharacterSheetContextOptions',addWeaponModeContextOptions);
   Hooks.on('daggerheart.preUseAction',captureWeaponMode);

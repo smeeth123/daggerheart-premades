@@ -1,3 +1,4 @@
+import {damageOptions,damageCallOptions} from '../damage-options.js';
 import {isHopePaymentCancellation,hopeCapacity,spendHope,refundHope} from './hope-payment.js';
 import {ID,featureActive} from '../core.js';
 import {timedDialog} from '../dialog.js';
@@ -79,7 +80,7 @@ export async function resolveFerocityDamage(request,{user}){
   const target=await fromUuid(request.targetUuid),source=ferocityPacketSource(request.packet),actor=source?.actorUuid?await fromUuid(source.actorUuid):null;
   if(target?.type!=='adversary'||!actor||(!user.isGM&&!actor.testUserPermission(user,'OWNER')&&!target.testUserPermission(user,'OWNER')))return null;
   const key=`${target.uuid}:${user.id}:${request.id}`;if(requests.has(key))return requests.get(key);
-  const operation=target.takeDamage(request.packet,request.isDirect);requests.set(key,operation);if(requests.size>512)requests.delete(requests.keys().next().value);return operation;
+  const operation=target.takeDamage(request.packet,damageCallOptions(request));requests.set(key,operation);if(requests.size>512)requests.delete(requests.keys().next().value);return operation;
 }
 export async function expireFerocity(request,{user}){
   if(!game.user.isActiveGM||!user?.active||!Array.isArray(request.effectIds)||request.effectIds.length>1000)return false;
@@ -113,7 +114,7 @@ export function installFerocity(Damage,Actor,Target,dispatch,expire,ask=promptFe
       if(this.type!=='adversary')return native.call(this,packet,...args);
       const source=ferocityPacketSource(packet),actor=source?.actorUuid?await fromUuid(source.actorUuid):null;
       if(!ferocityItem(actor))return native.call(this,packet,...args);
-      if(!game.user.isActiveGM)return dispatch({id:foundry.utils.randomID(),targetUuid:this.uuid,packet:packetCopy(packet),isDirect:Boolean(args[0])});
+      if(!game.user.isActiveGM)return dispatch({id:foundry.utils.randomID(),targetUuid:this.uuid,packet:packetCopy(packet),...damageOptions(args[0])});
       return withHopeLock(`ferocity-damage:${this.uuid}`,async()=>{
         const before=Number(this.system.resources?.hitPoints?.value),prior=Object.getOwnPropertyDescriptor(this,'update'),update=this.update,pending=[];
         const capture=function(...args){const result=update.apply(this,args);pending.push(Promise.resolve(result));return result;};
