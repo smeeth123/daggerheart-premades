@@ -2,7 +2,7 @@
 
 How all 266 premades work by compendium
 
-Daggerheart Premades 0.4.44   |   Daggerheart 2.11.0   |   October 23 2026
+Daggerheart Premades 0.4.45   |   Daggerheart 2.11.3   |   October 26 2026
 
 This reference explains how each premade works at the table: what you activate, what triggers automatically, which choices and costs appear, and what remains manual. It covers every entry in the nine module compendiums. Upgrades have their own entries even when they only enhance another feature.
 

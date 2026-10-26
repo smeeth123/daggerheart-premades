@@ -18,7 +18,10 @@ export async function rerollDamageDice(roll,selected,options={}){
   finally{if(stale){if(descriptor)Object.defineProperty(die,'_roll',descriptor);else delete die._roll;}}
  }
  for(const die of touched){
-  const selection=die.modifiers?.filter(modifier=>/^(?:k|kh|kl|d|dh|dl)\d*$/i.test(modifier))??[];
+  // 2.11.3's pw rolls the extra die during evaluation, but does not retain a khN modifier.
+  // Reapply its keep rule only; running pw again would roll another extra die.
+  const selection=die.modifiers?.flatMap(modifier=>modifier==='pw'&&Number.isSafeInteger(die.number)&&die.number>1
+   ?[`kh${die.number-1}`]:/^(?:k|kh|kl|d|dh|dl)\d*$/i.test(modifier)?[modifier]:[])??[];
   if(!selection.length)continue;
   for(const result of die.results)if(!result.dhpDamageRerollReplaced){result.active=true;delete result.discarded;}
   for(const modifier of selection){if(/^k/i.test(modifier))die.keep(modifier);else die.drop(modifier);}
