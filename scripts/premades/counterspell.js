@@ -1,3 +1,4 @@
+import {mapActionConfig} from '../workflow-compat.js';
 import {ID,featureActive} from '../core.js';
 import {decisionBudget} from '../settings.js';
 import {timedDialog} from '../dialog.js';
@@ -120,7 +121,7 @@ export async function interruptCounterable(action,config,dependencies={}){
 export function installCounterspell(Action,interrupt=interruptCounterable){
  if(Object.hasOwn(Action,WRAPPED))return;
  const use=Action.prototype.use,prepare=Action.prototype.prepareConfig,workflow=Action.prototype.executeWorkflow;
- Action.prototype.prepareConfig=function(...args){const config=prepare.apply(this,args),data=config?.[ID]?.counterspell;if(config&&data&&counterspellAvailable(this.item)&&actionId(this)===counterspellProfile(this.item)?.actionId)configureCounterspell(this,config,data.difficulty);return config;};
+ Action.prototype.prepareConfig=function(...args){return mapActionConfig(prepare.apply(this,args),config=>{const data=config?.[ID]?.counterspell;if(config&&data&&counterspellAvailable(this.item)&&actionId(this)===counterspellProfile(this.item)?.actionId)configureCounterspell(this,config,data.difficulty);});};
  Action.prototype.executeWorkflow=async function(config,...args){if(counterableAction(this)){try{if(await interrupt(this,config))return false;}catch(error){ui.notifications.error(`Counterspell check failed; the original action stopped before consequences: ${error.message}`);throw error;}}return workflow.call(this,config,...args);};
  Action.prototype.use=async function(event,options={},...args){
   const profile=counterspellProfile(this.item);

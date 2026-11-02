@@ -176,6 +176,28 @@
   margin: 0;
 }
 
+/* Keep additional damage-defense selectors within the native dialog width. */
+.daggerheart.views.damage-reduction .reduction:has(.dhp-defense-choices) {
+  flex-wrap: wrap;
+}
+.daggerheart.views.damage-reduction .reduction .label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.daggerheart.views.damage-reduction .dhp-defense-choices {
+  flex: 0 0 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: default;
+}
+.daggerheart.views.damage-reduction .dhp-defense-choices label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
 /* Native formulas are nowrap/fit-content; labeled bonuses can exceed a card. */
 :is(.daggerheart, .vtt.stream.system-daggerheart) .chat-message .message-content :is(.roll-formula, .dice-formula),
 #chat-notifications .chat-message .message-content :is(.roll-formula, .dice-formula) {

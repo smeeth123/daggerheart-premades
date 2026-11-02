@@ -1,3 +1,4 @@
+import {rollBonusMethod} from '../workflow-compat.js';
 import {ID} from '../core.js';
 import {withHopeLock} from './hope-lock.js';
 import {syncBeastformAttackAction} from '../beastform-roll-damage.js';
@@ -57,9 +58,9 @@ export function addBoostDamage(roll,config){
  config.bonusEffects??={};config.bonusEffects[BOOST_KEY]=effect;roll.options.bonusEffects=config.bonusEffects;return effect;
 }
 export function installBoostDamage(Damage){
- if(!Damage||Object.hasOwn(Damage,DAMAGE_WRAP))return;const create=Damage.createRollInstance,bonus=Damage.prototype.applyBaseBonus;
+ if(!Damage||Object.hasOwn(Damage,DAMAGE_WRAP))return;const create=Damage.createRollInstance,bonus=Damage.prototype[rollBonusMethod(Damage)];
  Damage.createRollInstance=function(config,...args){const roll=create.call(this,config,...args);addBoostDamage(roll,config);return roll;};
- Damage.prototype.applyBaseBonus=function(part,...args){const result=bonus.call(this,part,...args),effect=this.options.bonusEffects?.[BOOST_KEY];
+ Damage.prototype[rollBonusMethod(Damage)]=function(part,...args){const result=bonus.call(this,part,...args),effect=this.options.bonusEffects?.[BOOST_KEY];
   if(part.applyTo==='hitPoints'&&!this.options.hasHealing&&effect?.selected&&!result.some(row=>row.label==='Boost'))result.push({label:'Boost',value:'1d10'});return result;};
  Object.defineProperty(Damage,DAMAGE_WRAP,{value:true});
 }

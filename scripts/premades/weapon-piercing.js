@@ -1,5 +1,6 @@
 import {ID,featureActive} from '../core.js';
 import {weaponModeProfile} from '../weapon-modes.js';
+import {nativeDamageContext,registerDamageTransform} from '../damage-context.js';
 import {PIERCING_WEAPONS,WEAPON_PIERCING_KEY} from './weapon-piercing-data.js';
 const WRAPPED=Symbol.for(`${ID}.weaponPiercing`);
 export function piercingWeapon(item){
@@ -41,6 +42,10 @@ export function installPiercing(Damage,Actor){
     Object.defineProperty(Damage,WRAPPED,{value:true});
   }
   if(Actor&&!Actor[WRAPPED]){
+    if(nativeDamageContext()){
+      registerDamageTransform('piercing',piercingPacket,rules=>{const major=Number(rules.thresholds.major);if(Number.isFinite(major)&&major>0)rules.thresholds.major=Math.max(Number.MIN_VALUE,major-2);});
+      Object.defineProperty(Actor,WRAPPED,{value:true});return;
+    }
     const take=Actor.prototype.takeDamage,convert=Actor.prototype.convertDamageToThreshold,contexts=new WeakMap();
     // Register before the module's async defense/redirection wrappers. Native
     // takeDamage converts thresholds synchronously, before its first await for

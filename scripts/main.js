@@ -1,3 +1,7 @@
+import {registerDamageDefenseWorkflow} from './damage-defenses.js';
+import {registerNativeOtherworldly} from './native-otherworldly.js';
+import {registerWorkflowCompat} from './workflow-compat.js';
+import {installDamageContext,installDamageContextQuery} from './damage-context.js';
 import {setupPremadeLibrary} from './premade-library.js';
 import {installDamageOptions} from './damage-options.js';
 import {registerRally} from './premades/rally.js';
@@ -387,8 +391,10 @@ Hooks.on('getHeaderControlsApplicationV2', (app, controls) => {
 });
 Hooks.once('ready', async () => {
   if (game.system.id !== 'daggerheart') return;
+  registerWorkflowCompat();
   registerRollResolverCompat();
   installDamageOptions(CONFIG.Actor.documentClass);
+  installDamageContext(CONFIG.Actor.documentClass);
   registerWeaponQuick();
   await registerWeaponVersatile();
   registerWeaponPiercing();
@@ -398,6 +404,7 @@ Hooks.once('ready', async () => {
   registerWeaponScary();
   registerWeaponEntangling();
   registerWeaponInvigorating();
+  await registerNativeOtherworldly();
   registerWeaponOtherworldly();
   registerWeaponRicochet();
   registerWeaponReloading();
@@ -571,7 +578,7 @@ Hooks.once('ready', async () => {
   registerWerewolf();
   registerThriveInChaos();
   registerBeastformRollDamage();
-  registerRuneWard();
+  await registerRuneWard();
   // Inside damage redirection/packet adjustments and later post-damage retaliation.
   registerConjureSwarm();
   registerThorn();
@@ -669,6 +676,8 @@ Hooks.once('ready', async () => {
   registerRally();
   registerUnstoppable();
   registerHoldThemOff();
+  registerDamageDefenseWorkflow();
+  installDamageContextQuery();
   if (game.user.isActiveGM) {
     try { await unlockPremadeRegions(); }
     catch (error) {

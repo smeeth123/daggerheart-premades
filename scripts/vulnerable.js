@@ -88,8 +88,14 @@ export function vulnerableTargets(config){
 }
 export function installVulnerableAdvantage(D20Roll){
   if(D20Roll[WRAPPED])return;
-  const native=D20Roll.applyKeybindings,configure=D20Roll.buildConfigure;
-  D20Roll.applyKeybindings=function(config){
+  const Context=globalThis.game?.system?.api?.data?.actions?.MoveContext;
+  const target=Context?.prototype??D20Roll;
+  const native=target.applyKeybindings,configure=D20Roll.buildConfigure;
+  target.applyKeybindings=function(...args){
+    const config=Context?this:args[0];
+    // MoveContext initializes effect/cost-only actions too. Preserve native
+    // dialog keybindings without evaluating or consuming any roll benefits.
+    if(!config.roll)return native.apply(this,args);
     const priorAdvantage=config.advantage,priorDisadvantage=config.disadvantage;
     const selected=Number(config.roll.advantage?.type??config.roll.advantage??0);
     // Reckless must record its use even when another source already grants advantage.
@@ -102,7 +108,7 @@ export function installVulnerableAdvantage(D20Roll){
     if(advantage)config.advantage=true;
     if(disadvantage)config.disadvantage=true;
     try{
-      const result=native.call(this,config);
+      const result=native.apply(this,args);
       configuredSources.set(config,{advantage:Boolean(advantage||priorAdvantage||selected===1||config.event?.altKey),
         disadvantage:Boolean(disadvantage||priorDisadvantage||selected===-1||config.event?.ctrlKey),initial:config.roll.advantage});
       if(advantage||disadvantage)sources.set(config,{advantage,disadvantage,initial:config.roll.advantage});

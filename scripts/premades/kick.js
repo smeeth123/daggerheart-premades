@@ -1,3 +1,4 @@
+import {rollBonusMethod} from '../workflow-compat.js';
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import { ID } from '../core.js';
@@ -96,7 +97,7 @@ export async function offerKick(config){
 }
 export function installKick(RollClass,offer=offerKick){
   if(RollClass[WRAPPED])return;
-  const configure=RollClass.buildConfigure,create=RollClass.createRollInstance,bonus=RollClass.prototype.applyBaseBonus;
+  const configure=RollClass.buildConfigure,create=RollClass.createRollInstance,bonus=RollClass.prototype[rollBonusMethod(RollClass)];
   const enabled=new WeakSet();
   RollClass.buildConfigure=async function(config,...args){
     if(await offer(config))enabled.add(config);
@@ -111,7 +112,7 @@ export function installKick(RollClass,offer=offerKick){
     }
     return roll;
   };
-  RollClass.prototype.applyBaseBonus=function(part){
+  RollClass.prototype[rollBonusMethod(RollClass)]=function(part){
     const modifiers=bonus.call(this,part);
     if(!this.options.hasHealing&&this.options.bonusEffects?.[KICK_KEY]?.selected)
       modifiers.push({label:'Kick',value:'2d6'});

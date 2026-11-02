@@ -1,3 +1,4 @@
+import {rollBonusMethod} from '../workflow-compat.js';
 import {ID,featureActive} from '../core.js';
 import {timedDialog} from '../dialog.js';
 import {decisionBudget} from '../settings.js';
@@ -22,8 +23,8 @@ export async function resolvePersuasive(request,{user},ask=promptPersuasive,mark
 }
 export function installPersuasive(Roll,offer){
   if(!Roll||Object.hasOwn(Roll,WRAPPED))return;
-  const configure=Roll.buildConfigure,bonus=Roll.prototype.applyBaseBonus;
-  Roll.prototype.applyBaseBonus=function(...args){const result=bonus.apply(this,args);if(this.options?.[ID]?.weaponPersuasiveBonus===true&&!result.some(row=>row.label==='Persuasive'))result.push({label:'Persuasive',value:2});return result;};
+  const configure=Roll.buildConfigure,bonus=Roll.prototype[rollBonusMethod(Roll)];
+  Roll.prototype[rollBonusMethod(Roll)]=function(...args){const result=bonus.apply(this,args);if(this.options?.[ID]?.weaponPersuasiveBonus===true&&!result.some(row=>row.label==='Persuasive'))result.push({label:'Persuasive',value:2});return result;};
   Roll.buildConfigure=async function(config={},...args){
     const roll=await configure.call(this,config,...args);
     if(!roll?.options||typeof roll.constructFormula!=='function'||roll._evaluated||config.evaluate===false||config.source?.message||config.roll?.trait!=='presence'||config[ID]?.weaponPersuasiveOffered)return roll;

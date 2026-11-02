@@ -1,3 +1,4 @@
+import {rollBonusMethod} from '../workflow-compat.js';
 import {isHopePaymentCancellation,hopeCapacity,spendHope} from './hope-payment.js';
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
@@ -103,7 +104,7 @@ export async function offerTusks(config){
 }
 export function installTusks(RollClass,offer=offerTusks){
   if(RollClass[WRAPPED])return;
-  const configure=RollClass.buildConfigure,create=RollClass.createRollInstance,bonus=RollClass.prototype.applyBaseBonus;
+  const configure=RollClass.buildConfigure,create=RollClass.createRollInstance,bonus=RollClass.prototype[rollBonusMethod(RollClass)];
   const enabled=new WeakSet();
   RollClass.buildConfigure=async function(config,...args){
     if(await offer(config))enabled.add(config);
@@ -118,7 +119,7 @@ export function installTusks(RollClass,offer=offerTusks){
     }
     return roll;
   };
-  RollClass.prototype.applyBaseBonus=function(part){
+  RollClass.prototype[rollBonusMethod(RollClass)]=function(part){
     const modifiers=bonus.call(this,part);
     if(!this.options.hasHealing&&this.options.bonusEffects?.[TUSKS_KEY]?.selected)
       modifiers.push({label:'Tusks',value:'1d6'});

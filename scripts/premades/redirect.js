@@ -42,7 +42,7 @@ export async function rollRedirectDice(actor,message){
 }
 const damageSource=d=>({...d.toObject(),main:d.main?.toJSON?.()??d.main,resources:Object.fromEntries(Object.entries(d.resources??{}).map(([k,v])=>[k,v.toJSON?.()??v]))});
 export async function launchRedirect(message,state,target){
- const {action}=state,Field=game.system.api.fields.ActionFields.DamageField,config=action.prepareConfig({shiftKey:false},{dialog:{configure:false}});
+ const {action}=state,Field=game.system.api.fields.ActionFields.DamageField,config=await action.prepareConfig({shiftKey:false},{dialog:{configure:false}});
  if(!config||!action.hasDamage||action.hasHealing)throw Error('The original attack has no damage action.');
  const targetData={id:target.id,actorId:target.actor.uuid,name:target.name,img:target.actor.img,difficulty:target.actor.system.difficulty??null,evasion:Number(target.actor.system.evasion??0),hitResult:{success:true}};
  Object.assign(config,{title:'Redirect — '+action.name,hasRoll:false,hasSave:false,hasEffect:false,hasHealing:false,isCritical:false,onSave:null,actionType:'reaction',targets:[targetData],roll:null,evaluate:true});

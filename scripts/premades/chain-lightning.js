@@ -1,3 +1,4 @@
+import {mapActionConfig} from '../workflow-compat.js';
 import {damageOptions,damageCallOptions} from '../damage-options.js';
 import {ID,featureActive} from '../core.js';
 import {unavailableActor} from './aura-rules.js';
@@ -42,7 +43,7 @@ async function launchWave(root,targets){const item=root.system.action.item,actio
   // A wave belongs to the original cast, not another completed character action.
   // Use native fields, shared damage, saves, costs and chat without re-entering Action.use
   // observers such as Cinder Grasp or Invisibility token consumption.
-  const config=action.prepareConfig({shiftKey:false},{dialog:{configure:false}});if(!config)return false;
+  const config=await action.prepareConfig({shiftKey:false},{dialog:{configure:false}});if(!config)return false;
   config.effects=await game.system.api.data.actions.actionsTypes.base.getActionRelevantEffects(action.getRollData(),action.actor);
   if(await action.executeWorkflow(config)===false)return false;await config.resourceUpdates.updateResources();
   if(action.chatDisplay&&!config.skips.createMessage&&!config.actionChatMessageHandled)await action.toChat(null,config);return config;
@@ -65,7 +66,7 @@ export function installChainDamage(Actor,Damage,dispatch){if(!Object.hasOwn(Dama
 }
 
 export function installChainActions(Action,Save,send=async()=>{}){if(Object.hasOwn(Action,WORKFLOW))return;
- const prepare=Action.prototype.prepareConfig;Action.prototype.prepareConfig=function(event,options,...args){const config=prepare.call(this,event,options,...args),context=contexts.get(this.uuid);if(config&&context){config.targets=structuredClone(context.targets);config[ID]={...config[ID],chainRoot:context.root.uuid};config.hasSave=true;config.hasRoll=false;config.isCritical=false;}return config;};
+ const prepare=Action.prototype.prepareConfig;Action.prototype.prepareConfig=function(event,options,...args){return mapActionConfig(prepare.call(this,event,options,...args),config=>{const context=contexts.get(this.uuid);if(config&&context){config.targets=structuredClone(context.targets);config[ID]={...config[ID],chainRoot:context.root.uuid};config.hasSave=true;config.hasRoll=false;config.isCritical=false;}});};
  let proto=Action.prototype,descriptor;while(proto&&!descriptor){descriptor=Object.getOwnPropertyDescriptor(proto,'workflow');proto=Object.getPrototypeOf(proto);}if(!descriptor?.get)throw Error('Chain Lightning requires the native workflow getter.');
  Object.defineProperty(Action.prototype,'workflow',{...descriptor,get(){const parts=descriptor.get.call(this);if(chainAction(this)){const entry=parts.get('save');if(entry&&!entry[SAVE])parts.set('save',{...entry,[SAVE]:true,execute:(config,...args)=>Save.execute.call(this,config,...args)});for(const key of ['target','damage','applyDamage']){const part=parts.get(key);if(part&&!part[WORKFLOW])parts.set(key,{...part,[WORKFLOW]:true,execute:async(config,...args)=>{if(key==='applyDamage')return game.system.api.fields.ActionFields.DamageField.applyDamage.call(this,config,...args);if(key==='damage'&&await reuseChainDamage(this,config,args[0]))return;const result=await part.execute(config,...args);if(key==='target'&&this.id===CHAIN_DAMAGE&&contexts.has(this.uuid))for(const t of config.targets)t.hitResult={success:true};if(key==='damage')await persistChainDamage(config);return result;}});}}return parts;}});
  const use=Action.prototype.use;Action.prototype.use=async function(...args){if(chainAction(this)&&this.id===CHAIN_DAMAGE&&!contexts.has(this.uuid)){ui.notifications.info('Chain Lightning automatically chains after damage is applied. Use Cast.');return false;}const result=await use.apply(this,args);if(chainAction(this)&&this.id===CHAIN_CAST&&result?.message){if(game.dice3d)await game.dice3d.waitFor3DAnimationByMessageID(result.message.id);try{await send({readyMessageUuid:result.message.uuid});}catch(error){ui.notifications.error('Chain Lightning cast was preserved; chaining needs manual review: '+error.message);}}return result;};Object.defineProperty(Action,WORKFLOW,{value:true});

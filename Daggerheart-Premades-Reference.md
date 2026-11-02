@@ -1,8 +1,8 @@
 # Daggerheart Premade Reference
 
-How all 266 premades work by compendium
+How all 264 premades work by compendium
 
-Daggerheart Premades 0.4.45   |   Daggerheart 2.11.3   |   October 26 2026
+Daggerheart Premades 0.5.0   |   Daggerheart 2.12.1   |   November 1 2026
 
 This reference explains how each premade works at the table: what you activate, what triggers automatically, which choices and costs appear, and what remains manual. It covers every entry in the nine module compendiums. Upgrades have their own entries even when they only enhance another feature.
 
@@ -14,7 +14,7 @@ Weapon and Armor Features are an exception: apply Medkit to the actual equipment
 
 - [Class Features   19 premades](#class-features)
 
-- [Subclass Features   102 premades](#subclass-features)
+- [Subclass Features   101 premades](#subclass-features)
 
 - [Domain Cards   73 premades](#domain-cards)
 
@@ -26,7 +26,7 @@ Weapon and Armor Features are an exception: apply Medkit to the actual equipment
 
 - [Transformation Features   5 premades](#transformation-features)
 
-- [Weapon Features   18 premades](#weapon-features)
+- [Weapon Features   17 premades](#weapon-features)
 
 - [Armor Features   10 premades](#armor-features)
 
@@ -98,7 +98,7 @@ Successful attacks preselect the native tier-scaled damage bonus when you began 
 
 #### Prayer Dice
 
-Session refresh opens the native Prayer Dice roller for the owner to roll and save a new pool. Prayer Dice buttons on eligible rolled chat cards spend chosen saved dice to increase a roll or damage, or reduce incoming damage for a selected recipient. Other allies must be within Far. Use Give Hope from the sheet to spend saved dice through native Hope healing. Choose damage reduction before applying damage; spent dice do not undo earlier consequences.
+Session refresh opens the native Prayer Dice roller for the owner to roll and save a new pool. Prayer Dice buttons on eligible rolled chat cards spend chosen saved dice to increase a roll or damage, or reduce incoming damage for a selected recipient. In the native damage-reduction dialog, choose stored dice and click Spend; these dice use their already-rolled values rather than rolling again. Other allies must be within Far, and spending another character’s dice requires the holder’s approval. Use Give Hope from the sheet to spend saved dice through native Hope healing. Spent dice do not undo earlier consequences.
 
 ### Sorcerer
 
@@ -146,7 +146,7 @@ When an adversary within Far hits with an attack, offer spending 3 Hope to force
 
 ## Subclass Features
 
-102 premades
+101 premades
 
 ### Beastbound
 
@@ -338,10 +338,6 @@ Attacks gain advantage when no third living character or adversary is within Ver
 
 Before an incoming attack rolls, offer spending 1 Focus for an attack-specific Evasion bonus equal to tier. No stance needs to be active. It can stack with Vigilant, survives later attack rerolls, and does not change permanent Evasion. The decision is made before the attack result is known.
 
-#### Otherwordly
-
-After a successful targeted attack while the stance is active, choose Physical or Magic for its damage. The choice follows the native damage dialog, card, bonuses, and resistance handling. There is no extra cost; canceling or allowing the prompt to expire keeps the original damage type.
-
 #### Quick
 
 After confirming a targeted attack’s roll dialog while this stance is active, choose one additional visible creature within that attack’s range. Pay 1 Focus or mark 1 Stress to include it in the same attack and damage workflow. No offer appears without an initial target, a valid extra target, or an affordable payment.
@@ -352,7 +348,7 @@ While the stance is active, each successfully hit actor automatically marks 1 St
 
 #### Stable
 
-While the stance is active and Focus is available, the native damage-reduction dialog offers spending 1 Focus instead of marking one selected Armor Slot. The selected severity reduction is retained. Payment occurs only on confirmation. Stable and Celestial Wings are alternative payments for the same slot, not two reductions.
+While the stance is active and Focus is available, the native damage-reduction dialog offers spending 1 Focus instead of marking one selected Armor Slot, retaining that slot’s reduction. Payment occurs on confirmation. Stable and Celestial Wings can replace two different slots when the attack permits multiple Armor marks; they cannot both replace the same slot. Only remaining actual Armor costs are eligible for preservation rolls.
 
 #### Stance Fighter
 
@@ -370,7 +366,7 @@ A Hexed adversary on the Moon Witch’s scene automatically marks 1 Stress when 
 
 #### Lunar Phases
 
-Session refresh prompts rolling a d6 and enables one phase: New on 1, Waxing on 2–3, Full on 4, or Waning on 5–6. Waxing grants +2 damage, Full +3 thresholds, and Waning +1 Evasion. New adds a native damage-reduction choice to spend 1 Hope to negate Minor damage, with a severity preview. Once per rest, Advance Phase spends 1 Hope to advance one result, wrapping 6 to 1.
+Session refresh prompts rolling a d6 and enables one phase: New on 1, Waxing on 2–3, Full on 4, or Waning on 5–6. Waxing grants +2 damage, Full +3 thresholds, and Waning +1 Evasion. New adds a native damage-reduction choice to spend 1 Hope to negate Minor damage, with a severity preview. Eligibility and payment use the final severity after Armor replacements and preservation rolls. If those rolls newly leave Minor damage, an eligible New Moon holder can still choose to negate it; if selected New Moon no longer qualifies, no Hope is spent. Once per rest, Advance Phase spends 1 Hope to advance one result, wrapping 6 to 1.
 
 #### Moonbeam
 
@@ -396,7 +392,7 @@ Patron Dice use d6 through level 4 and d8 from level 5. Favor payments use the c
 
 #### Damage Sink
 
-Before thresholds, resistance, and Armor reduction, positive incoming damage offers spending 1 Favor and the once-per-rest use to halve the raw amount, rounded up. Physical, magical, mixed, and untyped packets can qualify. Declining changes nothing. The source damage card stays unchanged because reduction belongs to this recipient.
+Before thresholds, resistance, and Armor reduction, positive incoming damage offers spending 1 Favor and the once-per-rest use to halve the raw amount, rounded up. Physical, magical, mixed, and untyped packets can qualify. Declining changes nothing. The source damage card stays unchanged because reduction belongs to this recipient. Damage Sink and Increased Fortitude can both apply to physical damage: each accepted feature halves the remaining amount, rounded up, and pays its own cost. Their prompts precede the native damage-reduction dialog.
 
 #### Dark Aegis
 
@@ -574,7 +570,7 @@ Use Protect Allies once per long rest, spending 2 Hope and rolling d4 to set the
 
 #### Elemental Aura
 
-Activate Aura once per rest while channeling Elemental Incarnation; it ends with that specific channel. Fire adds Stress when Close adversaries mark HP. Earth gives other Close allies +1 Strength and updates on movement. Water offers marking 1 Stress after a Close adversary damages you, with movement manual. Air automatically rolls d8 to reduce attack damage to you or Close allies when the attacker is beyond Melee. No Active Auras dependency is needed.
+Activate Aura once per rest while channeling Elemental Incarnation; it ends with that specific channel. Fire adds Stress when Close adversaries mark HP. Earth gives other Close allies +1 Strength and updates on movement. Water offers marking 1 Stress after a Close adversary damages you, with movement manual. Air adds a d8 reduction in the native damage-reduction dialog for attack damage to you or Close allies when the attacker is beyond Melee. Nearby allies receive visible reminder effects. No Active Auras dependency is needed.
 
 #### Elemental Dominion
 
@@ -646,7 +642,7 @@ A successful native Cast sets tokens to current Agility, minimum 1, and applies 
 
 #### Rune Ward
 
-Use Infuse Ward on one active Party character, or with no target to ward yourself. The holder receives a visible charged effect. Before native damage reduction, the holder may spend 1 Hope and roll d8 to subtract from incoming damage. An 8 still reduces this damage, then replaces Charged with Drained. The source character’s next completed short or long rest recharges the current holder’s ward for free.
+Use Infuse Ward on one active Party character, or with no target to ward yourself. The holder receives a visible charged effect. In the native damage-reduction dialog, spend 1 Hope to roll the d8 Ward Die and subtract its result from incoming damage. Click its die button again to reroll without another Hope payment; the replacement result determines whether the ward is charged or drained. An 8 reduces the current damage and drains the ward; rerolling it below 8 restores the same paid ward. The source character’s next completed short or long rest recharges the current holder for free. Moving the ward does not recharge it.
 
 ### Blade
 
@@ -868,7 +864,7 @@ Native actions, Hope cost, targeting, and contextual +2 Spellcast effect stay un
 
 #### Thorn Skin
 
-Use native Gain Tokens once per rest: spend 1 Hope and gain tokens equal to your Spellcast trait. Before incoming damage reduction, optionally spend a bounded number of tokens and roll that many d6s to reduce damage by their sum, down to zero. If the identifiable attacker is within Melee, the full rolled amount is returned after your damage resolves, matching the incoming damage type and using the attacker's normal resistance, Armor, and damage reactions. An unknown or distant attacker still allows reduction without automatic retaliation. Declining spends nothing. Native rest recovery clears unused tokens and resets the activation; Use Tokens is a reminder.
+Use native Gain Tokens once per rest: spend 1 Hope and gain tokens equal to your Spellcast trait. This token gain has no action-roll success requirement. In the native damage-reduction dialog, optionally spend a bounded number of tokens and roll that many d6s to reduce damage by their sum, down to zero. If the identifiable attacker is within Melee, the full rolled amount is returned after your damage resolves, matching the incoming damage type and using the attacker’s normal resistance, Armor, and damage reactions. An unknown or distant attacker still allows reduction without automatic retaliation. Declining spends nothing. Native rest recovery clears unused tokens and resets activation; Use Tokens is a reminder.
 
 #### Vicious Entangle
 
@@ -946,7 +942,7 @@ Support Tank is offered in Roll Resolution when another friendly character withi
 
 #### Celestial Wings
 
-Apply Flying manually. Once per scene, the native damage-reduction dialog offers spending 1 Hope instead of marking one selected Armor Slot while retaining that slot’s reduction. You need a valid available Armor selection; it does not create Armor from nothing. Confirmation spends Hope and the scene use, while canceling spends neither. Scene refresh restores the use.
+Apply Flying manually. Once per scene, the native damage-reduction dialog offers spending 1 Hope instead of marking one selected Armor Slot while retaining that slot’s reduction. You need an available Armor selection; it does not create Armor from nothing. Confirmation spends Hope and the scene use. If multiple Armor marks are allowed, Celestial Wings and Stable may each replace a different slot. Only remaining actual Armor costs are eligible for preservation rolls. Scene refresh restores the use.
 
 #### Hallowed Aura
 
@@ -956,7 +952,7 @@ Once per long rest, an eligible ally within Close who makes an action roll with 
 
 #### Increased Fortitude
 
-Positive physical incoming damage offers spending 3 Hope to halve its raw amount, rounded up, before resistance, thresholds, and Armor reduction. There is no scene or rest limit. Magical, mixed, and untyped packets are excluded because they do not expose a separate physical amount. Declining spends nothing; plain HP edits do not trigger it.
+Positive physical incoming damage offers spending 3 Hope to halve its raw amount, rounded up, before resistance, thresholds, and Armor reduction. There is no scene or rest limit. Magical, mixed, and untyped packets are excluded because they do not expose a separate physical amount. Declining spends nothing; plain HP edits do not trigger it. A dwarven Pact of the Endless warlock can also use Damage Sink on the same physical hit; each halves the remaining amount and pays its own cost.
 
 ### Elf
 
@@ -1132,7 +1128,7 @@ Use the native Mark Stress action to activate +2 Proficiency for the attack, the
 
 #### Unyielding
 
-When you confirm Armor Slots in the native damage-reduction dialog, automatically roll one d6 per slot. Each 5 or 6 preserves one slot while keeping its selected severity reduction; failures mark Armor normally. Manual Armor edits and source-less non-damage updates do not trigger it. No separate activation or decision is required.
+When you confirm Armor Slots in the native damage-reduction dialog, automatically roll one d6 per remaining slot that would actually be marked. Each 5 or 6 reduces severity by one threshold without marking that slot; failures mark Armor normally. The one-threshold substitution does not inherit a larger reduction from enhanced Armor. Slots already replaced by Celestial Wings, Stable, or a successful Resilient roll are not rolled again. Damage applies after resolution without another confirmation, except when a real, newly available New Moon choice needs your decision. Manual Armor edits and source-less non-damage updates do not trigger it. No separate activation is required.
 
 #### Venomous Bite
 
@@ -1180,11 +1176,11 @@ When you mark HP, offer marking 1 Stress to enter a visible Wolf Form with +1d10
 
 ## Weapon Features
 
-18 premades
+17 premades
 
-Versatile is handled natively in Daggerheart 2.11 and no longer needs Medkit. Existing module-managed weapons are handed over automatically when the GM loads the world, retaining their current mode and saved statistics. Use the native weapon toggle. Custom alternate formulas that native Versatile cannot represent are preserved and reported for manual review.
+Versatile is handled natively in Daggerheart 2.11, and Otherworldly weapons and the Martial Artist Otherwordly stance use native support in Daggerheart 2.12. These do not need Medkit on supported system versions. Otherworldly Ire remains a separate premade. Existing module-managed weapons are handed over automatically when the GM loads the world, retaining their current mode and saved statistics. Use the native weapon toggle. Custom alternate formulas that native Versatile cannot represent are preserved and reported for manual review.
 
-Medkit the supported weapon and equip it for attack automation. Native-property entries also support custom weapons carrying that native property; Versatile, Piercing, and Otherworldly instead match their specifically supported weapons. These are equipment integrations, not replacements for similarly named class or subclass abilities. Only one weapon-property premade can currently be applied to a weapon.
+Medkit the supported weapon and equip it for attack automation. Native-property entries also support custom weapons carrying that native property; Piercing instead matches its specifically supported weapons. These are equipment integrations, not replacements for similarly named class or subclass abilities. Only one weapon-property premade can currently be applied to a weapon.
 
 #### Aimed
 
@@ -1221,10 +1217,6 @@ Final main-attack HP damage becomes an equal amount of Stress after Armor and da
 #### Omnipresent
 
 Under this game’s interpretation, attacks beyond Melee automatically gain disadvantage; Melee attacks do not. Actual token distance and configured scene ranges determine this, and any qualifying target imposes disadvantage on a shared multi-target roll. Advantage cancels normally. The weapon’s stored Melee range remains unchanged; selecting legal extended-range targets remains manual. Use native manual controls when distance cannot be measured.
-
-#### Otherworldly
-
-Supports Shadowblade and its Improved, Advanced, and Legendary versions, plus Ghostblade. After a successful attack and its dice display, choose Physical or Magic before damage configuration. The choice changes only that attack’s main damage, not the weapon’s stored statistics or resource damage. There is no cost; closing the choice retains native damage. Medkit adds the missing rule to the description. This is separate from Martial Artist Otherworldly and Otherworldly Ire.
 
 #### Parry
 

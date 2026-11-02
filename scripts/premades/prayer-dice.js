@@ -1,4 +1,5 @@
 import { decisionBudget } from '../settings.js';
+import {nativeDefenseDialog,registerDamageDefense,rollDamageDefense} from '../damage-defenses.js';
 import { notifyPending } from '../resolution-manager.js';
 import { decisionCountdown, decisionNow, decisionTimeout, clearDecisionTimeout } from '../decision-clock.js';
 import { ID } from '../core.js';
@@ -37,7 +38,7 @@ export function prayerOptions(message,bearer){
   }
   if(!data?.hasHealing&&Number(data?.damage?.main?.total)>0)for(const target of (data.roll?attackHitTargets(message):resolvedAttackTargets(message))){
     const recipient=foundry.utils.fromUuidSync(target.actorId);
-    if(recipient&&!damageProtectionExempt(recipient)&&prayerRange(bearer,recipient)&&!applied(message,target))options.push({mode:'damage',actorUuid:recipient.uuid,targetId:target.id,label:`Reduce damage to ${recipient.name}`});
+    if(recipient&&(!nativeDefenseDialog()||recipient.type!=='character')&&!damageProtectionExempt(recipient)&&prayerRange(bearer,recipient)&&!applied(message,target))options.push({mode:'damage',actorUuid:recipient.uuid,targetId:target.id,label:`Reduce damage to ${recipient.name}`});
   }
   return options;
 }
@@ -76,16 +77,14 @@ export function installPrayerRefresh(actions,refresh=promptSessionPrayer){
   const native=actions?.refreshActors;if(!native||native[WRAPPED])return;
   const wrapped=async function(...args){
     const running=refreshRuns.get(this);
-    // Other modules can wrap our handler during render. Only the outermost
-    // Prayer wrapper owns the refresh prompt, even across those wrappers.
-    if(running)return running.entering?native.apply(this,args):running.promise;
+    // The same invocation can re-enter through asynchronously scheduled Lunar
+    // or other refresh wrappers. Identify that invocation explicitly; a second
+    // click has no token and joins the existing operation instead.
+    if(running)return args.some(arg=>arg?.[WRAPPED]===running.token)?native.apply(this,args):running.promise;
     const session=game.user.isGM&&this.refreshSelections?.session?.selected;
-    const state={entering:false,promise:null};refreshRuns.set(this,state);
+    const state={token:{},promise:null};refreshRuns.set(this,state);
     state.promise=Promise.resolve().then(async()=>{
-      let result;
-      state.entering=true;
-      try{result=native.apply(this,args);}finally{state.entering=false;}
-      result=await result;
+      const result=await native.apply(this,[...args,{[WRAPPED]:state.token}]);
       if(session)await refresh();return result;
     });
     try{return await state.promise;}finally{if(refreshRuns.get(this)===state)refreshRuns.delete(this);}
@@ -162,7 +161,68 @@ async function choosePrayer(message,bearer){
   const result=gm.isSelf?await spendPrayer(request,{user:game.user}):await gm.query(QUERY,request,{timeout:20000});
   if(!result)ui.notifications.warn('Those Prayer Dice or that use are no longer available.');
 }
+const DEFENSE_PROMPT=ID+'.prayerDefensePrompt';
+export function prayerDefenseOffers(record){
+ const raw=record.packet?.main??record.packet,meta=raw?.options?.[ID];
+ const message=meta?.defenseMessage?foundry.utils.fromUuidSync(meta.defenseMessage):null;
+ const rolled=message?prayerHasDice(message):raw?.terms?.some(term=>term.results?.some(result=>result.active!==false));
+ if(!rolled)return [];
+ return actors().flatMap(bearer=>{
+  const item=prayerItem(bearer),dice=prayerDice(item);
+  return item&&dice.length&&prayerRange(bearer,record.actor)?[{id:'prayer:'+item.uuid,itemUuid:item.uuid,bearerUuid:bearer.uuid,
+   label:'Prayer Dice — '+bearer.name,choices:dice.map(([id,die])=>({id,value:die.value}))}]:[];
+ });
+}
+export async function promptPrayerDefense(data,{user}){
+ const item=await fromUuid(data.itemUuid),target=await fromUuid(data.targetUuid);
+ if(!user?.isGM||!item?.actor?.testUserPermission(game.user,'OWNER')||prayerItem(item.actor)?.uuid!==item.uuid||!prayerRange(item.actor,target))return false;
+ return Boolean(await timedDialog('Prayer Dice — '+item.actor.name,
+  '<p>Spend Prayer Dice <strong>'+data.values.map(esc).join(' + ')+'</strong> to reduce incoming damage to <strong>'+esc(target.name)+'</strong>?</p>',
+  [{action:'spend',label:'Spend Dice',callback:()=>true},{action:'decline',label:'Decline',default:true,callback:()=>false}]));
+}
+export async function usePrayerDefense(record,offer,request,user){
+ const selected=request.selection,item=await fromUuid(offer.itemUuid),bearer=item?.actor;
+ if(!bearer||!Array.isArray(selected)||!selected.length||new Set(selected).size!==selected.length)return false;
+ const offered=new Map((offer.original?.choices??offer.choices).map(choice=>[choice.id,choice.value]));
+ if(!selected.every(id=>offered.has(id)))return false;
+ const owner=ownerFor(bearer,[...game.users],game.user);
+ if(!bearer.testUserPermission(user,'OWNER')){
+  const data={itemUuid:item.uuid,targetUuid:record.actor.uuid,values:selected.map(id=>offered.get(id))};
+  const accepted=owner.isSelf?await promptPrayerDefense(data,{user:game.user}):await owner.query(DEFENSE_PROMPT,data,{timeout:decisionBudget(125000)});
+  if(accepted!==true)return false;
+ }
+ const prior=locks.get('spend')??Promise.resolve(),operation=prior.catch(()=>{}).then(async()=>{
+  const dice=new Map(prayerDice(item));
+  if(record.closed||!game.user.isActiveGM||!user.active||!owner.active||request.deadline<decisionNow()||!record.actor.testUserPermission(user,'OWNER')||
+   prayerItem(bearer)?.uuid!==item.uuid||!prayerRange(bearer,record.actor)||!selected.every(id=>dice.get(id)?.value===offered.get(id)))return false;
+  const paid=await item.update(Object.fromEntries(selected.map(id=>[`system.resource.diceStates.${id}.used`,true])));
+  if(!paid||selected.some(id=>!item.system.resource.diceStates[id].used))throw Error('Prayer Dice spending could not be confirmed. Review the pool before continuing.');
+  const result=await rollDamageDefense(selected.map(id=>offered.get(id)).join(' + '),record.actor,'Prayer Dice — '+bearer.name);
+  return {...result,label:'Prayer Dice — '+bearer.name+' ('+result.reduction+' spent)'};
+ });
+ locks.set('spend',operation);try{return await operation;}finally{if(locks.get('spend')===operation)locks.delete('spend');}
+}
+export function installPrayerDefenseProvenance(Field){
+ if(!Field||Field.dhpDefenseProvenance)return;
+ const apply=Field.applyDamage;
+ Field.applyDamage=async function(config,...args){
+  if(!config.hasHealing&&config.damage?.main){
+   const main=config.damage.main;main.options??={};main.options[ID]={...main.options[ID],
+    ...(config.message?.uuid?{defenseMessage:config.message.uuid}:{}),defenseSource:{actor:this.actor?.uuid??config.source?.actor,
+     item:this.item?.id??config.source?.item,action:this.id??config.source?.action,type:this.type}};
+   if(typeof config.damage.toObject==='function')config.damage=new config.damage.constructor({...config.damage.toObject(),main:main.toJSON(),
+    resources:Object.fromEntries(Object.entries(config.damage.resources??{}).map(([key,roll])=>[key,roll.toJSON()]))},{parent:config.damage.parent});
+  }
+  return apply.call(this,config,...args);
+ };
+ Object.defineProperty(Field,'dhpDefenseProvenance',{value:true});
+}
 export function registerPrayerDice(){
+ if(nativeDefenseDialog()){
+  registerDamageDefense('prayer',{offers:prayerDefenseOffers,use:usePrayerDefense});
+  CONFIG.queries[DEFENSE_PROMPT]=promptPrayerDefense;
+  installPrayerDefenseProvenance(game.system.api.fields.ActionFields.DamageField);
+ }
   registerPrayerHope();
   CONFIG.queries[QUERY]=spendPrayer;CONFIG.queries[REFRESH]=refreshPrayer;
   installPrayerRefresh(CONFIG.ui.daggerheartMenu?.DEFAULT_OPTIONS?.actions);installPrayerRefresh(ui.daggerheartMenu?.options?.actions);

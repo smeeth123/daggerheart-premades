@@ -1,3 +1,4 @@
+import {rollBonusMethod} from '../workflow-compat.js';
 import { decisionBudget } from '../settings.js';
 import { ID } from '../core.js';
 import { RAW_KEY,RAW_ACTION } from './channel-raw-power-data.js';
@@ -58,7 +59,7 @@ export async function resolveRaw(request,{user}){
 async function dispatch(request){const gm=game.users.activeGM;if(!gm)throw new Error('Channel Raw Power needs an active GM.');return gm.isSelf?resolveRaw(request,{user:game.user}):gm.query(QUERY,request,{timeout:decisionBudget(75000)});}
 export function installRawPower(Damage,offer,consume){
   if(Damage[WRAPPED])return;
-  const configure=Damage.buildConfigure,create=Damage.createRollInstance,bonus=Damage.prototype.applyBaseBonus,evaluate=Damage.buildEvaluate;
+  const configure=Damage.buildConfigure,create=Damage.createRollInstance,bonus=Damage.prototype[rollBonusMethod(Damage)],evaluate=Damage.buildEvaluate;
   Damage.buildConfigure=async function(config,...args){
     const choice=await offer(config);if(choice)config[ID]={...config[ID],rawPower:choice};
     return configure.call(this,config,...args);
@@ -68,7 +69,7 @@ export function installRawPower(Damage,offer,consume){
     if(raw){config.bonusEffects??={};config.bonusEffects[RAW_KEY]={name:`Channel Raw Power (+${raw.amount})`,description:'Vaulted card bonus.',selected:true,changes:[]};roll.options.bonusEffects=config.bonusEffects;}
     return roll;
   };
-  Damage.prototype.applyBaseBonus=function(part){const result=bonus.call(this,part);if(!this.options.hasHealing&&this.options.bonusEffects?.[RAW_KEY]?.selected&&part.applyTo==='hitPoints')result.push({label:'Channel Raw Power',value:this.options[ID].rawPower.amount});return result;};
+  Damage.prototype[rollBonusMethod(Damage)]=function(part){const result=bonus.call(this,part);if(!this.options.hasHealing&&this.options.bonusEffects?.[RAW_KEY]?.selected&&part.applyTo==='hitPoints')result.push({label:'Channel Raw Power',value:this.options[ID].rawPower.amount});return result;};
   Damage.buildEvaluate=async function(roll,config,...args){
     const raw=config[ID]?.rawPower;
     if(raw&&config.bonusEffects?.[RAW_KEY]?.selected&&!raw.consumed){if(!await consume(raw))throw new Error('Channel Raw Power is no longer primed.');raw.consumed=true;}

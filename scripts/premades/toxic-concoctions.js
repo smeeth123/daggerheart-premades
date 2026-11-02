@@ -1,3 +1,4 @@
+import {rollBonusMethod} from '../workflow-compat.js';
 import { decisionBudget } from '../settings.js';
 import { decisionNow } from '../decision-clock.js';
 import { venomItem,twinEligible,applyVenom } from './venomancer.js';
@@ -70,7 +71,7 @@ export function registerToxic(){
  });
  const Target=game.system.api.fields.ActionFields.TargetField,execute=Target.execute;
  Target.execute=async function(config,...args){const result=await execute.call(this,config,...args);if(result!==false&&markHit(config.message)&&Number(toxicItem(this.actor)?.system.resource.value)>0)await dispatch({op:'poison',actorUuid:this.actor.uuid,messageUuid:config.message.uuid,deadline:decisionNow()+decisionBudget(120000)});return result;};
- const Damage=CONFIG.Dice.daggerheart.DamageRoll,create=Damage.createRollInstance,bonus=Damage.prototype.applyBaseBonus;
+ const Damage=CONFIG.Dice.daggerheart.DamageRoll,create=Damage.createRollInstance,bonus=Damage.prototype[rollBonusMethod(Damage)];
  Damage.createRollInstance=function(config){const roll=create.call(this,config);selectLeech(roll,config);return roll;};
- Damage.prototype.applyBaseBonus=function(part){const result=bonus.call(this,part);if(part.applyTo==='hitPoints'&&!this.options.hasHealing&&this.options.bonusEffects?.[TOXIC_KEY]?.selected)result.push({label:'Leech Weed',value:'1d6'});const fear=this.options.bonusEffects?.[`${TOXIC_KEY}-fear`];if(part.applyTo==='hitPoints'&&!this.options.hasHealing&&fear?.selected)result.push({label:'Fear Leaf',value:fear.amount});return result;};
+ Damage.prototype[rollBonusMethod(Damage)]=function(part){const result=bonus.call(this,part);if(part.applyTo==='hitPoints'&&!this.options.hasHealing&&this.options.bonusEffects?.[TOXIC_KEY]?.selected)result.push({label:'Leech Weed',value:'1d6'});const fear=this.options.bonusEffects?.[`${TOXIC_KEY}-fear`];if(part.applyTo==='hitPoints'&&!this.options.hasHealing&&fear?.selected)result.push({label:'Fear Leaf',value:fear.amount});return result;};
 }

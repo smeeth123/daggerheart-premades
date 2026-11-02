@@ -1,4 +1,5 @@
 import {damageOptions,damageCallOptions} from '../damage-options.js';
+import {nativeDefenseDialog,registerDamageDefense,rollDamageDefense} from '../damage-defenses.js';
 import {ID,featureActive} from '../core.js';
 import {timedDialog} from '../dialog.js';
 import {decisionNow} from '../decision-clock.js';
@@ -15,6 +16,24 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 function melee(){if(canvas.scene?.rangeSettings)return Number(canvas.scene.rangeSettings.melee);const world=game.settings.get(CONFIG.DH.id,CONFIG.DH.SETTINGS.gameSettings.variantRules).rangeMeasurement,local=canvas.scene?.flags?.daggerheart?.rangeMeasurement;return Number(world.enabled&&local?.setting===CONFIG.DH.GENERAL.sceneRangeMeasurementSetting.custom.id?local.melee:world.melee);}
 export function thornItem(actor){return actor?.type==='character'&&!unavailableActor(actor)&&!(Number(actor.system.resources?.hitPoints?.max)>0&&Number(actor.system.resources.hitPoints.value)>=Number(actor.system.resources.hitPoints.max))?actor.items?.find(i=>{const f=i.flags?.[ID],s=i.system;return i.type==='domainCard'&&featureActive(i)&&!f?.disabled&&(!s.inVault||s.vaultActive)&&!s.isDomainTouchedSuppressed&&(f?.applied?.key??f?.premade?.key)===THORN_KEY;})??null:null;}
 export function thornTokens(item){const n=Number(item?.system.resource?.value);return Number.isSafeInteger(n)&&n>0?n:0;}
+export function thornDefenseOffers(record){
+ const item=thornItem(record.actor),max=thornTokens(item);
+ return max?[{id:'thorn',label:'Thorn Skin — Spend Tokens',formula:'1d6',max,itemUuid:item.uuid,reroll:true}]:[];
+}
+export async function useThornDefense(record,offer,request,_user,previous){
+ return withHopeLock(offer.itemUuid,async()=>{
+  const item=thornItem(record.actor),max=thornTokens(item),count=previous?.count??request.count;
+  if(record.closed||item?.uuid!==offer.itemUuid||!Number.isSafeInteger(count)||count<1||!previous&&count>max)return false;
+  if(!previous){
+   const paid=await item.update({'system.resource.value':max-count});
+   if(!paid||thornTokens(item)!==max-count)throw Error('Thorn Skin token payment could not be confirmed. Review the card before continuing.');
+  }
+  const raw=record.packet.main??record.packet,types=Array.from(raw.options?.damageTypes??raw.damageTypes??[]);
+  const result=await rollDamageDefense(count+'d6',record.actor,'Thorn Skin',Boolean(previous),{damageTypes:types});
+  const attacker=previous?.attackerUuid??(await thornAttacker(record.actor,record.packet))?.uuid??null;
+  return {...result,count,attackerUuid:attacker,types,label:'Thorn Skin — '+count+' token'+(count===1?'':'s')+' spent'};
+ });
+}
 function damaging(actor,packet){return typeof actor.calculateDamage!=='function'||actor.calculateDamage(packet.main.total,Array.from(packet.main.options?.damageTypes??packet.main.damageTypes??[]))>0;}
 export async function thornAttacker(actor,packet){
  const sourceUuid=retributionSource(packet),source=sourceUuid?await fromUuid(sourceUuid):null;
@@ -84,4 +103,9 @@ export function installThorn(Actor,send,ask=promptThorn,rollDice){
   return result;
  };Object.defineProperty(Actor,WRAP,{value:true});
 }
-export function registerThorn(){CONFIG.queries[QUERY]=resolveThornDamage;CONFIG.queries[PROMPT]=promptThorn;installThorn(CONFIG.Actor.documentClass,r=>{const gm=game.users.activeGM;if(!gm)throw Error('Thorn Skin needs an active GM.');return gm.isSelf?resolveThornDamage(r,{user:game.user}):gm.query(QUERY,r,{timeout:decisionBudget(605000)});});Hooks.on('daggerheart.preUseAction',a=>{if(a.id===THORN_USE&&thornItem(a.actor)?.uuid===a.item?.uuid){ui.notifications.info('Thorn Skin offers token spending automatically before incoming damage reduction.');return false;}});}
+export function registerThorn(){
+ CONFIG.queries[QUERY]=resolveThornDamage;CONFIG.queries[PROMPT]=promptThorn;
+ if(nativeDefenseDialog())registerDamageDefense('thorn',{offers:thornDefenseOffers,reroll:true,use:useThornDefense,after:(record,result)=>queueThornReflection(record.actor,result)});
+ else installThorn(CONFIG.Actor.documentClass,r=>{const gm=game.users.activeGM;if(!gm)throw Error('Thorn Skin needs an active GM.');return gm.isSelf?resolveThornDamage(r,{user:game.user}):gm.query(QUERY,r,{timeout:decisionBudget(605000)});});
+ Hooks.on('daggerheart.preUseAction',a=>{if(a.id===THORN_USE&&thornItem(a.actor)?.uuid===a.item?.uuid){ui.notifications.info(nativeDefenseDialog()?'Use Thorn Skin in the damage-reduction dialog.':'Thorn Skin offers token spending automatically before incoming damage reduction.');return false;}});
+}

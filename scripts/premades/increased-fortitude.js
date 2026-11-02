@@ -4,6 +4,7 @@ import { decisionCountdown, decisionNow, decisionTimeout, clearDecisionTimeout }
 import { ID } from '../core.js';
 import { ownerFor } from './aura-rules.js';
 import { FORTITUDE_KEY, FORTITUDE_ACTION } from './increased-fortitude-data.js';
+import {incomingDamagePacket,halveDamagePacket} from './incoming-damage.js';
 const QUERY = `${ID}.fortitudeOffer`;
 const PROMPT = `${ID}.fortitudePrompt`;
 const WRAPPED = Symbol.for(`${ID}.fortitudeWrapped`);
@@ -19,15 +20,15 @@ export function fortitudeItem(actor) {
   }) ?? null;
 }
 export function incomingPhysical(args = {}) {
-  const damage = 'total' in args ? args : (args.main ?? args.damage);
-  const total = typeof damage === 'number' ? damage : damage?.total;
-  const types = Array.from(damage?.options?.damageTypes ?? damage?.damageTypes ?? []);
+  const damage = incomingDamagePacket(args);
+  if (!damage) return null;
+  const {types} = damage;
   // A mixed/unspecified packet has no separate physical amount to halve safely.
-  if (!Number.isFinite(total) || total <= 0 || !types.length || !types.every(type => type === 'physical')) return null;
-  return { total, types, halved: Math.ceil(total / 2) };
+  if (!types.length || !types.every(type => type === 'physical')) return null;
+  return damage;
 }
 export function reducedArguments(args, damage) {
-  return { main: { total: damage.halved, options: { damageTypes: [...damage.types] } }, resources: args.resources };
+  return halveDamagePacket(args,damage);
 }
 async function serial(actorUuid, task) {
   const pending = (queues.get(actorUuid) ?? Promise.resolve()).catch(() => {}).then(task);

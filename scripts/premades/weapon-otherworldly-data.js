@@ -1,3 +1,4 @@
+import {retireNativeOtherworldly} from '../native-otherworldly.js';
 import {ID,clone} from '../core.js';
 import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 export const WEAPON_OTHERWORLDLY_KEY='weapon-otherworldly';
@@ -14,6 +15,7 @@ export function weaponOtherworldlyData(){
     flags:{[ID]:{premade:{key:WEAPON_OTHERWORLDLY_KEY,version:'1.0.1',category:'weapon-features',weaponItems:clone(OTHERWORLDLY_WEAPONS),aliases:[],sourceUuids:[]}}}};
 }
 export async function ensureWeaponOtherworldly(){
+  if(await retireNativeOtherworldly('weapon-features',WEAPON_OTHERWORLDLY_KEY))return;
   const pack=game.packs.get(`${ID}.weapon-features`);
   if(!pack)throw Error('The Weapon Features compendium is missing. Restart Foundry after installation.');
   const existing=(await premadeDocuments(pack)).find(item=>item.getFlag(ID,'premade')?.key===WEAPON_OTHERWORLDLY_KEY);

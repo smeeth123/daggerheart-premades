@@ -1,3 +1,4 @@
+import {rollBonusMethod} from '../workflow-compat.js';
 import { ID } from '../core.js';
 import { PACT_KEY,PACT_ACTION } from './patrons-pact-data.js';
 const WRAPPED=Symbol.for(`${ID}.pactRoll`),queues=new Map();
@@ -28,8 +29,8 @@ export async function spendPact(roll,config){
 }
 export function installPactRoll(D20Roll,pay=spendPact){
   if(D20Roll[WRAPPED])return;
-  const bonus=D20Roll.prototype.applyBaseBonus,evaluate=D20Roll.buildEvaluate;
-  D20Roll.prototype.applyBaseBonus=function(...args){
+  const bonus=D20Roll.prototype[rollBonusMethod(D20Roll)],evaluate=D20Roll.buildEvaluate;
+  D20Roll.prototype[rollBonusMethod(D20Roll)]=function(...args){
     const modifiers=bonus.apply(this,args),count=pactBonus(this.options);
     if(count)modifiers.push({label:'Patron’s Pact',value:count});return modifiers;
   };

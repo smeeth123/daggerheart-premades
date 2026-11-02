@@ -1,3 +1,4 @@
+import {retireNativeOtherworldly} from '../native-otherworldly.js';
 import {premadeDocuments,configurePremadePack} from '../premade-setup-context.js';
 import { ID } from '../core.js';
 export const OTHERWORDLY_KEY='martial-stance-otherwordly',OTHERWORDLY_EFFECT='RtscqiOS754ouvOM';
@@ -101,6 +102,7 @@ export function otherwordlyData(folder){const data={
 };
 data.folder=folder;data.flags={[ID]:{premade:{key:OTHERWORDLY_KEY,version:'1.0.0',category:'subclass-features',aliases:[],sourceUuids:['Compendium.daggerheart.subclasses.Item.K2R2i8dhtNnY9MYR']}}};return data;}
 export async function ensureOtherwordly() {
+  if(await retireNativeOtherworldly('subclass-features',OTHERWORDLY_KEY))return;
   const pack = game.packs.get(`${ID}.subclass-features`);
   if (!pack) throw new Error('The Subclass Features compendium is missing.');
   const existing = (await premadeDocuments(pack)).find(item => item.getFlag(ID,'premade')?.key === OTHERWORDLY_KEY);

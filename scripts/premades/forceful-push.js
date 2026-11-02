@@ -1,3 +1,4 @@
+import {rollBonusMethod} from '../workflow-compat.js';
 import {isHopePaymentCancellation,hopeCapacity,spendHope,refundHope} from './hope-payment.js';
 import {ID,featureActive} from '../core.js';
 import {resolvedAttackTargets,attackTargetOutcome} from '../attack-outcome.js';
@@ -153,9 +154,9 @@ export function installForcefulPush(Action,Duality,Damage,dispatch){
     };Object.defineProperty(Duality,WRAPPED,{value:true});
   }
   if(!Damage[WRAPPED]){
-    const native=Damage.createRollInstance,bonus=Damage.prototype.applyBaseBonus;
+    const native=Damage.createRollInstance,bonus=Damage.prototype[rollBonusMethod(Damage)];
     Damage.createRollInstance=function(config){const roll=native.call(this,config);addForcefulPushBonus(roll,config);return roll;};
-    Damage.prototype.applyBaseBonus=function(part){const result=bonus.call(this,part),effect=this.options.bonusEffects?.[FORCEFUL_PUSH_KEY];
+    Damage.prototype[rollBonusMethod(Damage)]=function(part){const result=bonus.call(this,part),effect=this.options.bonusEffects?.[FORCEFUL_PUSH_KEY];
       if(part.applyTo==='hitPoints'&&!this.options.hasHealing&&effect?.selected)result.push({label:'Forceful Push',value:'1d6'});return result;};
     Object.defineProperty(Damage,WRAPPED,{value:true});
   }

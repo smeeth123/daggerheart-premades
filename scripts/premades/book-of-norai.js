@@ -1,3 +1,4 @@
+import {mapActionConfig} from '../workflow-compat.js';
 import {ID,featureActive} from '../core.js';
 import {attackTargetOutcome,resolvedAttackTargets} from '../attack-outcome.js';
 import {unavailableActor} from './aura-rules.js';
@@ -27,7 +28,7 @@ export async function resolveFireball(request,{user},explode=async(action,target
  });
 }
 export function installNorai(Action,send){if(Object.hasOwn(Action,WRAP))return;
- const prepare=Action.prototype.prepareConfig;Action.prototype.prepareConfig=function(event,options={},...args){const config=prepare.call(this,event,options,...args),context=contexts.get(options[CTX]);if(config&&context?.action===this){config.targets=structuredClone(context.targets);config[ID]={...config[ID],noraiExplosion:{castMessageUuid:context.messageUuid}};delete config[CTX];authorized.add(config);}return config;};
+ const prepare=Action.prototype.prepareConfig;Action.prototype.prepareConfig=function(event,options={},...args){return mapActionConfig(prepare.call(this,event,options,...args),config=>{const context=contexts.get(options[CTX]);if(config&&context?.action===this){config.targets=structuredClone(context.targets);config[ID]={...config[ID],noraiExplosion:{castMessageUuid:context.messageUuid}};delete config[CTX];authorized.add(config);}});};
  const workflow=Action.prototype.executeWorkflow;Action.prototype.executeWorkflow=async function(config,...args){if(!authorized.has(config))return workflow.call(this,config,...args);
   // Native workflows cache bound field methods. Scope changes to this instance's
   // existing entries, delegating those methods rather than rebuilding the pipeline.

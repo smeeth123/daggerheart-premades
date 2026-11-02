@@ -1,3 +1,4 @@
+import {rollBonusMethod} from '../workflow-compat.js';
 import { ID } from '../core.js';
 import { TIDE_KEY } from './know-the-tide-data.js';
 const WRAPPED=Symbol.for(`${ID}.tideRoll`),queues=new Map();
@@ -26,8 +27,8 @@ export async function spendTide(roll,config){
 }
 export function installTideRoll(D20Roll,pay=spendTide){
   if(D20Roll[WRAPPED])return;
-  const bonus=D20Roll.prototype.applyBaseBonus,evaluate=D20Roll.buildEvaluate;
-  D20Roll.prototype.applyBaseBonus=function(...args){
+  const bonus=D20Roll.prototype[rollBonusMethod(D20Roll)],evaluate=D20Roll.buildEvaluate;
+  D20Roll.prototype[rollBonusMethod(D20Roll)]=function(...args){
     const modifiers=bonus.apply(this,args),count=tideBonus(this.options);
     if(count)modifiers.push({label:'Know the Tide',value:count});return modifiers;
   };

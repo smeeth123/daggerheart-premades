@@ -1,3 +1,4 @@
+import {rollBonusMethod} from '../workflow-compat.js';
 import {ID,featureActive} from '../core.js';
 import {withHopeLock} from './hope-lock.js';
 import {STRATEGIC_KEY,STRATEGIC_ADV_EFFECT,STRATEGIC_DAMAGE_EFFECT,STRATEGIC_ACTION,STRATEGIC_ADV_ACTION,STRATEGIC_STRESS_ACTION,STRATEGIC_DAMAGE_ACTION} from './strategic-approach-data.js';
@@ -62,9 +63,9 @@ export function addStrategicDamage(roll,config){
   config.bonusEffects??={};config.bonusEffects[STRATEGIC_KEY]=effect;roll.options.bonusEffects=config.bonusEffects;return effect;
 }
 export function installStrategicDamage(Damage){
-  if(Object.hasOwn(Damage,DAMAGE_WRAPPED))return;const create=Damage.createRollInstance,bonus=Damage.prototype.applyBaseBonus;
+  if(Object.hasOwn(Damage,DAMAGE_WRAPPED))return;const create=Damage.createRollInstance,bonus=Damage.prototype[rollBonusMethod(Damage)];
   Damage.createRollInstance=function(config,...args){const roll=create.call(this,config,...args);addStrategicDamage(roll,config);return roll;};
-  Damage.prototype.applyBaseBonus=function(part,...args){const result=bonus.call(this,part,...args),effect=this.options.bonusEffects?.[STRATEGIC_KEY];
+  Damage.prototype[rollBonusMethod(Damage)]=function(part,...args){const result=bonus.call(this,part,...args),effect=this.options.bonusEffects?.[STRATEGIC_KEY];
     if(part.applyTo==='hitPoints'&&!this.options.hasHealing&&effect?.selected)result.push({label:'Strategic Approach',value:'1d8'});return result;};
   Object.defineProperty(Damage,DAMAGE_WRAPPED,{value:true});
 }

@@ -1,3 +1,4 @@
+import {nativeOtherworldly} from '../native-otherworldly.js';
 import {ID,featureActive} from '../core.js';
 import {weaponModeProfile} from '../weapon-modes.js';
 import {timedDialog} from '../dialog.js';
@@ -52,6 +53,7 @@ export function installOtherworldlyDamage(Damage,choose=chooseOtherworldlyDamage
   Object.defineProperty(Damage,WRAPPED,{value:true});
 }
 export function registerWeaponOtherworldly(){
+  if(nativeOtherworldly())return;
   CONFIG.queries[PROMPT]=promptWeaponOtherworldly;
   installOtherworldlyDamage(CONFIG.Dice.daggerheart.DamageRoll);
 }

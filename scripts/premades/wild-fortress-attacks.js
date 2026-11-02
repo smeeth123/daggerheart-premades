@@ -1,3 +1,4 @@
+import {mapActionConfig} from '../workflow-compat.js';
 import {ID} from '../core.js';
 import {honedAction} from './honed.js';
 import {FORTRESS_CAST} from './wild-fortress-data.js';
@@ -49,7 +50,7 @@ export async function resolveFortressPayment(request,{user}){
  return withHopeLock('fortress-payment:'+card.uuid,async()=>{
   const current=card.flags?.[ID]?.wildFortressAutomatic;if(!game.user.isActiveGM||!user.active||current?.review||current?.cancelled||!user.isGM&&!actor.testUserPermission(user,'OWNER')&&!actor.system.partner?.testUserPermission(user,'OWNER'))return false;if(current?.paid)return true;
   const prior=using.get(action),context={id:foundry.utils.randomID(),pending:[],restore:[],allowed:()=>user.active&&game.user.isActiveGM&&(user.isGM||actor.testUserPermission(user,'OWNER')||actor.system.partner?.testUserPermission(user,'OWNER'))&&!card.flags?.[ID]?.wildFortressAutomatic?.review&&!card.flags?.[ID]?.wildFortressAutomatic?.cancelled};using.set(action,context);activeContexts.set(context.id,context);
-  try{const config=action.prepareConfig({shiftKey:true},{dialog:{configure:true}});if(!config)return false;const expected=config.costs??[];
+  try{const config=await action.prepareConfig({shiftKey:true},{dialog:{configure:true}});if(!config)return false;const expected=config.costs??[];
    if(expected.length!==request.costs.length||request.costs.some((c,i)=>{const base=expected[i];return !base||['key','itemId','value','consumeOnSuccess','scalable','step'].some(k=>c[k]!==base[k])||typeof c.enabled!=='boolean'||!Number.isSafeInteger(c.scale)||c.scale<0||!base.scalable&&c.scale!==0||!Number.isSafeInteger(c.total)||c.total<0||c.total!==c.value+c.scale*c.step;}))return false;
    config.targets=(card.system.targets??[]).map(t=>({...t}));config.costs=request.costs.map(c=>({...c}));if(config.uses)config.uses={...config.uses,enabled:request.usesEnabled};config.message=card;automaticConfig(config);bindOperation(action,config,context);captureAutomaticWrites(action,context);
    await settleAutomaticCosts(action,config,action.workflow);return true;
@@ -59,7 +60,7 @@ export async function resolveFortressPayment(request,{user}){
 export function installFortressAttacks(Action,ActorClass,Fields,Message){
  if(!Object.hasOwn(Action,WRAP)){
   const prepare=Action.prototype.prepareConfig,use=Action.prototype.use,workflow=Action.prototype.executeWorkflow;
-  Action.prototype.prepareConfig=function(...args){const config=prepare.apply(this,args);if(config&&fortressAllDomes(this,config)){automaticConfig(config);bindOperation(this,config);captureAutomaticWrites(this,operationContext(this,config));}return config;};
+  Action.prototype.prepareConfig=function(...args){return mapActionConfig(prepare.apply(this,args),config=>{if(config&&fortressAllDomes(this,config)){automaticConfig(config);bindOperation(this,config);captureAutomaticWrites(this,operationContext(this,config));}});};
   // Cached native bound fields are rebound once per action, retaining all prior
   // native/module part callbacks. This also covers later native chat buttons.
   let proto=Action.prototype,descriptor;while(proto&&!descriptor){descriptor=Object.getOwnPropertyDescriptor(proto,'workflow');proto=Object.getPrototypeOf(proto);}

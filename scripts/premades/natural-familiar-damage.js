@@ -1,3 +1,4 @@
+import {rollBonusMethod} from '../workflow-compat.js';
 import {ID} from '../core.js';
 import {rainOfBladesBonus,rainOfBladesPacket} from './rain-of-blades.js';
 import {FAMILIAR_KEY} from './natural-familiar-data.js';
@@ -44,9 +45,9 @@ export function tagFamiliarDamage(config,nativeScaling=false){
 }
 export function installFamiliarDamage(Damage,Field,Actor){
   if(!Object.hasOwn(Damage,WRAP)){
-    const create=Damage.createRollInstance,bonus=Damage.prototype.applyBaseBonus,construct=Damage.prototype.constructFormula,evaluate=Damage.buildEvaluate,post=Damage.buildPost;
+    const create=Damage.createRollInstance,bonus=Damage.prototype[rollBonusMethod(Damage)],construct=Damage.prototype.constructFormula,evaluate=Damage.buildEvaluate,post=Damage.buildPost;
     Damage.createRollInstance=function(config,...args){const roll=create.call(this,config,...args);prepareFamiliarDamage(roll,config);return roll;};
-    Damage.prototype.applyBaseBonus=function(part,...args){const result=bonus.call(this,part,...args);
+    Damage.prototype[rollBonusMethod(Damage)]=function(part,...args){const result=bonus.call(this,part,...args);
       if(part?.applyTo==='hitPoints'&&!this.options.hasHealing&&this.options.bonusEffects?.[FAMILIAR_KEY]?.selected)result.push({label:'Natural Familiar',value:'1d6[Natural Familiar]'});return result;};
     Damage.prototype.constructFormula=function(part,config,isDamage,...args){const result=construct.call(this,part,config,isDamage,...args);
       if(isDamage&&result?.roll&&config[ID]?.naturalFamiliar){const roll=result.roll;roll.options??={};roll.options[ID]={...roll.options[ID],naturalFamiliarFormula:{criticalFlat:Boolean(config.isCritical&&config.dialog?.configure!==false),multiplier:this.getTotalBonus('system.rules.attack.damage.hpDamageMultiplier')||1}};}return result;};
