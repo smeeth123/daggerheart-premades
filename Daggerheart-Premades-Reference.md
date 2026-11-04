@@ -2,7 +2,7 @@
 
 How all 264 premades work by compendium
 
-Daggerheart Premades 0.5.0   |   Daggerheart 2.12.1   |   November 1 2026
+Daggerheart Premades 0.5.1   |   Daggerheart 2.12.4   |   November 4 2026
 
 This reference explains how each premade works at the table: what you activate, what triggers automatically, which choices and costs appear, and what remains manual. It covers every entry in the nine module compendiums. Upgrades have their own entries even when they only enhance another feature.
 
@@ -1192,7 +1192,7 @@ After weapon damage still deals Severe or Massive damage following reduction, th
 
 #### Deflecting
 
-Before an incoming attack rolls, offer marking 1 available Armor Slot for an attack-specific Evasion bonus equal to your full Armor Score, not your remaining slots. It survives attack rerolls and stacks with other applicable defensive bonuses without changing permanent Evasion. Duplicate targeted tokens for one wearer pay once. There is no persistent effect, Stress cost, or separate weapon activation.
+Before an incoming attack rolls, offer marking 1 Armor Slot for an attack-specific Evasion bonus equal to the available Armor Slots remaining after that payment. For example, 4 available slots become 3, granting +3 Evasion. No prompt appears if paying would leave no bonus. A change in available Armor while deciding cancels payment. The bonus survives attack rerolls and stacks with other applicable defensive bonuses without changing permanent Evasion. Duplicate targeted tokens for one wearer pay once. There is no persistent effect, Stress cost, or separate weapon activation.
 
 #### Entangling
 

@@ -8,9 +8,14 @@ import {withHopeLock} from './hope-lock.js';
 import {installVigilantBefore} from './vigilant.js';
 import {WEAPON_DEFLECTING_KEY} from './weapon-deflecting-data.js';
 const QUERY=`${ID}.weaponDeflecting`,PROMPT=`${QUERY}Prompt`,WRAPPED=Symbol.for(QUERY),receipts=new Map();
+export function deflectingBonus(actor){
+ const armor=actor?.system?.armorScore,max=Number(armor?.max),marked=Number(armor?.value);
+ // The paid slot is no longer available when the native Deflecting effect
+ // evaluates. Do not offer an Armor payment that would grant zero Evasion.
+ return Number.isSafeInteger(max)&&Number.isSafeInteger(marked)&&max>0&&marked>=0?Math.max(0,max-marked-1):0;
+}
 export function deflectingWeapon(actor){
- const armor=actor?.system?.armorScore;
- if(actor?.type!=='character'||unavailableActor(actor)||!Number.isSafeInteger(Number(armor?.max))||Number(armor.max)<=0||!(Number(armor.value)<Number(armor.max)))return null;
+ if(actor?.type!=='character'||unavailableActor(actor)||!deflectingBonus(actor))return null;
  return actor.items?.find(item=>item.type==='weapon'&&item.system?.equipped&&featureActive(item)&&!item.flags?.[ID]?.disabled&&
   item.flags?.[ID]?.applied?.key===WEAPON_DEFLECTING_KEY&&item.system.weaponFeatures?.some(f=>f.value==='deflecting'))??null;
 }
@@ -30,7 +35,8 @@ export async function validateDeflecting(request,user){
 }
 export async function promptDeflecting(data,{user}){
  const actor=await fromUuid(data.actorUuid);if(!user?.isGM||!actor?.testUserPermission(game.user,'OWNER')||!deflectingWeapon(actor))return false;
- const bonus=Number(actor.system.armorScore.max);
+ const bonus=deflectingBonus(actor);
+ if(data.bonus!==undefined&&data.bonus!==bonus)return false;
  return Boolean(await timedDialog(`Deflecting — ${actor.name}`,`<p>You are targeted by an attack. Before it rolls, mark <strong>1 Armor Slot</strong> for <strong>+${bonus} Evasion</strong> against this attack?</p>`,
   [{action:'use',label:'Mark Armor Slot',callback:()=>true},{action:'decline',label:'Decline',default:true,callback:()=>false}]));
 }
@@ -40,18 +46,19 @@ export async function resolveDeflecting(request,{user},ask=promptDeflecting){
  const key=`${user?.id}:${request.id}`;if(receipts.has(key))return null;
  let valid=await validateDeflecting(request,user);if(!valid||receipts.has(key))return null;
  receipts.set(key,{expires:decisionNow()+decisionBudget(300000)});
- const owner=ownerFor(valid.actor,[...game.users],game.user),weaponUuid=valid.weapon.uuid;
- const data={actorUuid:valid.actor.uuid},accepted=owner.isSelf?await ask(data,{user:game.user}):await owner.query(PROMPT,data,{timeout:decisionBudget(65000)});
+ const owner=ownerFor(valid.actor,[...game.users],game.user),weaponUuid=valid.weapon.uuid,offeredBonus=deflectingBonus(valid.actor);
+ const data={actorUuid:valid.actor.uuid,bonus:offeredBonus},accepted=owner.isSelf?await ask(data,{user:game.user}):await owner.query(PROMPT,data,{timeout:decisionBudget(65000)});
  if(accepted!==true||!owner.active)return null;
  return withHopeLock(valid.actor.uuid,async()=>{
   valid=await validateDeflecting(request,user);
-  if(!valid||valid.weapon.uuid!==weaponUuid||!owner.active||!valid.actor.testUserPermission(owner,'OWNER'))return null;
-  const score=Number(valid.actor.system.armorScore.max),before=Number(valid.actor.system.armorScore.value);
+  if(!valid||valid.weapon.uuid!==weaponUuid||!owner.active||!valid.actor.testUserPermission(owner,'OWNER')||deflectingBonus(valid.actor)!==offeredBonus)return null;
+  const before=Number(valid.actor.system.armorScore.value);
   // Native updateArmorValue awaits the embedded armor/effect writes and uses
   // the system's ordered armor sources, including temporary Armor Slots.
   await valid.actor.system.updateArmorValue({value:1});
   if(Number(valid.actor.system.armorScore.value)!==before+1)throw Error('Deflecting could not mark an Armor Slot. Check Armor before retrying.');
-  return {bonus:score,bearerName:valid.actor.name,targetIds:valid.targets.map(t=>t.id)};
+  const bonus=Math.max(0,Number(valid.actor.system.armorScore.max)-Number(valid.actor.system.armorScore.value));
+  return {bonus,bearerName:valid.actor.name,targetIds:valid.targets.map(t=>t.id)};
  });
 }
 export function installWeaponDeflecting(RollClass,dispatch){
