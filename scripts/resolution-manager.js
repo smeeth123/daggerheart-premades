@@ -161,12 +161,29 @@ async function noticeRequest(data,{user}){
   }
   await broadcast();return true;
 }
+// Foundry brings a forced render to the front after its render hooks.
+function noticeAfterRender(title,deadline,notify=notifyPending){
+  let timer,started=false,closed=false,done;
+  return {
+    rendered(){
+      if(started||closed)return;
+      started=true;
+      timer=setTimeout(async()=>{
+        try{
+          done=await notify(title,deadline);
+          if(closed)done();
+        }catch(error){console.warn(`${ID} | Pending notice failed`,error);}
+      },0);
+    },
+    close(){closed=true;clearTimeout(timer);done?.();}
+  };
+}
 export function installDamageReductionMetadata(UserClass){installDecisionQueryTimeouts(UserClass);}
 export function installDamageReductionMonitoring(queries,notify=notifyPending){
   const native=queries.armorSlot;
   queries.armorSlot=async function(data,...args){
     const actor=await fromUuid(data.actorId),deadline=data.dhpPendingDeadline??decisionNow()+decisionBudget(60000);
-    const done=await notify(`Damage Reduction — ${actor?.name??'Actor'}`,deadline);
+    const notice=noticeAfterRender(`Damage Reduction — ${actor?.name??'Actor'}`,deadline,notify);
     let app,timer,interval,hook;
     // Capture the native or Celestial Wings window belonging to this request.
     const Base=globalThis.game?.system?.api?.applications?.dialogs?.DamageReductionDialog;
@@ -175,12 +192,12 @@ export function installDamageReductionMonitoring(queries,notify=notifyPending){
       app=dialog;app.dhpDecisionDeadline=deadline;
       const title=app.title;
       const tick=()=>{if(app.window?.title)app.window.title.textContent=`${title} ${decisionCountdown(app.wingsDeadline??deadline)}`;};
-      tick();interval=setInterval(tick,250);
+      tick();interval=setInterval(tick,250);notice.rendered();
     });
     try{return await Promise.race([native.call(this,data,...args),new Promise(resolve=>{
       timer=decisionTimeout(()=>{resolve(undefined);if(app?.rendered)void app.close();},Math.max(0,deadline-decisionNow()));
     })]);}finally{
-      clearDecisionTimeout(timer);clearInterval(interval);if(hook!==undefined)Hooks.off('renderApplicationV2',hook);done();
+      clearDecisionTimeout(timer);clearInterval(interval);if(hook!==undefined)Hooks.off('renderApplicationV2',hook);notice.close();
     }
   };
 }
@@ -218,8 +235,12 @@ export function registerResolutionManager(){
     if(config.dhpPending===false)return native.call(this,config,...args);
     const title=String(config.window?.title??'');
     if(!config.dhpTimed&&!/^(Luckbender|Hallowed Aura|Wings|Quick Reactions|Increased Fortitude|Kick|Tusks|Brave Face|Marked for Death|Combo Strike|Volatile Magic|Channel Raw Power|Death Strike|Toxic Concoctions|Maestro|Overwhelm|Eye for an Eye|Not Done Yet|Favored|Quick Stance|Aggressive|Defensive|Otherwordly|Grappling|Crushing|Honed|Vigilant|Keen Defenses|Flow State|Elemental Aura|Elemental Dominion|Clarity of Nature|Warden[’']s Protection|Defender|Revenge|Partner-in-Arms|Loyal Protector)\b/.test(title))return native.call(this,config,...args);
-    const done=await notifyPending(title.replace(/\s*\((?:Paused · )?\d+s\)$/,''),decisionNow()+decisionBudget(60000));
-    try{return await native.call(this,config,...args);}finally{done();}
+    const notice=noticeAfterRender(title.replace(/\s*\((?:Paused · )?\d+s\)$/,''),config.dhpPendingDeadline??decisionNow()+decisionBudget(60000));
+    const render=config.render;
+    try{return await native.call(this,{...config,render(event,dialog){
+      render?.call(this,event,dialog);
+      notice.rendered();
+    }},...args);}finally{notice.close();}
   };
   setInterval(()=>{
     if(!game.user.isActiveGM)return;

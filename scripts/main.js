@@ -437,7 +437,6 @@ Hooks.once('ready', async () => {
   registerBraveFace();
   registerFelineInstincts();
   registerCelestialWings();
-  installDamageReductionMonitoring(CONFIG.queries);
   registerIncreasedFortitude();
   registerQuickReactions();
   registerFaerieWings(true);
@@ -579,6 +578,8 @@ Hooks.once('ready', async () => {
   registerThriveInChaos();
   registerBeastformRollDamage();
   await registerRuneWard();
+  // Rune Ward can open its own Armor dialog without calling the earlier handler.
+  installDamageReductionMonitoring(CONFIG.queries);
   // Inside damage redirection/packet adjustments and later post-damage retaliation.
   registerConjureSwarm();
   registerThorn();

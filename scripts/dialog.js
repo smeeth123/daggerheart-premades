@@ -6,7 +6,7 @@ export async function timedDialog(title, content, buttons, onRender, { pending =
   let app, timer, interval, clearPreview;
   const heading = () => `${title} ${decisionCountdown(deadline)}`;
   const answer = foundry.applications.api.DialogV2.wait({
-    dhpTimed: true, dhpPending: pending, window: { title: heading() }, position: { width: 760 }, classes: ['dh-premades'], content, buttons,
+    dhpTimed: true, dhpPending: pending, dhpPendingDeadline: deadline, window: { title: heading() }, position: { width: 760 }, classes: ['dh-premades'], content, buttons,
     rejectClose: false,
     render: (_event, dialog) => {
       app = dialog;

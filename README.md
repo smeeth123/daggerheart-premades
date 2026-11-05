@@ -32,7 +32,7 @@ Most feature-specific automation requires an applied premade. Some quality-of-li
 
 ## Requirements and settings
 
-- **Foundry VTT v14** with the **Daggerheart v2** system. The current release is verified against **Daggerheart 2.12.5** and **Foundry 14.368**. The module accepts Daggerheart 2.x; this does not mean every system version has been tested.
+- **Foundry VTT v14** with the **Daggerheart v2** system. The current release is verified against **Daggerheart 2.12.6** and **Foundry 14.368**. The module accepts Daggerheart 2.x; this does not mean every system version has been tested.
 - **Dice So Nice is optional**, for supported 3D dice presentation.
 - Keep an **active GM connected** for coordinated decisions and resource updates. Some range-based features require the GM to display the relevant scene.
 - Decision countdowns default to **60 seconds** and can be configured from **5 to 600 seconds** in the module settings. The GM can pause and resume shared timers.
