@@ -46,7 +46,7 @@ async function finalizeDamage(record,updates){
  const rules=rulesFor(record);
  if(!record.queried&&record.actor.type==='character'&&record.raw>0&&(wardAvailable?.(record.actor)||record.defenses)){
   const result=await record.actor.owner.query('armorSlot',{actorId:record.actor.uuid,actionUuid:record.options?.actionUuid,
-   damage:record.raw,type:record.types,[ID]:{damageContext:{...rules,defenses:record.defenses,wardOnly:Boolean(record.options?.isDirect||record.actor.system.rules.damageReduction.disabledArmor)}}},{timeout:decisionBudget(record.defenses?185000:65000)});
+   damage:record.raw,type:record.types,[ID]:{damageContext:{...rules,packetId:record.id,defenses:record.defenses,wardOnly:Boolean(record.options?.isDirect||record.actor.system.rules.damageReduction.disabledArmor)}}},{timeout:decisionBudget(record.defenses?185000:65000)});
   if(!result)throw CANCEL;
   hp.value=record.manualHP+result.modifiedDamage;
   for(const row of result.armorChanges??[])updates.push({key:'armor',value:row.amount,uuid:row.uuid});
@@ -76,7 +76,7 @@ export function installDamageContext(Actor){
   const record={actor:this,packet,options,id:`dhpDamage${foundry.utils.randomID()}`,queried:false,
    manualHP:Number(typeof packet.resources?.hitPoints==='number'?packet.resources.hitPoints:packet.resources?.hitPoints?.total)||0};
   pending.set(record.id,record);openDamageDefenses(record);
-  const input='total'in packet?{main:packet,resources:{[record.id]:0}}:{...packet,resources:{...packet.resources,[record.id]:0}};
+  const input='total'in packet?{main:packet,resources:{...packet.resources,[record.id]:0}}:{...packet,resources:{...packet.resources,[record.id]:0}};
   const previous=current;let result;
   try{current=record;result=take.call(this,input,options,...args);}
   catch(error){pending.delete(record.id);await finishDamageDefenses(record,null);throw error;}
@@ -85,7 +85,14 @@ export function installDamageContext(Actor){
   finally{pending.delete(record.id);await finishDamageDefenses(record,null);}
  };
  Hooks.on('daggerheart.postCalculateDamage',(actor,args)=>{
-  if(current?.actor===actor&&args.main){current.raw=args.main.value;current.types=args.main.damageTypes;}
+  const marker=args.resourceUpdates?.find(row=>pending.get(row.key)?.actor===actor),record=marker&&pending.get(marker.key);
+  if(!record||!args.main)return;
+  record.raw=args.main.value;record.types=args.main.damageTypes;
+  // Native 2.12.5 can await before its hooks. Recover the exact packet from
+  // its parsed resources, then scope only the synchronous Armor-query dispatch.
+  // Never retain a global active packet over the query's asynchronous work.
+  current=record;
+  queueMicrotask(()=>{if(current===record)current=null;});
  });
  installDamageContextQuery();
  const triggers=game.system.registeredTriggers,run=triggers.runTrigger;
@@ -106,7 +113,7 @@ export function installDamageContextQuery(User=CONFIG.User?.documentClass){
  if(!nativeDamageContext()||!User||User.prototype.query?.[QUERY_BRIDGE])return;
  const query=User.prototype.query;
  const wrapped=function(name,data,...args){
-  if(name==='armorSlot'&&current?.actor.uuid===data.actorId&&data[ID]?.damageContext?.packetId!==current.id){
+  if(name==='armorSlot'&&current?.actor.uuid===data.actorId&&!data[ID]?.damageContext?.packetId){
    const record=current;record.queried=true;
    const rules={...rulesFor(record),defenses:record.defenses,...data[ID]?.damageContext,packetId:record.id};
    if(rules.severity>0&&countDamage(data.damage,rules.thresholds)<=rules.severity)return Promise.resolve({modifiedDamage:0,armorChanges:[],resourceCosts:[]});

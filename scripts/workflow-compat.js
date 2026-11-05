@@ -44,7 +44,10 @@ export function installWorkflowCompat(Context,Base){
     return initialize.apply(this,args);
   };
   Context.prototype.getRollData=function(){
-    const data={...fullRollData(getData.call(this)),...this.data};
+    const full=fullRollData(getData.call(this)),data={...full,...this.data};
+    // Scale is recalculated from the current selected costs by the native
+    // context. A cached value must not override a changed dialog selection.
+    if(full.scale!==undefined)data.scale=full.scale;
     if(this.actor)Object.defineProperty(data,'parent',{value:this.actor,configurable:true,enumerable:false});
     return data;
   };

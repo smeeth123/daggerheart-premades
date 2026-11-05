@@ -26,10 +26,12 @@ export function installWeaponNonlethal(Damage,Actor,triggers){
  }
  if(!Actor||Object.hasOwn(Actor,WRAPPED))return;
  const take=Actor.prototype.takeDamage,update=Actor.prototype.update,run=triggers.runTrigger;
- const parsing=new WeakMap(),receipts=new WeakMap(),contexts=new WeakMap();
+ const parsing=new Map(),receipts=new WeakMap(),contexts=new WeakMap();
  Hooks.on('daggerheart.preTakeDamage',(actor,args)=>{
-  const context=parsing.get(actor);
-  if(context){parsing.delete(actor);receipts.set(args.resourceUpdates,context);}
+  const index=args.resourceUpdates?.findIndex(row=>parsing.get(row.key)?.actor===actor)??-1;
+  if(index<0)return;
+  const [marker]=args.resourceUpdates.splice(index,1),context=parsing.get(marker.key);
+  parsing.delete(marker.key);receipts.set(args.resourceUpdates,context);
  });
  Actor.prototype.update=function(...args){const result=update.apply(this,args);contexts.get(this)?.writes.push(Promise.resolve(result));return result;};
  Actor.prototype.takeDamage=function(packet,...args){
@@ -37,16 +39,16 @@ export function installWeaponNonlethal(Damage,Actor,triggers){
   return withHopeLock(`weaponNonlethalDamage:${this.uuid}`,async()=>{
    const resource=packet.resources?.hitPoints;
    const excludedHP=resource?.options?.itemId||resource?.options?.fullRestore?0:Math.max(0,Number(typeof resource==='number'?resource:resource?.total)||0);
-   const context={excludedHP,handled:false,writes:[]};contexts.set(this,context);
+   const context={actor:this,excludedHP,handled:false,writes:[]},id=`dhpNonlethal${foundry.utils.randomID()}`;contexts.set(this,context);
+   const resources={...packet.resources,[id]:0},input='total'in packet?{main:packet,resources}:{...packet,resources};
    try{
-    // Native parsing/preTakeDamage is synchronous. Bind this exact resource
-    // array before Armor awaits, so unrelated damage cannot borrow its marker.
-    parsing.set(this,context);let pending;
-    try{pending=take.call(this,packet,...args);}finally{parsing.delete(this);}
-    const result=await pending;let position=0;
+    // Parsed resources retain packet identity across native awaits; unrelated
+    // damage to the same actor cannot borrow this conversion receipt.
+    parsing.set(id,context);
+    const result=await take.call(this,input,...args);let position=0;
     while(position<context.writes.length){const end=context.writes.length;await Promise.all(context.writes.slice(position,end));position=end;}
     return result;
-   }finally{contexts.delete(this);}
+   }finally{parsing.delete(id);contexts.delete(this);}
   });
  };
  triggers.runTrigger=async function(trigger,actor,updates,...args){
