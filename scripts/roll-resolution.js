@@ -1,3 +1,4 @@
+import {ARCANA_TOUCHED_QUERY,arcanaTouchedItem,validateArcanaTouched,resolveArcanaTouched} from './premades/arcana-touched.js';
 import { decisionBudget } from './settings.js';
 import { decisionNow } from './decision-clock.js';
 import {criticalRerollResult,isActionRerollChoice} from './roll-rerolls.js';
@@ -33,6 +34,12 @@ export function registerRollProviders(){
  registerResolutionProvider('courage',async(request,user)=>{const valid=await validateCourage({...request,deadline:decisionNow()+decisionBudget(120000)},user);return valid?{owner:ownerFor(valid.actor,[...game.users],game.user),name:'Courage',bearerName:valid.actor.name,cost:'Gain 1 Hope',description:valid.item.system.description??'',useLabel:'Failed — gain Hope',declineLabel:'Succeeded'}:null;});
  registerResolutionProvider('diminish',async(request,user)=>{const valid=await validateDiminish({...request,deadline:decisionNow()+decisionBudget(120000)},user);return valid?{owner:valid.owner,name:'Diminish My Foes',bearerName:valid.actor.name,cost:`Choose Favor · ${valid.target.name}`,description:valid.item.system.description??'',useLabel:'Choose Favor'}:null;});
  registerResolutionProvider('nemesis',async(request,user)=>{const valid=await validateNemesis({...request,deadline:decisionNow()+decisionBudget(120000)},user);return valid?{owner:ownerFor(valid.actor,[...game.users],game.user),name:'Nemesis',bearerName:valid.actor.name,cost:'Swap Hope and Fear',description:valid.item.system.description??'',useLabel:'Swap Dice'}:null;});
+ registerResolutionProvider('arcana-touched',async(request,user)=>{
+  const valid=await validateArcanaTouched({...request,deadline:decisionNow()+decisionBudget(120000)},user);
+  if(!valid)return null;
+  return {owner:ownerFor(valid.actor,[...game.users],game.user),name:'Arcana-Touched',bearerName:valid.actor.name,
+   cost:'1/rest',description:valid.item.system.description,useLabel:'Swap Dice'};
+ });
  registerResolutionProvider('enchanted-aid',async(request,user)=>{const valid=await validateEnchantedSwap({...request,deadline:decisionNow()+decisionBudget(120000)},user);return valid?{owner:ownerFor(valid.helper,[...game.users],game.user),name:'Enchanted Aid',bearerName:valid.helper.name,cost:'1/long rest',description:valid.item.system.description??'',useLabel:'Swap Dice'}:null;});
  registerResolutionProvider('true-strike',async(request,user)=>{const valid=await validateTrue({...request,deadline:decisionNow()+decisionBudget(120000)},user);return valid?{owner:ownerFor(valid.actor,[...game.users],game.user),name:'True Strike',bearerName:valid.actor.name,cost:'1 Hope · 1/long rest',description:valid.item.system.description??'',useLabel:valid.outcome==='unknown'?'Failed — use True Strike':'Use',declineLabel:valid.outcome==='unknown'?'Succeeded':'Decline',passLabel:valid.outcome==='unknown'?'Decline':undefined}:null;});
   registerResolutionProvider('charm',async(request,user)=>{
@@ -97,6 +104,12 @@ export function collectRollChoices(roll,actor,{auraOnly=false,used=new Set(),con
   if(!auraOnly&&roll.options.actionType==='action')for(const candidate of reassuranceCandidates(actor)){
     const usageKey=`reassurance:${candidate.itemUuid}`;
     if(!used.has(usageKey))rows.push({id:usageKey,usageKey,kind:'reassurance',request:{sourceUuid:actor.uuid,candidate,actionType:'action',...values}});
+  }
+  if(!auraOnly&&!used.has('arcana-touched')&&roll.options.actionType==='action'&&
+     Number.isFinite(values.hope)&&Number.isFinite(values.fear)&&values.hope!==values.fear){
+    const item=arcanaTouchedItem(actor);
+    if(item)rows.push({id:`arcana-touched:${item.uuid}`,kind:'arcana-touched',
+      request:{sourceUuid:actor.uuid,candidate:{itemUuid:item.uuid},actionType:'action',...values}});
   }
   if(!auraOnly&&!used.has('enchanted-aid')&&values.hope!==values.fear&&spellcastRoll(actor,roll.options.actionType,roll.options.roll?.trait))for(const help of roll.options?.[ID]?.helpAlly?.rows??[]){const item=help.enchantedAid&&foundry.utils.fromUuidSync?.(help.enchantedAid.itemUuid);if(item&&enchantedAidItem(item.actor)?.uuid===item.uuid&&swapAvailable(item))rows.push({id:`enchanted-aid:${item.uuid}`,kind:'enchanted-aid',request:{sourceUuid:actor.uuid,candidate:{itemUuid:item.uuid},claimId:roll.options[ID].helpAlly.claimId,actionType:'action',trait:roll.options.roll.trait,...values}});}
   if(!auraOnly&&!charmed(roll)&&!used.has('nemesis')&&values.hope!==values.fear){const source=config.source??roll.options.source,targets=config.targets??roll.options.targets??[],actionType=config.actionType??roll.options.actionType,item=nemesisItem(actor);if(item&&nemesisAttack(actor,source,targets,actionType))rows.push({id:`nemesis:${item.uuid}`,kind:'nemesis',request:{sourceUuid:actor.uuid,candidate:{itemUuid:item.uuid},source,targets:targets.map(t=>({actorId:t.actorId})),actionType,...values}});}
@@ -190,6 +203,14 @@ export async function executeRollChoice(choice,roll,config,preview){
    const decision=gm.isSelf?await resolveDiminish(request,{user:game.user}):await gm.query(`${ID}.diminishMyFoes`,request,{timeout:decisionBudget(125000)});if(!decision)return false;roll.options[ID]={...roll.options[ID],diminishMyFoes:decision};
   }else if(choice.kind==='nemesis'){
    const decision=gm.isSelf?await resolveNemesis(request,{user:game.user}):await gm.query(`${ID}.nemesisSwap`,request,{timeout:decisionBudget(125000)});if(!decision)return false;swapNemesisDice(roll);roll.options[ID]={...roll.options[ID],nemesis:decision};
+  }else if(choice.kind==='arcana-touched'){
+   if(roll.options.actionType!=='action'||roll.dHope.total===roll.dFear.total||
+      roll.dHope.total!==request.hope||roll.dFear.total!==request.fear)return false;
+   const spent=gm.isSelf?await resolveArcanaTouched(request,{user:game.user}):
+    await gm.query(ARCANA_TOUCHED_QUERY,request,{timeout:decisionBudget(125000)});
+   if(!spent)return false;
+   swapEnchantedDice(roll);
+   roll.options[ID]={...roll.options[ID],arcanaTouched:true};
   }else if(choice.kind==='enchanted-aid'){
    const decision=gm.isSelf?await resolveEnchantedSwap(request,{user:game.user}):await gm.query(`${ID}.enchantedAidSwap`,request,{timeout:decisionBudget(125000)});if(!decision)return false;swapEnchantedDice(roll);roll.options[ID]={...roll.options[ID],enchantedAid:decision};
   }else if(choice.kind==='true-strike'){

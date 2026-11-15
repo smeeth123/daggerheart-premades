@@ -163,32 +163,42 @@ export async function showLuckbenderResult(RollClass,roll,config) {
   const cls=getDocumentClass('ChatMessage');
   config.selectedMessageMode??=game.settings.get('core','messageMode');
   const message=await cls.create({type:RollClass.messageType,user:game.user.id,title:roll.title,
-    speaker:cls.getSpeaker({actor:roll.data?.parent}),sound:config.mute?null:CONFIG.sounds.dice,
+    speaker:cls.getSpeaker({actor:config.actor??roll.data?.parent}),sound:config.mute?null:CONFIG.sounds.dice,
     system:foundry.utils.deepClone(config),rolls:[roll],flags:{[ID]:{luckbenderPending:true}}
   },{messageMode:config.selectedMessageMode});
   if(roll.formula!==''&&game.dice3d)await game.dice3d.waitFor3DAnimationByMessageID(message.id);
   return message;
 }
+const pendingCards=new WeakMap(),PENDING_CARD=Symbol.for(`${ID}.pendingRollCard`);
+export async function showPendingRollCard(RollClass,roll,config,showResult=showLuckbenderResult){
+ if(pendingCards.has(roll))return pendingCards.get(roll);
+ const message=await showResult(RollClass,roll,config);
+ if(message)pendingCards.set(roll,message);
+ return message;
+}
+export function installPendingRollCard(RollClass){
+ if(!RollClass||Object.hasOwn(RollClass,PENDING_CARD)||typeof RollClass.toMessage!=='function')return;
+ const toMessage=RollClass.toMessage;
+ RollClass.toMessage=async function(roll,config){
+  const preview=pendingCards.get(roll);
+  if(!preview)return toMessage.call(this,roll,config);
+  pendingCards.delete(roll);
+  // Build the native payload without creating a second chat message.
+  const payload=await toMessage.call(this,new Proxy(roll,{get(target,key,receiver){
+   return key==='_evaluated'?false:Reflect.get(target,key,receiver);
+  }}),config);
+  payload.rolls=[roll.toJSON()];
+  payload[`flags.${ID}.-=luckbenderPending`]=null;
+  await preview.update(payload);
+  return preview;
+ };
+ Object.defineProperty(RollClass,PENDING_CARD,{value:true});
+}
 export function installLuckbender(RollClass,offer=offerLuckbender,reroll=rerollDualityDice,showResult=showLuckbenderResult,includeReactions=false) {
   if(RollClass[WRAPPED])return;
   const build=RollClass.buildEvaluate,evaluate=RollClass.prototype._evaluate;
-  const pending=new WeakMap(),previews=new WeakMap();
-  const toMessage=RollClass.toMessage;
-  RollClass.toMessage=async function(roll,config){
-    const preview=previews.get(roll);
-    if(!preview)return toMessage.call(this,roll,config);
-    // Native toMessage builds its complete payload and handles reload at the usual
-    // workflow stage. Its unevaluated branch returns that payload without creating
-    // another message. The proxy leaves the actual evaluated roll untouched.
-    const payload=await toMessage.call(this,new Proxy(roll,{get(target,key,receiver){
-      return key==='_evaluated'?false:Reflect.get(target,key,receiver);
-    }}),config);
-    payload.rolls=[roll.toJSON()];
-    payload[`flags.${ID}.-=luckbenderPending`]=null;
-    await preview.update(payload);
-    previews.delete(roll);
-    return preview;
-  };
+  const pending=new WeakMap();
+  installPendingRollCard(RollClass);
   RollClass.buildEvaluate=async function(roll,...args){
     pending.set(roll,args[0]);try{return await build.call(this,roll,...args);}finally{pending.delete(roll);}
   };
@@ -198,16 +208,10 @@ export function installLuckbender(RollClass,offer=offerLuckbender,reroll=rerollD
     // The shared manager must still offer non-reroll abilities on a crit.
     if(!includeReactions&&criticalRerollResult({critical:this.isCritical,hope:this.dHope.total,fear:this.dFear.total}))return result;
     try{
-      const decision=await offer(this,async()=>{
-        if(!previews.has(this)){
-          const message=await showResult(RollClass,this,pending.get(this));
-          if(message)previews.set(this,message);
-        }
-        return previews.get(this);
-      },pending.get(this));if(!decision)return result;
+      const decision=await offer(this,()=>showPendingRollCard(RollClass,this,pending.get(this),showResult),pending.get(this));if(!decision)return result;
       const original={hope:this.dHope.total,fear:this.dFear.total,total:this.total};
       const pair=await reroll(this);
-      await animateLuckbenderReroll(pair,pending.get(this),previews.get(this));
+      await animateLuckbenderReroll(pair,pending.get(this),pendingCards.get(this));
       this.options[ID]={...this.options[ID],luckbender:{...decision,original}};
     }catch(error){ui.notifications.error(`Roll resolution stopped before consequences: ${error.message}`);throw error;}
     return result;

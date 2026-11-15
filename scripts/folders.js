@@ -4,7 +4,7 @@ import { FOLDER_CATALOG } from './folder-catalog.js';
 
 const PREMADE_ANCESTRIES = new Set(['Aetheris','Dwarf','Elf','Faerie','Faun','Firbolg','Galapa','Gnome','Goblin','Halfling','Human','Infernis','Katari','Orc','Skykin']);
 
-const PREMADE_COMMUNITIES = new Set(['Freeborne','Frostborne','Seaborne','Warborne']);
+const PREMADE_COMMUNITIES = new Set(['Freeborne','Frostborne','Seaborne','Warborne','Orderborne']);
 
 export function missingFolders(names, existing) {
   const present = new Set(existing.filter(folder => !folder.folder).map(folder => normalize(folder.name)));

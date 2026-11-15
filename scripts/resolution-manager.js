@@ -32,7 +32,8 @@ async function broadcast(){
     const visible=[];
     for(const s of sessions.values()){
       if(!s.audience.has(user.id)&&!user.isGM)continue;
-      const disclosed=canSeeRoll(s.message,user);
+      const disclosed=canSeeRoll(s.message,user)||Boolean(s.numeric&&(user.id===s.executor||
+        [...s.rows.values()].some(row=>row.ownerId===user.id)));
       visible.push({id:s.id,round:s.round,phase:s.phase,deadline:s.deadline,
         title:disclosed?s.title:s.effectPending?'Counterspell':'Private roll',result:disclosed?s.result:s.effectPending?'A magical effect is pending':'Roll details are private',
         rows:[...s.rows.values()].filter(row=>disclosed||user.isGM||row.ownerId===user.id).map(row=>({
@@ -54,7 +55,10 @@ export async function handleResolution(data,{user}){
     const actor=await fromUuid(data.actorUuid);
     if(!actor?.testUserPermission(user,'OWNER'))throw new Error('You do not own the rolling actor.');
     if(s&&(s.executor!==user.id||s.actorUuid!==data.actorUuid||s.waiter))throw new Error('Resolution is already pending.');
-    if(!data.roll||![data.roll.total,data.roll.hope,data.roll.fear].every(Number.isFinite)||!Array.isArray(data.rows)||data.rows.length>100)throw new Error('Invalid resolution choices.');
+    const numeric=['roll','damage','healing','resource'].includes(data.roll?.numeric)&&
+      Array.isArray(data.rows)&&data.rows.every(row=>row.kind==='adjust-reality');
+    if(!Number.isFinite(data.roll?.total)||(!numeric&&![data.roll.hope,data.roll.fear].every(Number.isFinite))||
+      !Array.isArray(data.rows)||data.rows.length>100)throw new Error('Invalid resolution choices.');
     if(!s){s=new ResolutionSession(data.id,user.id,data.actorUuid);s.audience=new Set([user.id]);sessions.set(data.id,s);}
     if(s.phase==='Resolving'){
       const selected=s.rows.get(s.selection);
@@ -63,8 +67,8 @@ export async function handleResolution(data,{user}){
     }
     const message=data.messageUuid?await fromUuid(data.messageUuid):null;
     if(message?.speaker?.actor&&message.speaker.actor!==actor.id)throw new Error('Roll card belongs to another actor.');
-    s.message=message;s.effectPending=Boolean(data.roll.effect);s.title=`${actor.name} — ${data.roll.effect?'Counterspell':data.roll.damage?'Damage resolution':data.roll.attack?'Attack resolution':'Roll resolution'}`;
-    s.result=data.roll.effect?`${String(data.roll.effect).slice(0,200)} — magical effect pending`:data.roll.damage?`${data.roll.total} damage`:data.roll.attack?`${data.roll.total} attack${data.roll.critical?' · Critical hit':''}`:`${data.roll.total} with ${data.roll.withFear?'Fear':'Hope'} — Hope: ${data.roll.hope}, Fear: ${data.roll.fear}`;
+    s.numeric=numeric;s.message=message;s.effectPending=Boolean(data.roll.effect);s.title=`${actor.name} — ${data.roll.effect?'Counterspell':data.roll.damage?'Damage resolution':data.roll.attack?'Attack resolution':'Roll resolution'}`;
+    s.result=numeric?`${data.roll.total} ${data.roll.numeric==='roll'?'total':data.roll.numeric}`:data.roll.effect?`${String(data.roll.effect).slice(0,200)} — magical effect pending`:data.roll.damage?`${data.roll.total} damage`:data.roll.attack?`${data.roll.total} attack${data.roll.critical?' · Critical hit':''}`:`${data.roll.total} with ${data.roll.withFear?'Fear':'Hope'} — Hope: ${data.roll.hope}, Fear: ${data.roll.fear}`;
     const rows=[];
     for(const entry of data.rows){
       const validate=providers.get(entry.kind);if(!validate||s.usedKinds?.has(entry.usageKey??entry.kind))continue;

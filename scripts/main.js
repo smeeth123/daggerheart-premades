@@ -52,7 +52,7 @@ import {registerStealth} from './premades/stealth-expertise.js';
 import {registerGoad} from './premades/goad-them-on.js';
 import {registerSupportTank} from './premades/support-tank.js';
 import {registerChampion} from './premades/champions-edge.js';
-import {registerSignature} from './premades/signature-move.js';
+import {registerSignature,registerDedicated} from './premades/signature-move.js';
 import {registerTeleport} from './premades/teleport.js';
 import {registerManifestWall} from './premades/manifest-wall.js';
 import {registerDireStrike} from './premades/dire-strike.js';
@@ -81,6 +81,11 @@ import {registerViciousEntangle} from './premades/vicious-entangle.js';
 import {registerReassurance} from './premades/reassurance.js';
 import {registerForcefulPush} from './premades/forceful-push.js';
 import {registerCounterspell} from './premades/counterspell.js';
+import {registerArcaneReflection} from './premades/arcane-reflection.js';
+import {registerAdjustReality} from './premades/adjust-reality.js';
+import {registerConfusingAura} from './premades/confusing-aura.js';
+import {registerCloakingBlast} from './premades/cloaking-blast.js';
+import {registerArcanaTouched} from './premades/arcana-touched.js';
 import {registerFlight} from './premades/flight.js';
 import {registerIAmYourShield} from './premades/i-am-your-shield.js';
 import {registerCinderGrasp} from './premades/cinder-grasp.js';
@@ -626,8 +631,11 @@ Hooks.once('ready', async () => {
   registerArmorResplendent();
   registerCounterspell();
   registerFlight();
+  registerArcanaTouched();
+  registerCloakingBlast();
   // Avoid incoming attacks before recipient reductions or redirection are offered.
   registerScramble();
+  registerArcaneReflection();
   registerArcaneDeflection();
   registerWallOfFlame();
   registerVersatileFighter();
@@ -656,6 +664,7 @@ Hooks.once('ready', async () => {
   registerSupportTank();
   registerChampion();
   registerSignature();
+  registerDedicated();
   registerTeleport();
   registerManifestWall();
   // Observe final HP receipts after every recipient defense/prevention wrapper.
@@ -677,6 +686,8 @@ Hooks.once('ready', async () => {
   registerRally();
   registerUnstoppable();
   registerHoldThemOff();
+  registerConfusingAura();
+  registerAdjustReality();
   registerDamageDefenseWorkflow();
   installDamageContextQuery();
   if (game.user.isActiveGM) {

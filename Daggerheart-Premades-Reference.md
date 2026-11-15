@@ -1,8 +1,8 @@
 # Daggerheart Premade Reference
 
-How all 264 premades work by compendium
+How all 270 premades work by compendium
 
-Daggerheart Premades 0.5.4   |   Daggerheart 2.12.6   |   November 5 2026
+Daggerheart Premades 0.6.0   |   Daggerheart 2.12.9   |   November 15 2026
 
 This reference explains how each premade works at the table: what you activate, what triggers automatically, which choices and costs appear, and what remains manual. It covers every entry in the nine module compendiums. Upgrades have their own entries even when they only enhance another feature.
 
@@ -618,15 +618,35 @@ Target one ally and use Grant Extra Downtime Move, spending the once-per-session
 
 ## Domain Cards
 
-73 premades
+78 premades
 
-The current Domain Cards premades cover selected level 1–5 cards. Native spell, grimoire, and ability mechanics are preserved unless an entry describes a specific change. Other cards in the system’s domain browser are not part of this premade catalog.
+The current Domain Cards premades cover selected level 1–10 cards. Native spell, grimoire, and ability mechanics are preserved unless an entry describes a specific change. Other cards in the system’s domain browser are not part of this premade catalog.
 
 ### Arcana
+
+#### Adjust Reality
+
+Spend 5 Hope to change the total of a supported roll before consequences. The picker accepts plausible totals and preserves the original dice, Hope or Fear outcome, and critical status. Action and reaction offers follow the initial chat card and 3D dice. Party allies must approve changes to their public rolls. Use the manual Spend Hope action for unsupported rolls.
+
+#### Arcana-Touched
+
+With at least four Arcana cards in your loadout, the native effect adds +1 to Spellcast Rolls. Roll Resolution offers swapping unequal Hope and Fear results after an action roll. The total stays the same. The swap spends one use, which returns on a rest.
+
+#### Arcane Reflection
+
+Before damage reduction, choose how much Hope to spend against magic damage from an identified caster. Roll one d6 per Hope. Any 6 sends the magic damage to the caster, whose defenses apply. On a failure, resolve the original damage normally. Reflect Back is available for manual use when the caster is unknown.
 
 #### Chain Lightning
 
 Cast uses the native attack, Stress cost, initial targeting and damage. After damage is applied, the chain automatically reaches previously untargeted adversaries within Close of damaged targets. New waves use native reaction rolls against the original Spellcast result and native 2d8+4 magic damage, with no additional attack or Stress payment. Chain Damage is an automatic-workflow reminder. The GM must view the cast scene.
+
+#### Cloaking Blast
+
+After a successful Spellcast Roll for another spell, spend 1 Hope to become Cloaked. The next completed attack ends Cloaked, and a hit made while Cloaked keeps its Sneak Attack bonus when rolling damage. Remove Cloaked manually when you move into or within an adversary’s line of sight.
+
+#### Confusing Aura
+
+A successful Spellcast Roll (14) creates one layer and spends the long-rest use. Mark Stress for optional additional layers. Each adversary attack rolls one d6 per layer. A 5 or 6 blocks the attack against you and removes one layer. If all dice roll 4 or lower, the aura ends and the original hit or miss stands.
 
 #### Cinder Grasp
 
@@ -1046,7 +1066,7 @@ Use the native action, spending 2 Hope to grant yourself or a Melee ally +1 Evas
 
 ## Community Features
 
-4 premades
+5 premades
 
 ### Freeborne
 
@@ -1059,6 +1079,12 @@ Once per session, Roll Resolution offers changing your action roll with Fear to 
 #### Hardy
 
 Completing Take Downtime with selected activities during a short or long rest automatically clears 1 marked HP, once for that rest window, with a chat notice only when healing occurs. Opening, rerendering, or canceling downtime does not heal. The standalone action is a reminder rather than a second way to collect the benefit.
+
+### Orderborne
+
+#### Dedicated
+
+Use the feature to prepare a d20 Hope Die for your next completed action roll. Use it again to cancel. Reactions and canceled rolls leave it ready. Completing an action roll spends the use, and resting restores the use and clears preparation. If Signature Move is also prepared, Dedicated applies first.
 
 ### Seaborne
 

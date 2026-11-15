@@ -187,6 +187,11 @@ import {ensureChannelRawPower} from "./premades/channel-raw-power-data.js";
 import {ensureVolatileMagic} from "./premades/volatile-magic-data.js";
 import {ensurePrayerDice} from "./premades/prayer-dice-data.js";
 import {ensureCounterspell} from './premades/counterspell-data.js';
+import {ensureArcaneReflection} from './premades/arcane-reflection-data.js';
+import {ensureAdjustReality} from './premades/adjust-reality-data.js';
+import {ensureConfusingAura} from './premades/confusing-aura-data.js';
+import {ensureCloakingBlast} from './premades/cloaking-blast-data.js';
+import {ensureArcanaTouched} from './premades/arcana-touched-data.js';
 import {ensureFlight} from './premades/flight-data.js';
 import {ensureScramble} from './premades/scramble-data.js';
 import {ensureVersatileFighter} from './premades/versatile-fighter-data.js';
@@ -238,6 +243,7 @@ import {ensureComboStrike} from "./premades/combo-strike-data.js";
 import {ensureIAmTheWeapon} from "./premades/i-am-the-weapon-data.js";
 import {ensureMarkedForDeath} from "./premades/marked-for-death-data.js";
 import {ensureKnowTheTide} from "./premades/know-the-tide-data.js";
+import {ensureDedicated} from "./premades/dedicated-data.js";
 import {ensureBraveFace} from "./premades/brave-face-data.js";
 import {ensureHardy} from "./premades/hardy-data.js";
 import {ensureUnbound} from "./premades/unbound-data.js";
@@ -430,6 +436,7 @@ export const PREMADE_SEEDS=[
   ensureEtherealVisage,
   ensurePowerOfTheGods,
   ensureBraveFace,
+  ensureDedicated,
   ensureRuneWard,
   ensureNotGoodEnough,
   ensureWhirlwind,
@@ -460,6 +467,11 @@ export const PREMADE_SEEDS=[
   ensureBoldPresence,
   ensureCounterspell,
   ensureFlight,
+  ensureArcanaTouched,
+  ensureCloakingBlast,
+  ensureConfusingAura,
+  ensureAdjustReality,
+  ensureArcaneReflection,
   ensureScramble,
   ensureVersatileFighter,
   ensureTactician,

@@ -3,6 +3,7 @@ import {ID} from './core.js';
 // Converted successes intentionally retain their original dice total.
 export const convertedAttackSuccess=roll=>Boolean(roll?.isCritical||roll?.options?.[ID]?.trueStrike||roll?.options?.[ID]?.witchsCharm);
 export function attackTargetOutcome(roll,target){
+  if(target?.confusingAuraBlocked)return 'failure';
   if(!Number.isFinite(roll?.total))return 'unknown';
   if(convertedAttackSuccess(roll))return 'success';
   const value=target?.difficulty||target?.evasion,threshold=Number(value);
@@ -29,10 +30,10 @@ export function attackHitTargets(message){
 export function resolvedAttackOutcome(message){
   const data=message?.system,roll=data?.roll;
   if(data?.action?.type!=='attack'||!Number.isFinite(roll?.total))return 'unknown';
-  if(convertedAttackSuccess(roll))return 'success';
   const targets=resolvedAttackTargets(message),outcomes=targets.map(target=>attackTargetOutcome(roll,target));
   if(outcomes.includes('success'))return 'success';
   if(outcomes.length)return outcomes.every(result=>result==='failure')?'failure':'unknown';
+  if(convertedAttackSuccess(roll))return 'success';
   const difficulty=Number(roll.difficulty);
   return Number.isFinite(difficulty)&&difficulty>0?(roll.total>=difficulty?'success':'failure'):'unknown';
 }
