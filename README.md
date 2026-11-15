@@ -4,7 +4,11 @@ Daggerheart Premades is an automation and quality-of-life module for Foundry's D
 
 <img width="2560" height="1440" alt="Screenshot 2026-09-30 at 6 58 52 PM (3)" src="https://github.com/user-attachments/assets/861ea724-8d95-4df0-a230-5342c3de6fe6" />
 
-Install with the [module manifest](https://github.com/smeeth123/daggerheart-premades/releases/latest/download/module.json).
+Paste this manifest URL into **Install Module** in Foundry.
+
+```text
+https://github.com/smeeth123/daggerheart-premades/releases/latest/download/module.json
+```
 
 ## Key features
 
