@@ -45,6 +45,14 @@ export async function primeFocus(actor){
     return true;
   }catch(error){if(isHopePaymentCancellation(error))return false;throw error;}});
 }
+function focusAttackTargets(message){
+  const targets=resolvedAttackTargets(message);
+  const hold=message?.flags?.[ID]?.holdThemOff;
+  // Hold Them Off adds targets after the Ranger chose the primed attack's target.
+  if(hold?.state!=='complete'||!Array.isArray(hold.targets))return targets;
+  const additional=new Set(hold.targets);
+  return targets.filter(target=>!additional.has(target.id));
+}
 export async function resolveFocus(request,{user}){
   if(!game.user.isActiveGM||!user?.active)return false;
   const actor=await fromUuid(request.actorUuid);if(!focusItem(actor))return false;
@@ -59,7 +67,7 @@ export async function resolveFocus(request,{user}){
   return withHopeLock(actor.uuid,async()=>{
     const prime=primedFocus(actor);if(!prime||prime.id!==request.primeId)return false;
     const message=await fromUuid(request.messageUuid),data=message?.system;
-    const targets=resolvedAttackTargets(message);
+    const targets=focusAttackTargets(message);
     if(attackBeneficiary(data?.action?.actor)?.uuid!==actor.uuid||data.action.type!=='attack'||!Number.isFinite(data.roll?.total)||targets.length!==1)return false;
     const hit=targets[0],target=await fromUuid(hit.actorId),outcome=attackTargetOutcome(data.roll,hit);
     if(!target||outcome==='unknown')return false;
