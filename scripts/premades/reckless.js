@@ -42,7 +42,7 @@ export function installReckless(Roll,expire){
   if(Object.hasOwn(Roll,WRAPPED))return;
   const native=Roll.build;
   Roll.build=async function(config={},...args){
-    captures.delete(config);
+    // MoveContext captures readiness before Roll.build is entered.
     try{
       const result=await native.call(this,config,...args),used=captures.get(config);
       if(used&&result?.actionType==='action'&&result.evaluate!==false&&Number.isFinite(result.roll?.total)){
