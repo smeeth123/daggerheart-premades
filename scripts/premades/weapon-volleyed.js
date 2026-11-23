@@ -20,7 +20,7 @@ export function validateVolleyCost(action,config){
  // mandatory, in addition to any custom costs on the original weapon attack.
  const cost=config.costs?.at(-1);
  if(!cost||cost.key!=='hope'||cost.itemId||cost.enabled===false||Number(cost.total??cost.value)<1||
-  !game.system.api.fields.ActionFields.CostField.hasCost.call(action,config.costs)){
+  !(config.testSufficientResources?config.testSufficientResources():game.system.api.fields.ActionFields.CostField.hasCost.call(action,config.costs))){
   ui.notifications.warn('Volley requires its 1 Hope cost.');return false;
  }
 }

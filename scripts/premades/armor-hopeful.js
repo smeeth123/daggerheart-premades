@@ -10,7 +10,7 @@ export function recoversArmor(action,config){
 }
 function rollRecoversArmor(config){const actor=config.data?.parent,source=config.source;if(recoversArmor(null,config))return true;if(!source?.action)return false;const item=actor?.items?.get?.(source.item)??actor?.items?.find?.(i=>i.id===source.item),action=item?.actionsList?.find?.(a=>a.id===source.action)??item?.system?.actions?.[source.action]??actor?.system?.actions?.[source.action];return recoversArmor(action,config);}
 export function installHopefulCosts(Cost,ResourceMap,Action){
-  if(Cost&&!Object.hasOwn(Cost,WRAPPED)){const hasCost=Cost.hasCost,calcCosts=Cost.calcCosts,execute=Cost.execute;
+  if(Cost&&typeof Cost.execute==='function'&&!Object.hasOwn(Cost,WRAPPED)){const hasCost=Cost.hasCost,calcCosts=Cost.calcCosts,execute=Cost.execute;
     // Keep native resource values and displayed Hope counts real. Armor extends
     // payment eligibility only; it is not additional Hope in resource dialogs.
     Cost.hasCost=function(costs,...args){const actor=this.actor?.system?.partner??this.actor;if(recoversArmor(this)){const count=Cost.getRealCosts.call(this,costs).filter(c=>c.key==='hope'&&!c.itemId).reduce((sum,c)=>sum+Number(c.total??c.value),0);return Number.isFinite(count)&&count<=Number(actor?.system?.resources?.hope?.value??0)&&hasCost.call(this,costs,...args);}if(!hopefulArmor(actor)||costs?.some(c=>c.key==='hope'&&c.itemId))return hasCost.call(this,costs,...args);const real=Cost.getRealCosts.call(this,costs),count=real.filter(c=>c.key==='hope'&&!c.itemId).reduce((sum,c)=>sum+Number(c.total??c.value),0);return Number.isFinite(count)&&count<=hopeCapacity(actor)&&hasCost.call(this,real.filter(c=>c.key!=='hope'),...args);};
@@ -28,4 +28,37 @@ export function installHopefulCosts(Cost,ResourceMap,Action){
   };Object.defineProperty(Action,WRAPPED,{value:true});}
 }
 export function installHopefulRoll(Roll,Cost){if(!Roll||Object.hasOwn(Roll,WRAPPED))return;const configure=Roll.buildConfigure;Roll.buildConfigure=async function(config,...args){const roll=await configure.call(this,config,...args);if(!roll?.constructFormula||roll._evaluated||config.source?.message||!config.resourceUpdates||plans.has(config.resourceUpdates))return roll;const actor=config.data?.parent?.system?.partner??config.data?.parent,count=Cost.getRealCosts(config.costs??[]).filter(c=>c.key==='hope'&&!c.itemId).reduce((sum,c)=>sum+Number(c.total??c.value),0);if(rollRecoversArmor(config)||!hopefulArmor(actor)||count<1)return roll;installHopefulCosts(null,config.resourceUpdates.constructor,null);const choice=await chooseHopePayment(actor,count,config.title??'Roll');if(choice===null)return null;plans.set(config.resourceUpdates,{actor,choice,label:config.title??'Roll',source:hopefulArmor(actor)?.uuid});return roll;};Object.defineProperty(Roll,WRAPPED,{value:true});}
-export function registerArmorHopeful(){registerHopePaymentQueries();registerHopePaymentPlans();const api=game.system.api,Cost=api.fields.ActionFields.CostField;installHopefulCosts(Cost,null,api.data.actions.actionsTypes.base);for(const Roll of [CONFIG.Dice.daggerheart.D20Roll,CONFIG.Dice.daggerheart.DualityRoll])installHopefulRoll(Roll,Cost);Hooks.on('daggerheart.preUseAction',action=>{if(hopefulArmor(action.actor)===action.item&&action.item.system.armorFeatures.some(f=>f.value==='hopeful'&&f.actionIds?.includes(action.id))){ui.notifications.info('Hopeful automatically offers Armor instead of Hope when you use an ability.');return false;}});}
+// Daggerheart 2.13 moved both affordability and consumption from workflow
+// fields into MoveContext. Keep the same payment plan and actual resource ledger.
+export function installHopefulContext(Context,Cost){
+ if(!Context?.prototype?.spendResources||Object.hasOwn(Context,WRAPPED))return;
+ const sufficient=Context.prototype.testSufficientResources,spend=Context.prototype.spendResources;
+ Context.prototype.testSufficientResources=function(...args){
+  const actor=this.actor?.system?.partner??this.actor,action=this.action??{actor:this.actor};
+  if(!hopefulArmor(actor)||recoversArmor(action,this)||this.costs?.some(c=>c.key==='hope'&&c.itemId))return sufficient.apply(this,args);
+  const costs=Cost.getRealCosts(this.costs??[]),count=costs.filter(c=>c.key==='hope').reduce((n,c)=>n+Number(c.total??c.value),0);
+  return Number.isFinite(count)&&count<=hopeCapacity(actor)&&sufficient.apply(Object.assign(Object.create(this),{costs:costs.filter(c=>c.key!=='hope')}),args);
+ };
+ Context.prototype.spendResources=async function(options={},...args){
+  const actor=this.actor?.system?.partner??this.actor;
+  const count=Cost.getRealCosts(this.costs??[]).filter(c=>c.key==='hope'&&!c.itemId&&(options.alwaysConsume||(!options.successCost&&(!c.consumeOnSuccess||this.roll?.success))||(options.successCost&&c.consumeOnSuccess))).reduce((n,c)=>n+Number(c.total??c.value),0);
+  if(count>0&&hopefulArmor(actor)&&!recoversArmor(this.action,this)&&this.resourceUpdates&&!plans.has(this.resourceUpdates)){
+   const choice=await chooseHopePayment(actor,count,this.title??this.action?.name);
+   if(choice===null)throw Error('Hopeful payment canceled before resource consumption.');
+   plans.set(this.resourceUpdates,{actor,choice,label:this.title,source:hopefulArmor(actor)?.uuid});
+  }
+  installHopefulCosts(null,this.resourceUpdates?.constructor,null);
+  return spend.call(this,options,...args);
+ };
+ // Scalable limits can include Armor, while the displayed Hope value stays real.
+ if(!Object.hasOwn(Cost,WRAPPED)){
+  const calc=Cost.calcCosts;
+  Cost.calcCosts=function(costs,...args){const rows=calc.call(this,costs,...args),actor=this.actor?.system?.partner??this.actor;
+   if(hopefulArmor(actor)&&!recoversArmor(this)&&!costs?.some(c=>c.key==='hope'&&c.itemId))for(const row of rows)if(row.key==='hope'&&row.scalable)row.maxStep=Math.floor((hopeCapacity(actor)-row.value)/row.step);
+   return rows;
+  };
+  Object.defineProperty(Cost,WRAPPED,{value:true});
+ }
+ Object.defineProperty(Context,WRAPPED,{value:true});
+}
+export function registerArmorHopeful(){registerHopePaymentQueries();registerHopePaymentPlans();const api=game.system.api,Cost=api.fields.ActionFields.CostField;installHopefulCosts(Cost,null,api.data.actions.actionsTypes.base);installHopefulContext(api.data.actions.MoveContext,Cost);for(const Roll of [CONFIG.Dice.daggerheart.D20Roll,CONFIG.Dice.daggerheart.DualityRoll])installHopefulRoll(Roll,Cost);Hooks.on('daggerheart.preUseAction',action=>{if(hopefulArmor(action.actor)===action.item&&action.item.system.armorFeatures.some(f=>f.value==='hopeful'&&f.actionIds?.includes(action.id))){ui.notifications.info('Hopeful automatically offers Armor instead of Hope when you use an ability.');return false;}});}

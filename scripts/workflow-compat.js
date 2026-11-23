@@ -37,14 +37,16 @@ export function installWorkflowCompat(Context,Base){
   Context.prototype.initialize=async function(...args){
     if(this.roll)this.roll={...(this.roll.toObject?.()??this.roll)};
     const full=fullRollData(getData.call(this));
-    this.data={...full,...this.data};
+    // 2.13 makes native data a getter that calls getRollData. Read only our
+    // own cached overrides, then shadow that getter with a writable snapshot.
+    Object.defineProperty(this,'data',{value:{...full,...Object.getOwnPropertyDescriptor(this,'data')?.value},writable:true,configurable:true,enumerable:true});
     // Documents must never become enumerable roll data (or JSON acquires cycles).
     const parent=this.actor??full.parent;
     if(parent)Object.defineProperty(this.data,'parent',{value:parent,configurable:true,enumerable:false});
     return initialize.apply(this,args);
   };
   Context.prototype.getRollData=function(){
-    const full=fullRollData(getData.call(this)),data={...full,...this.data};
+    const full=fullRollData(getData.call(this)),data={...full,...Object.getOwnPropertyDescriptor(this,'data')?.value};
     // Scale is recalculated from the current selected costs by the native
     // context. A cached value must not override a changed dialog selection.
     if(full.scale!==undefined)data.scale=full.scale;
@@ -53,7 +55,7 @@ export function installWorkflowCompat(Context,Base){
   };
   // Keep our existing effect filters in the native context's execution path.
   if(typeof Base.getActionRelevantEffects!=='function'){
-    Base.getActionRelevantEffects=function(data,actor){return effects.call({data,actor});};
+    Base.getActionRelevantEffects=function(data,actor){return effects.call({data,actor,getRollData:()=>data});};
     Context.prototype.getActionRelevantEffects=function(){return Base.getActionRelevantEffects(this.data,this.actor);};
   }
   Base.prototype.prepareBaseConfig=function(event,input,...args){
@@ -170,7 +172,7 @@ export function installPlainRollCompat(Roll,Context){
    .map(effect=>[effect.id,{id:effect.id,name:effect.name,description:effect.description,changes:effect.system.changes,origEffect:effect,selected:!effect.disabled}]));
  };
  Roll.buildConfigure=function(config={},...args){
-  config.dialog??={};config.skips??={};config.source??={};
+  config.dialog??={};config.skips??={};config.source??={};config.flags??={};
   if(config.hasRoll===false)config.roll=null;
   else if(config.roll!==null)config.roll??={};
   config.actor??=config.data?.parent??(config.source.actor?foundry.utils.fromUuidSync(config.source.actor):null);

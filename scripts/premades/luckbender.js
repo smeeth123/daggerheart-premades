@@ -163,7 +163,7 @@ export async function showLuckbenderResult(RollClass,roll,config) {
   const cls=getDocumentClass('ChatMessage');
   config.selectedMessageMode??=game.settings.get('core','messageMode');
   const message=await cls.create({type:RollClass.messageType,user:game.user.id,title:roll.title,
-    speaker:cls.getSpeaker({actor:config.actor??roll.data?.parent}),sound:config.mute?null:CONFIG.sounds.dice,
+    speaker:cls.getSpeaker({actor:config.actor??roll.data?.parent}),sound:(config.flags?.mute??config.mute)?null:CONFIG.sounds.dice,
     system:foundry.utils.deepClone(config),rolls:[roll],flags:{[ID]:{luckbenderPending:true}}
   },{messageMode:config.selectedMessageMode});
   if(roll.formula!==''&&game.dice3d)await game.dice3d.waitFor3DAnimationByMessageID(message.id);
